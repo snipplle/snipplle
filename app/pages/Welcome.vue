@@ -47,8 +47,9 @@
   import * as z from 'zod'
   import type { FormSubmitEvent } from '@nuxt/ui'
 
-  const supabase = useSupabaseClient()
   const toast = useToast()
+  const globalStore = useGlobalStore()
+  const { logout } = useLogout()
 
   const state = ref({
     name: ''
@@ -79,6 +80,8 @@
 
         return
       }
+
+      globalStore.setActiveWorkspace(response.slug)
       
       await navigateTo(`/workspace/${response.slug}/snippets`)
     } catch (error: any) {
@@ -89,11 +92,5 @@
         icon: 'i-hugeicons-fire'
       })
     }
-  }
-  
-  async function logout() {
-    await supabase.auth.signOut()
-
-    await navigateTo('/auth/signin')
   }
 </script>
