@@ -16,5 +16,11 @@ export default defineAppConfig({
         label: 'cursor-pointer'
       }
     },
+
+    navigationMenu: {
+      slots: {
+        link: 'cursor-pointer'
+      }
+    }
   }
 })
