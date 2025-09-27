@@ -19,7 +19,10 @@ export default defineEventHandler(async (event) => {
   const { data, error } = await supabase.from('workspaces').insert({
     id: createId(),
     name,
-    slug: slugify(name),
+    slug: slugify(name, {
+      lower: true,
+      remove: /[*+~.()'"!:@]/g
+    }),
   }).select().single()
 
   if (error) {
@@ -34,6 +37,12 @@ export default defineEventHandler(async (event) => {
     workspace_id: data.id,
     user_id: user.id,
     role: 'owner',
+  })
+
+  await supabase.auth.updateUser({
+    data: {
+      onboarding_completed: true
+    }
   })
 
   return data
