@@ -122,7 +122,7 @@
       options: {
         data: {
           display_name: payload.data.name,
-          onboardingCompleted: false
+          onboarding_completed: false
         },
       },
     })
