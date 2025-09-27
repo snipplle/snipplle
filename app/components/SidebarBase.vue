@@ -64,7 +64,7 @@
     }, {
       label: 'Settings',
       icon: 'i-hugeicons-settings-02',
-      to: `/workspace/${activeWorkspace}/settings`
+      to: `/settings`
     }], [{
       label: 'Docs',
       icon: 'i-hugeicons-book-02',
