@@ -1,0 +1,37 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+@theme static {
+  --color-light-gray-50:  #dedee6;
+  --color-light-gray-100: #c2c2ce;
+  --color-light-gray-200: #a6a6b6;
+  --color-light-gray-300: #8a8a9e;
+  --color-light-gray-400: #6f6f86;
+  --color-light-gray-500: #55556b;
+  --color-light-gray-600: #424254;
+  --color-light-gray-700: #30303d;
+  --color-light-gray-800: #1f1f27;
+  --color-light-gray-900: #101014;
+  --color-light-gray-950: #050506;
+}
+
+:root {
+  --ui-bg-dark: #12131A;
+  --ui-bg-light-dark: #181923;
+  --color-primary: #BBEAA6;
+  --color-error: #E74D6A;
+  
+  --ui-primary: var(--color-primary);
+  --ui-error: var(--color-error);
+  --ui-bg: var(--ui-color-white);
+}
+
+.dark {
+  --ui-primary: var(--color-primary);
+  --ui-error: var(--color-error);
+  --ui-bg: var(--ui-bg-dark);
+}
+
+.bg-default {
+  @apply bg-[var(--ui-bg-light-dark)];
+}

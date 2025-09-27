@@ -1,0 +1,88 @@
+import tailwindcss from '@tailwindcss/vite'
+
+// https://nuxt.com/docs/api/configuration/nuxt-config
+export default defineNuxtConfig({
+  compatibilityDate: '2025-07-15',
+  devtools: { enabled: true },
+
+  vite: {
+    plugins: [
+      tailwindcss()
+    ]
+  },
+
+  app: {
+    head: {
+      htmlAttrs: {
+        lang: 'en',
+      },
+      titleTemplate: '%s - %siteName',
+      templateParams: {
+        siteName: 'Snippgarden',
+      },
+    },
+  },
+
+  runtimeConfig: {
+    DATABASE_URL: process.env.DATABASE_URL || '',
+    SELF_HOSTED: process.env.SELF_HOSTED,
+
+    public: {
+      SELF_HOSTED: process.env.SELF_HOSTED,
+    }
+  },
+
+  modules: [
+    '@nuxt/eslint',
+    '@nuxt/ui',
+    '@pinia/nuxt',
+    'pinia-plugin-persistedstate/nuxt',
+    '@vueuse/nuxt',
+    'nuxt-security',
+    '@nuxtjs/seo',
+    '@nuxtjs/supabase',
+  ],
+
+  css: ['~/assets/css/main.css'],
+
+  colorMode: {
+    preference: 'dark',
+  },
+
+  components: [
+    {
+      path: '~/components',
+      pathPrefix: false,
+    },
+  ],
+
+  ui: {
+    theme: {
+      colors: [
+        'primary',
+        'secondary',
+        'info',
+        'success',
+        'warning',
+        'error',
+        'light-gray',
+      ],
+    },
+  },
+
+  imports: {
+    dirs: ['composables', 'composables/*/*.ts', 'types/**/*.ts'],
+  },
+
+  supabase: {
+    redirectOptions: {
+      login: '/auth/signin',
+      exclude: ['/auth/signup'],
+      callback: '/auth/confirm',
+    }
+  },
+
+  security: {
+    enabled: false,
+  }
+})
