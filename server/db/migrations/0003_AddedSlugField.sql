@@ -1,0 +1,1 @@
+ALTER TABLE "snippets" ADD COLUMN "slug" text NOT NULL;
