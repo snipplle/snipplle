@@ -16,7 +16,10 @@
         method: 'GET'
       })
 
-      globalStore.setActiveWorkspace(response.slug)
+      globalStore.setActiveWorkspace({
+        id: response.id,
+        slug: response.slug
+      })
 
       return navigateTo(`/workspace/${response.slug}/snippets`)
     }

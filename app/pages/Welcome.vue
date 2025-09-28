@@ -81,7 +81,10 @@
         return
       }
 
-      globalStore.setActiveWorkspace(response.slug)
+      globalStore.setActiveWorkspace({
+        id: response.id,
+        slug: response.slug
+      })
       
       await navigateTo(`/workspace/${response.slug}/snippets`)
     } catch (error: any) {

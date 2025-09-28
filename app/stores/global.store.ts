@@ -1,7 +1,9 @@
-export const useGlobalStore = defineStore('global', () => {
-  const activeWorkspace = ref<string | undefined>()
+import type { ActiveWorkspace } from '~/types/global.types'
 
-  function setActiveWorkspace(workspace: string) {
+export const useGlobalStore = defineStore('global', () => {
+  const activeWorkspace = ref<ActiveWorkspace | undefined>()
+
+  function setActiveWorkspace(workspace: ActiveWorkspace) {
     activeWorkspace.value = workspace
   }
 
