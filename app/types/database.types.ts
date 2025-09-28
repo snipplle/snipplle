@@ -152,7 +152,7 @@ export type Database = {
           created_at: string
           created_by: string
           description: string | null
-          files: Json
+          files: Json | null
           id: string
           is_public: boolean
           name: string
@@ -163,7 +163,7 @@ export type Database = {
           created_at?: string
           created_by: string
           description?: string | null
-          files: Json
+          files?: Json | null
           id: string
           is_public?: boolean
           name: string
@@ -174,7 +174,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           description?: string | null
-          files?: Json
+          files?: Json | null
           id?: string
           is_public?: boolean
           name?: string
@@ -320,39 +320,42 @@ export type Database = {
           created_at: string
           created_by: string
           description: string | null
-          files: Json
+          files: Json | null
           id: string
+          is_public: boolean
           language: string | null
           name: string
-          path: string
+          path: string | null
+          slug: string
           updated_at: string
-          visibility: Database["public"]["Enums"]["snippet_visibility"]
           workspace_id: string
         }
         Insert: {
           created_at?: string
           created_by: string
           description?: string | null
-          files: Json
+          files?: Json | null
           id: string
+          is_public?: boolean
           language?: string | null
           name: string
-          path: string
+          path?: string | null
+          slug: string
           updated_at?: string
-          visibility?: Database["public"]["Enums"]["snippet_visibility"]
           workspace_id: string
         }
         Update: {
           created_at?: string
           created_by?: string
           description?: string | null
-          files?: Json
+          files?: Json | null
           id?: string
+          is_public?: boolean
           language?: string | null
           name?: string
-          path?: string
+          path?: string | null
+          slug?: string
           updated_at?: string
-          visibility?: Database["public"]["Enums"]["snippet_visibility"]
           workspace_id?: string
         }
         Relationships: [
@@ -536,7 +539,6 @@ export type Database = {
     }
     Enums: {
       role: "owner" | "admin" | "member"
-      snippet_visibility: "private" | "public"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -668,7 +670,6 @@ export const Constants = {
   public: {
     Enums: {
       role: ["owner", "admin", "member"],
-      snippet_visibility: ["private", "public"],
     },
   },
 } as const
