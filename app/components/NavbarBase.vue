@@ -1,6 +1,16 @@
 <template>
   <ClientOnly>
     <UDashboardNavbar :title="pageTitle">
+      <template #leading>
+        <UButton
+          v-if="!isGeneralPath"
+          icon="i-hugeicons-arrow-left-01"
+          color="neutral"
+          variant="link"
+          @click="goBack"
+        />
+      </template>
+
       <template #right>
         <component
           :is="resolveActionButtonComponent(pageTitle)"
@@ -15,6 +25,7 @@
   import { capitalize, type Component } from 'vue'
 
   const route = useRoute()
+  const router = useRouter()
 
   const modals = ref<Record<string, any>>({
     snippets: import('./CreateSnippet.vue'),
@@ -37,4 +48,8 @@
 
     return true
   })
+
+  function goBack(): void {
+    router.back()
+  }
 </script>
