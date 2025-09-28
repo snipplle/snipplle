@@ -2,7 +2,7 @@ import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server'
 import slugify from 'slugify'
 import { createId } from '@paralleldrive/cuid2'
 
-import type { Database } from '~~/types/database.types'
+import type { Database } from '~/types/database.types'
 
 export default defineEventHandler(async (event) => {
   const { name } = await readBody(event)
