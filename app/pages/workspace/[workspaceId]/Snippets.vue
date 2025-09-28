@@ -30,7 +30,11 @@
       </div>
       
       <div class="grid grid-cols-4 gap-4">
-        <SnippetCard v-for="i in 6" :key="i" />
+        <SnippetCard
+          v-for="snippet in snippets"
+          :key="snippet.id"
+          :snippet="snippet"
+        />
       </div>
     </div>
   </ClientOnly>
@@ -39,5 +43,9 @@
 <script setup lang="ts">
   definePageMeta({
     layout: 'workspace'
+  })
+
+  const { data: snippets } = await useFetch('/api/snippet', {
+    method: 'get',
   })
 </script>
