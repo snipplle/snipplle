@@ -77,7 +77,6 @@ export default defineEventHandler(async (event) => {
     await supabase
       .from('snippet_tags')
       .insert({
-        id: createId(),
         snippet_id: data.id,
         tag_id: tagId,
       })
