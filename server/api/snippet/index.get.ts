@@ -27,7 +27,12 @@ export default defineEventHandler(async (event) => {
     
   const { data, error } = await supabase
     .from('snippets')
-    .select('*')
+    .select(`
+      *,
+      snippet_tags(
+        tags(*)
+      )
+    `)
     .in('workspace_id', workspaceIds.map((workspace) => workspace.workspace_id))
 
   if (error) {
