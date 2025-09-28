@@ -5,6 +5,7 @@
     <UDashboardPanel>
       <template #header>
         <NavbarBase />
+        <ToolbarBase :show-toolbar="showToolbar" />
       </template>
 
       <template #body>
@@ -13,3 +14,9 @@
     </UDashboardPanel>
   </UDashboardGroup>
 </template>
+
+<script setup lang="ts">
+  defineProps<{
+    showToolbar?: boolean
+  }>()
+</script>
