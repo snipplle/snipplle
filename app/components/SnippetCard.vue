@@ -24,16 +24,20 @@
 
       <div class="text-sm p-2.5 space-y-3">
         <div class="flex items-center justify-between">
-          <h1 class="font-semibold">Snippet name</h1>
+          <h1 class="font-semibold">{{ snippet.name }}</h1>
 
           <SnippetPreview :code="code" name="Snippet name" />
         </div>
         
         <div class="flex items-center justify-between">
           <div class="space-x-1">
-            <UBadge color="yellow" variant="subtle" size="sm">TypeScript</UBadge>
-            <UBadge color="red" variant="subtle" size="sm">String</UBadge>
-            <!-- <UBadge color="primary" variant="subtle" size="sm">Transform</UBadge> -->
+            <UBadge
+              v-for="tag in tags"
+              :key="tag.id"
+              :color="tag.color"
+              variant="subtle"
+              size="sm"
+            >{{ tag.name }}</UBadge>
           </div>
 
           <div class="flex items-center space-x-1">
@@ -53,9 +57,25 @@
     SandpackCodeViewer
   } from 'sandpack-vue3'
 
+  const props = defineProps<{
+    snippet: any
+  }>()
+
+  const globalStore = useGlobalStore()
+
   const code = 'const users: { id: number; name: string }[] = [\n  { id: 1, name: "Alice" },\n  { id: 2, name: "Bob" },\n  { id: 3, name: "Charlie" },\n]\n\nfunction findUser(id: number) {\n  return users.find(u => u.id === id) ?? { id, name: "Unknown" }\n}\n\nconsole.log(findUser(2))'
 
+  const tags = computed(() => {
+    const tagList = []
+
+    for (const tag of props.snippet.snippet_tags) {
+      tagList.push(tag.tags)
+    }
+    
+    return tagList
+  })
+  
   function openSnippet() {
-    return navigateTo('/workspace/test/snippet/1')
+    return navigateTo(`/workspace/${globalStore.activeWorkspace?.slug}/snippet/${props.snippet.slug}`)
   }
 </script>
