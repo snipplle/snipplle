@@ -6,9 +6,7 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
 
   vite: {
-    plugins: [
-      tailwindcss()
-    ]
+    plugins: [tailwindcss()],
   },
 
   app: {
@@ -29,7 +27,7 @@ export default defineNuxtConfig({
 
     public: {
       SELF_HOSTED: process.env.SELF_HOSTED,
-    }
+    },
   },
 
   modules: [
@@ -100,10 +98,10 @@ export default defineNuxtConfig({
       login: '/auth/signin',
       exclude: ['/auth/signup'],
       callback: '/auth/confirm',
-    }
+    },
   },
 
   security: {
     enabled: false,
-  }
+  },
 })

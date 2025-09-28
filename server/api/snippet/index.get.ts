@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
       message: 'Unauthorized',
     })
   }
-  
+
   const { data: workspaceIds, error: workspaceError } = await supabase
     .from('workspace_members')
     .select('workspace_id')
@@ -24,16 +24,21 @@ export default defineEventHandler(async (event) => {
       message: workspaceError.message,
     })
   }
-    
+
   const { data, error } = await supabase
     .from('snippets')
-    .select(`
+    .select(
+      `
       *,
       snippet_tags(
         tags(*)
       )
-    `)
-    .in('workspace_id', workspaceIds.map((workspace) => workspace.workspace_id))
+    `,
+    )
+    .in(
+      'workspace_id',
+      workspaceIds.map((workspace) => workspace.workspace_id),
+    )
 
   if (error) {
     throw createError({

@@ -2,7 +2,7 @@
   <ClientOnly>
     <UCard
       :ui="{
-        body: 'sm:p-0'
+        body: 'sm:p-0',
       }"
       class="group cursor-pointer"
       @click="openSnippet"
@@ -11,13 +11,18 @@
         <SandpackProvider
           :theme="{
             colors: {
-              surface1: '#1f1f27'
-            }
+              surface1: '#1f1f27',
+            },
           }"
           class="!rounded-t-md !rounded-b-none"
         >
-          <SandpackLayout class="max-h-32 text-xs !border-none !rounded-t-md !rounded-b-none">
-            <SandpackCodeViewer :code="code" class="rounded-t-md rounded-b-none" />
+          <SandpackLayout
+            class="max-h-32 text-xs !border-none !rounded-t-md !rounded-b-none"
+          >
+            <SandpackCodeViewer
+              :code="code"
+              class="rounded-t-md rounded-b-none"
+            />
           </SandpackLayout>
         </SandpackProvider>
       </div>
@@ -28,7 +33,7 @@
 
           <SnippetPreview :code="code" name="Snippet name" />
         </div>
-        
+
         <div class="flex items-center justify-between">
           <div class="space-x-1">
             <UBadge
@@ -37,7 +42,8 @@
               :color="tag.color"
               variant="subtle"
               size="sm"
-            >{{ tag.name }}</UBadge>
+              >{{ tag.name }}</UBadge
+            >
           </div>
 
           <div class="flex items-center space-x-1">
@@ -51,10 +57,11 @@
 </template>
 
 <script setup lang="ts">
+  import type { NavigationFailure, RouteLocationRaw } from 'vue-router'
   import {
     SandpackProvider,
     SandpackLayout,
-    SandpackCodeViewer
+    SandpackCodeViewer,
   } from 'sandpack-vue3'
 
   const props = defineProps<{
@@ -63,7 +70,8 @@
 
   const globalStore = useGlobalStore()
 
-  const code = 'const users: { id: number; name: string }[] = [\n  { id: 1, name: "Alice" },\n  { id: 2, name: "Bob" },\n  { id: 3, name: "Charlie" },\n]\n\nfunction findUser(id: number) {\n  return users.find(u => u.id === id) ?? { id, name: "Unknown" }\n}\n\nconsole.log(findUser(2))'
+  const code =
+    'const users: { id: number; name: string }[] = [\n  { id: 1, name: "Alice" },\n  { id: 2, name: "Bob" },\n  { id: 3, name: "Charlie" },\n]\n\nfunction findUser(id: number) {\n  return users.find(u => u.id === id) ?? { id, name: "Unknown" }\n}\n\nconsole.log(findUser(2))'
 
   const tags = computed(() => {
     const tagList = []
@@ -71,11 +79,14 @@
     for (const tag of props.snippet.snippet_tags) {
       tagList.push(tag.tags)
     }
-    
+
     return tagList
   })
-  
-  function openSnippet() {
-    return navigateTo(`/workspace/${globalStore.activeWorkspace?.slug}/snippet/${props.snippet.slug}`)
+
+  function openSnippet(): // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+  Promise<void | NavigationFailure | false> | false | void | RouteLocationRaw {
+    return navigateTo(
+      `/workspace/${globalStore.activeWorkspace?.slug}/snippet/${props.snippet.slug}`,
+    )
   }
 </script>

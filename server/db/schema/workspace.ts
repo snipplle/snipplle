@@ -24,6 +24,6 @@ export const workspaceRelations = relations(workspace, ({ many, one }) => ({
   apiTokens: many(apiToken),
   subscription: one(subscription, {
     fields: [workspace.id],
-    references: [subscription.workspaceId]
+    references: [subscription.workspaceId],
   }),
 }))

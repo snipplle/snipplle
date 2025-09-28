@@ -28,7 +28,7 @@
           placeholder="Search..."
         />
       </div>
-      
+
       <div class="grid grid-cols-4 gap-4">
         <SnippetCard
           v-for="snippet in snippets"
@@ -42,7 +42,7 @@
 
 <script setup lang="ts">
   definePageMeta({
-    layout: 'workspace'
+    layout: 'workspace',
   })
 
   const { data: snippets } = await useFetch('/api/snippet', {

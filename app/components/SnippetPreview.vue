@@ -15,12 +15,14 @@
           <SandpackProvider
             :theme="{
               colors: {
-                surface1: '#1f1f27'
-              }
+                surface1: '#1f1f27',
+              },
             }"
             class="!rounded-md"
           >
-            <SandpackLayout class="group min-h-24 text-xs !border-none !rounded-md">
+            <SandpackLayout
+              class="group min-h-24 text-xs !border-none !rounded-md"
+            >
               <SandpackCodeViewer :code="code" class="rounded-md" />
             </SandpackLayout>
           </SandpackProvider>
@@ -50,7 +52,7 @@
   import {
     SandpackProvider,
     SandpackLayout,
-    SandpackCodeViewer
+    SandpackCodeViewer,
   } from 'sandpack-vue3'
 
   const props = defineProps<{
@@ -61,14 +63,14 @@
   const { copy } = useClipboard()
   const toast = useToast()
 
-  function copyCode() {
+  function copyCode(): void {
     copy(props.code)
 
     toast.add({
       title: 'Success',
       description: 'Snippet code copied to clipboard',
       color: 'success',
-      icon: 'i-hugeicons-checkmark-circle-01'
+      icon: 'i-hugeicons-checkmark-circle-01',
     })
   }
 </script>

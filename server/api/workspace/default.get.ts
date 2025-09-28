@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
   if (!user) {
     throw createError({
       statusCode: 401,
-      message: 'Unauthorized'
+      message: 'Unauthorized',
     })
   }
 
@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
   if (memberError) {
     throw createError({
       statusCode: 400,
-      message: memberError.message
+      message: memberError.message,
     })
   }
 
@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
   if (error) {
     throw createError({
       statusCode: 400,
-      message: error.message
+      message: error.message,
     })
   }
 

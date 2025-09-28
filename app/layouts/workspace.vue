@@ -6,11 +6,10 @@
       <template #header>
         <NavbarBase />
       </template>
-      
+
       <template #body>
         <slot />
       </template>
     </UDashboardPanel>
   </UDashboardGroup>
 </template>
-

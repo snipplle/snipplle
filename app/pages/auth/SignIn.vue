@@ -1,8 +1,12 @@
 <template>
   <ClientOnly>
-    <div class="relative grid min-h-screen grid-cols-[1fr_1px_auto_1px_1fr] grid-rows-[1fr_1px_auto_1px_1fr] [--pattern-fg:var(--color-gray-950)]/5 dark:[--pattern-fg:var(--color-white)]/10">
+    <div
+      class="relative grid min-h-screen grid-cols-[1fr_1px_auto_1px_1fr] grid-rows-[1fr_1px_auto_1px_1fr] [--pattern-fg:var(--color-gray-950)]/5 dark:[--pattern-fg:var(--color-white)]/10"
+    >
       <div class="col-start-3 row-start-3 flex flex-col">
-        <div class="h-full flex flex-col items-center justify-center gap-4 p-2 z-50">
+        <div
+          class="h-full flex flex-col items-center justify-center gap-4 p-2 z-50"
+        >
           <UPageCard class="w-full min-w-md max-w-md rounded-lg">
             <UAuthForm
               :schema="schema"
@@ -12,23 +16,30 @@
               :providers="providers"
               :submit="{
                 label: 'Sign In',
-                size: 'lg'
+                size: 'lg',
               }"
               :ui="{
-                providers: 'flex space-y-0 space-x-2'
+                providers: 'flex space-y-0 space-x-2',
               }"
               @submit="onSubmit"
             >
               <template #description>
-                Don't have an account? <ULink to="/auth/signup" class="text-primary font-medium">Sign up</ULink>
+                Don't have an account?
+                <ULink to="/auth/signup" class="text-primary font-medium"
+                  >Sign up</ULink
+                >
               </template>
 
               <template #footer>
                 <div class="flex flex-col items-center text-xs space-y-4">
                   <div class="flex space-x-6">
                     <p>© 2025 Snipplle</p>
-                    <ULink to="https://loglybase.com/privacy" external>Privacy Policy</ULink>
-                    <ULink to="https://loglybase.com/terms" external>Terms of Use</ULink>
+                    <ULink to="https://loglybase.com/privacy" external
+                      >Privacy Policy</ULink
+                    >
+                    <ULink to="https://loglybase.com/terms" external
+                      >Terms of Use</ULink
+                    >
                   </div>
                 </div>
               </template>
@@ -53,62 +64,69 @@
   const supabase = useSupabaseClient()
   const toast = useToast()
 
-  const fields = [{
-    name: 'email',
-    type: 'text' as const,
-    label: 'Email',
-    placeholder: 'Enter your email',
-    variant: 'subtle',
-    size: 'lg' as size,
-    required: true
-  }, {
-    name: 'password',
-    label: 'Password',
-    type: 'password' as const,
-    placeholder: 'Enter your password',
-    variant: 'subtle',
-    size: 'lg' as size,
-    required: true
-  }, {
-    name: 'remember',
-    label: 'Remember me',
-    type: 'checkbox' as const
-  }]
+  const fields = [
+    {
+      name: 'email',
+      type: 'text' as const,
+      label: 'Email',
+      placeholder: 'Enter your email',
+      variant: 'subtle',
+      size: 'lg' as size,
+      required: true,
+    },
+    {
+      name: 'password',
+      label: 'Password',
+      type: 'password' as const,
+      placeholder: 'Enter your password',
+      variant: 'subtle',
+      size: 'lg' as size,
+      required: true,
+    },
+    {
+      name: 'remember',
+      label: 'Remember me',
+      type: 'checkbox' as const,
+    },
+  ]
 
-  const providers = [{
-    label: 'Google',
-    icon: 'i-simple-icons-google',
-    size: 'lg' as size,
-    onClick: async () => {
-      await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: 'http://localhost:3000/auth/callback'
-        }
-      })
-    }
-  }, {
-    label: 'GitHub',
-    icon: 'i-simple-icons-github',
-    size: 'lg' as size,
-    onClick: async () => {
-      await supabase.auth.signInWithOAuth({
-        provider: 'github',
-        options: {
-          redirectTo: 'http://localhost:3000/auth/callback'
-        }
-      })
-    }
-  }]
+  const providers = [
+    {
+      label: 'Google',
+      icon: 'i-simple-icons-google',
+      size: 'lg' as size,
+      onClick: async (): Promise<void> => {
+        await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: 'http://localhost:3000/auth/callback',
+          },
+        })
+      },
+    },
+    {
+      label: 'GitHub',
+      icon: 'i-simple-icons-github',
+      size: 'lg' as size,
+      onClick: async (): Promise<void> => {
+        await supabase.auth.signInWithOAuth({
+          provider: 'github',
+          options: {
+            redirectTo: 'http://localhost:3000/auth/callback',
+          },
+        })
+      },
+    },
+  ]
 
   const schema = z.object({
     email: z.email('Email is not valid'),
-    password: z.string().min(8, 'Must be at least 8 characters')
+    password: z.string().min(8, 'Must be at least 8 characters'),
   })
 
   type Schema = z.output<typeof schema>
 
-  async function onSubmit(payload: FormSubmitEvent<Schema>) {
+  async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
     const { error } = await supabase.auth.signInWithPassword({
       email: payload.data.email,
       password: payload.data.password,
@@ -119,7 +137,7 @@
         title: 'Oops',
         description: error.message,
         color: 'error',
-        icon: 'i-hugeicons-fire'
+        icon: 'i-hugeicons-fire',
       })
 
       return

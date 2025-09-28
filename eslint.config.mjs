@@ -2,42 +2,33 @@
 import withNuxt from './.nuxt/eslint.config.mjs'
 import eslintPluginPrettier from 'eslint-plugin-prettier'
 
-export default withNuxt(
-  {
-    plugins: {
-      'prettier': eslintPluginPrettier,
-    },
-    rules: {
-      '@typescript-eslint/interface-name-prefix': 'off',
-      '@typescript-eslint/explicit-function-return-type': 'warn',
-      '@typescript-eslint/explicit-module-boundary-types': 'off',
-      '@typescript-eslint/no-explicit-any': 'off',
-      'semi': 'off',
-      'prettier/prettier': ['error', { 
-        semi: false, 
+export default withNuxt({
+  plugins: {
+    prettier: eslintPluginPrettier,
+  },
+  rules: {
+    '@typescript-eslint/interface-name-prefix': 'off',
+    '@typescript-eslint/explicit-function-return-type': 'warn',
+    '@typescript-eslint/explicit-module-boundary-types': 'off',
+    '@typescript-eslint/no-explicit-any': 'off',
+    'prettier/prettier': [
+      'error',
+      {
+        semi: false,
         endOfLine: 'auto',
         tabWidth: 2,
         singleQuote: true,
-        trailingComma: 'all'
-      }],
-      'newline-before-return': 'error',
-      'padding-line-between-statements': [
-        'error',
-        { blankLine: 'always', prev: ['const', 'let', 'var', 'if'], next: '*' },
-        {
-          blankLine: 'any',
-          prev: ['const', 'let', 'var'],
-          next: ['const', 'let', 'var'],
-        },
-      ],
-      '@typescript-eslint/no-unused-vars': [
-        'warn',
-        {
-          argsIgnorePattern: '^_.*',
-          varsIgnorePattern: '^_.*',
-          caughtErrorsIgnorePattern: '^_',
-        },
-      ],
-    }
-  }
-)
+        trailingComma: 'all',
+        vueIndentScriptAndStyle: true,
+      },
+    ],
+    '@typescript-eslint/no-unused-vars': [
+      'warn',
+      {
+        argsIgnorePattern: '^_.*',
+        varsIgnorePattern: '^_.*',
+        caughtErrorsIgnorePattern: '^_',
+      },
+    ],
+  },
+})

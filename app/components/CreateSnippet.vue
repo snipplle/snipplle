@@ -4,17 +4,15 @@
       v-model:open="isOpen"
       :ui="{
         content: 'divide-y-0',
-        body: 'sm:pt-0 pb-6'
+        body: 'sm:pt-0 pb-6',
       }"
     >
-      <UButton>
-        Create {{ pageTitle }}
-      </UButton>
+      <UButton> Create {{ pageTitle }} </UButton>
 
       <template #header>
         <div class="flex items-center text-white space-x-2">
           <UIcon name="i-hugeicons-document-code" class="text-xl" />
-          
+
           <div>
             <h1 class="font-semibold">{{ `Create ${pageTitle}` }}</h1>
             <p class="text-sm text-neutral-400">Create a new {{ pageTitle }}</p>
@@ -36,11 +34,7 @@
             class="w-full"
             required
           >
-            <UInput
-              v-model="state.name"
-              variant="subtle"
-              class="w-full"
-            />
+            <UInput v-model="state.name" variant="subtle" class="w-full" />
           </UFormField>
 
           <UFormField
@@ -76,17 +70,12 @@
             description="If checked, the snippet will be visible to all users."
             :ui="{
               root: 'justify-between items-center flex-row-reverse',
-              wrapper: 'ms-0'
+              wrapper: 'ms-0',
             }"
           />
 
           <div class="flex justify-between">
-            <UButton
-              color="neutral"
-              variant="subtle"
-              size="sm"
-              @click="close"
-            >
+            <UButton color="neutral" variant="subtle" size="sm" @click="close">
               Close
             </UButton>
             <UButton type="submit">Create snippet</UButton>
@@ -112,26 +101,28 @@
     name: '',
     description: '',
     tags: [] as string[],
-    isPublic: true
+    isPublic: true,
   })
-  
+
   const schema = z.object({
-    name: z.string('Snippet name is required').min(1, 'Snippet name must be at least 1 character long'),
+    name: z
+      .string('Snippet name is required')
+      .min(1, 'Snippet name must be at least 1 character long'),
     description: z.string().optional(),
     tags: z.array(z.string().optional()),
-    isPublic: z.boolean()
+    isPublic: z.boolean(),
   })
 
   type Schema = z.output<typeof schema>
-  
+
   const pageTitle = computed(() => {
     return capitalize(route.fullPath.split('/')[3] as string)
   })
 
-  async function createSnippet(event: FormSubmitEvent<Schema>) {
-    const tagsColored = event.data.tags.map(tag => ({
+  async function createSnippet(event: FormSubmitEvent<Schema>): Promise<void> {
+    const tagsColored = event.data.tags.map((tag) => ({
       name: tag,
-      color: tagColors[Math.floor(Math.random() * tagColors.length)]
+      color: tagColors[Math.floor(Math.random() * tagColors.length)],
     }))
 
     try {
@@ -142,27 +133,29 @@
           description: event.data.description,
           tags: tagsColored,
           isPublic: event.data.isPublic,
-          workspaceId: globalStore.activeWorkspace?.id
-        }
+          workspaceId: globalStore.activeWorkspace?.id,
+        },
       })
 
-      await navigateTo(`/workspace/${globalStore.activeWorkspace?.slug}/snippet/${response.slug}`)
+      await navigateTo(
+        `/workspace/${globalStore.activeWorkspace?.slug}/snippet/${response.slug}`,
+      )
     } catch (error: any) {
       toast.add({
         title: 'Oops',
         description: error.statusMessage,
         color: 'error',
-        icon: 'i-hugeicons-fire'
+        icon: 'i-hugeicons-fire',
       })
     }
   }
 
-  function close() {
+  function close(): void {
     state.value = {
       name: '',
       description: '',
       tags: [],
-      isPublic: true
+      isPublic: true,
     }
 
     isOpen.value = false

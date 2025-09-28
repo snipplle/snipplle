@@ -12,23 +12,27 @@ export default defineEventHandler(async (event) => {
   if (!user) {
     throw createError({
       statusCode: 401,
-      message: 'Unauthorized'
+      message: 'Unauthorized',
     })
   }
-  
-  const { data, error } = await supabase.from('workspaces').insert({
-    id: createId(),
-    name,
-    slug: slugify(name, {
-      lower: true,
-      remove: /[*+~.()'"!:@]/g
-    }),
-  }).select().single()
+
+  const { data, error } = await supabase
+    .from('workspaces')
+    .insert({
+      id: createId(),
+      name,
+      slug: slugify(name, {
+        lower: true,
+        remove: /[*+~.()'"!:@]/g,
+      }),
+    })
+    .select()
+    .single()
 
   if (error) {
     throw createError({
       statusCode: 400,
-      message: error.message
+      message: error.message,
     })
   }
 
@@ -41,8 +45,8 @@ export default defineEventHandler(async (event) => {
 
   await supabase.auth.updateUser({
     data: {
-      onboarding_completed: true
-    }
+      onboarding_completed: true,
+    },
   })
 
   return data

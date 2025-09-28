@@ -5,7 +5,8 @@ import slugify from 'slugify'
 import type { Database } from '~/types/database.types'
 
 export default defineEventHandler(async (event) => {
-  const { name, description, tags, isPublic, workspaceId } = await readBody(event)
+  const { name, description, tags, isPublic, workspaceId } =
+    await readBody(event)
   const user = await serverSupabaseUser(event)
   const supabase = await serverSupabaseClient<Database>(event)
 
@@ -17,7 +18,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const tagIds = []
-  
+
   for (const tag of tags) {
     const { data: existTag } = await supabase
       .from('tags')
@@ -28,7 +29,7 @@ export default defineEventHandler(async (event) => {
     if (existTag) {
       continue
     }
-    
+
     const { data, error } = await supabase
       .from('tags')
       .insert({
@@ -74,12 +75,10 @@ export default defineEventHandler(async (event) => {
   }
 
   for (const tagId of tagIds) {
-    await supabase
-      .from('snippet_tags')
-      .insert({
-        snippet_id: data.id,
-        tag_id: tagId,
-      })
+    await supabase.from('snippet_tags').insert({
+      snippet_id: data.id,
+      tag_id: tagId,
+    })
   }
 
   return data

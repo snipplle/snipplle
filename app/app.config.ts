@@ -23,21 +23,21 @@ export default defineAppConfig({
 
     button: {
       slots: {
-        base: 'cursor-pointer'
-      }
+        base: 'cursor-pointer',
+      },
     },
 
     checkbox: {
       slots: {
         base: 'cursor-pointer',
-        label: 'cursor-pointer'
-      }
+        label: 'cursor-pointer',
+      },
     },
 
     navigationMenu: {
       slots: {
-        link: 'cursor-pointer'
-      }
-    }
-  }
+        link: 'cursor-pointer',
+      },
+    },
+  },
 })

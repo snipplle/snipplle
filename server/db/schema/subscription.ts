@@ -5,7 +5,10 @@ import { workspace } from './workspace'
 
 export const subscription = pgTable('subscriptions', {
   id: text('id').primaryKey().$defaultFn(createId),
-  workspaceId: text('workspace_id').notNull().unique().references(() => workspace.id),
+  workspaceId: text('workspace_id')
+    .notNull()
+    .unique()
+    .references(() => workspace.id),
   plan: text('plan').notNull(),
   status: text('status').notNull(),
   customerId: text('customer_id'),

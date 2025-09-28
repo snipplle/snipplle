@@ -5,16 +5,30 @@ import { relations } from 'drizzle-orm'
 import { snippet } from './snippet'
 import { collection } from './collection'
 
-export const reaction = pgTable('reactions', {
-  id: text('id').primaryKey().$defaultFn(createId),
-  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
-  snippetId: text('snippet_id').references(() => snippet.id, { onDelete: 'cascade' }),
-  collectionId: text('collection_id').references(() => collection.id, { onDelete: 'cascade' }),
-  type: text('type').notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-}, (table) => ({
-  uniqueUserTarget: unique().on(table.userId, table.snippetId, table.collectionId),
-}))
+export const reaction = pgTable(
+  'reactions',
+  {
+    id: text('id').primaryKey().$defaultFn(createId),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    snippetId: text('snippet_id').references(() => snippet.id, {
+      onDelete: 'cascade',
+    }),
+    collectionId: text('collection_id').references(() => collection.id, {
+      onDelete: 'cascade',
+    }),
+    type: text('type').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => ({
+    uniqueUserTarget: unique().on(
+      table.userId,
+      table.snippetId,
+      table.collectionId,
+    ),
+  }),
+)
 
 export const reactionRelations = relations(reaction, ({ one }) => ({
   user: one(user, {
@@ -30,4 +44,3 @@ export const reactionRelations = relations(reaction, ({ one }) => ({
     references: [collection.id],
   }),
 }))
-

@@ -9,15 +9,15 @@
 </template>
 
 <script setup lang="ts">
-  import { capitalize } from 'vue'
+  import { capitalize, type Component } from 'vue'
 
   const route = useRoute()
 
   const modals = ref<Record<string, any>>({
-    snippets: import('./CreateSnippet.vue')
+    snippets: import('./CreateSnippet.vue'),
   })
-  
-  function resolveActionButtonComponent(action: string) {
+
+  function resolveActionButtonComponent(action: string): Component {
     return defineAsyncComponent(() => modals.value[action.toLowerCase()])
   }
 
