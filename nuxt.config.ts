@@ -59,6 +59,7 @@ export default defineNuxtConfig({
   ui: {
     theme: {
       colors: [
+        // main colors
         'primary',
         'secondary',
         'info',
@@ -66,6 +67,26 @@ export default defineNuxtConfig({
         'warning',
         'error',
         'light-gray',
+
+        // tag colors
+        'red',
+        'orange',
+        'amber',
+        'lime',
+        'emerald',
+        'teal',
+        'cyan',
+        'sky',
+        'indigo',
+        'violet',
+        'fuchsia',
+        'rose',
+        'neutral',
+        'green',
+        'blue',
+        'yellow',
+        'purple',
+        'pink',
       ],
     },
   },
