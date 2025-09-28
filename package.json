@@ -24,6 +24,7 @@
     "@vueuse/nuxt": "^13.9.0",
     "drizzle-orm": "^0.44.5",
     "eslint": "^9.36.0",
+    "eslint-plugin-prettier": "^5.5.4",
     "nuxt": "^4.1.2",
     "nuxt-security": "^2.4.0",
     "pinia": "^3.0.3",
