@@ -26,13 +26,13 @@
         <div class="flex items-center justify-between">
           <h1 class="font-semibold">Snippet name</h1>
 
-          <SnippetPreview :code="code" />
+          <SnippetPreview :code="code" name="Snippet name" />
         </div>
         
         <div class="flex items-center justify-between">
           <div class="space-x-1">
-            <UBadge color="info" variant="subtle" size="sm">TypeScript</UBadge>
-            <UBadge color="warning" variant="subtle" size="sm">String</UBadge>
+            <UBadge color="yellow" variant="subtle" size="sm">TypeScript</UBadge>
+            <UBadge color="red" variant="subtle" size="sm">String</UBadge>
             <!-- <UBadge color="primary" variant="subtle" size="sm">Transform</UBadge> -->
           </div>
 
