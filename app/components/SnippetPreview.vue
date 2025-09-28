@@ -24,6 +24,22 @@
               <SandpackCodeViewer :code="code" class="rounded-md" />
             </SandpackLayout>
           </SandpackProvider>
+
+          <div class="flex items-center justify-between pt-2">
+            <h1 class="px-2 font-semibold">Snippet name</h1>
+
+            <div class="space-x-1">
+              <UButton
+                icon="i-hugeicons-copy-01"
+                color="neutral"
+                variant="subtle"
+                size="sm"
+                @click="copyCode"
+              />
+
+              <DownloadSnippet />
+            </div>
+          </div>
         </div>
       </template>
     </UModal>
@@ -37,7 +53,22 @@
     SandpackCodeViewer
   } from 'sandpack-vue3'
 
-  defineProps<{
+  const props = defineProps<{
     code: string
+    name: string
   }>()
+
+  const { copy } = useClipboard()
+  const toast = useToast()
+
+  function copyCode() {
+    copy(props.code)
+
+    toast.add({
+      title: 'Success',
+      description: 'Snippet code copied to clipboard',
+      color: 'success',
+      icon: 'i-hugeicons-checkmark-circle-01'
+    })
+  }
 </script>
