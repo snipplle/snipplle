@@ -12,36 +12,49 @@
 
       <template #content>
         <div class="p-1">
-          <SandpackProvider
-            :theme="{
-              colors: {
-                surface1: '#1f1f27',
-              },
-            }"
-            class="!rounded-md"
-          >
-            <SandpackLayout
-              class="group min-h-24 text-xs !border-none !rounded-md"
-            >
-              <SandpackCodeViewer :code="code" class="rounded-md" />
-            </SandpackLayout>
-          </SandpackProvider>
+          <UTabs :items="items" variant="link">
+            <template #content="{ item }">
+              <div v-if="item.value === 'preview'">
+                <SandpackProvider
+                  v-if="code"
+                  :theme="{
+                    colors: {
+                      surface1: '#1f1f27',
+                    },
+                  }"
+                  class="!rounded-md !p-2"
+                >
+                  <SandpackLayout
+                    class="group min-h-24 text-xs !border-none !rounded-md"
+                  >
+                    <SandpackCodeViewer :code="code" class="rounded-md" />
 
-          <div class="flex items-center justify-between pt-2">
-            <h1 class="px-2 font-semibold">Snippet name</h1>
+                    <UButton
+                      icon="i-hugeicons-copy-01"
+                      color="neutral"
+                      variant="link"
+                      size="sm"
+                      class="absolute top-2 right-2"
+                      @click="copyCode"
+                    />
+                  </SandpackLayout>
+                </SandpackProvider>
 
-            <div class="space-x-1">
-              <UButton
-                icon="i-hugeicons-copy-01"
-                color="neutral"
-                variant="subtle"
-                size="sm"
-                @click="copyCode"
-              />
+                <div
+                  v-else
+                  class="min-h-40 flex flex-col items-center justify-center"
+                >
+                  <UIcon name="i-hugeicons-document-code" class="text-3xl" />
+                  <h1 class="font-semibold">Preview not found</h1>
+                  <p class="text-sm text-neutral-400">
+                    Add a code to your snippet to see it preview here.
+                  </p>
+                </div>
+              </div>
 
-              <DownloadSnippet />
-            </div>
-          </div>
+              <DownloadSnippet v-if="item.value === 'cli'" />
+            </template>
+          </UTabs>
         </div>
       </template>
     </UModal>
@@ -49,6 +62,7 @@
 </template>
 
 <script setup lang="ts">
+  import type { TabsItem } from '@nuxt/ui'
   import {
     SandpackProvider,
     SandpackLayout,
@@ -57,11 +71,21 @@
 
   const props = defineProps<{
     code: string
-    name: string
   }>()
 
   const { copy } = useClipboard()
   const toast = useToast()
+
+  const items = ref<TabsItem[]>([
+    {
+      label: 'Preview',
+      value: 'preview',
+    },
+    {
+      label: 'CLI',
+      value: 'cli',
+    },
+  ])
 
   function copyCode(): void {
     copy(props.code)
