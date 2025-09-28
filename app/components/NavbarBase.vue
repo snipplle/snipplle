@@ -2,7 +2,10 @@
   <ClientOnly>
     <UDashboardNavbar :title="pageTitle">
       <template #right>
-        <component :is="resolveActionButtonComponent(pageTitle)" />
+        <component
+          :is="resolveActionButtonComponent(pageTitle)"
+          v-if="isGeneralPath"
+        />
       </template>
     </UDashboardNavbar>
   </ClientOnly>
@@ -22,6 +25,16 @@
   }
 
   const pageTitle = computed(() => {
-    return capitalize(route.fullPath.split('/')[3] as string)
+    const pathList = route.fullPath.split('/')
+
+    return capitalize(pathList[pathList.length - 1] as string)
+  })
+
+  const isGeneralPath = computed(() => {
+    if (route.fullPath.split('/').length > 4) {
+      return false
+    }
+
+    return true
   })
 </script>
