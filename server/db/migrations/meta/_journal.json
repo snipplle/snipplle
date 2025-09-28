@@ -29,6 +29,13 @@
       "when": 1759069848737,
       "tag": "0003_AddedSlugField",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1759078139729,
+      "tag": "0004_AddedAdditionalFields",
+      "breakpoints": true
     }
   ]
 }
