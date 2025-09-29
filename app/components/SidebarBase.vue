@@ -61,12 +61,12 @@
         {
           label: 'Snippets',
           icon: 'i-hugeicons-document-code',
-          to: `/workspace/${activeWorkspace}/snippets`,
+          to: `/workspace/${activeWorkspace?.slug}/snippets`,
         },
         {
           label: 'Collections',
           icon: 'i-hugeicons-code-folder',
-          to: `/workspace/${activeWorkspace}/collections`,
+          to: `/workspace/${activeWorkspace?.slug}/collections`,
         },
         {
           label: 'Settings',
