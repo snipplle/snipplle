@@ -27,7 +27,7 @@
                   <SandpackLayout
                     class="group min-h-24 text-xs !border-none !rounded-md"
                   >
-                    <SandpackCodeViewer :code="code" class="rounded-md" />
+                    <SandpackCodeViewer :code="preview" class="rounded-md" />
 
                     <UButton
                       icon="i-hugeicons-copy-01"
@@ -68,6 +68,7 @@
     SandpackLayout,
     SandpackCodeViewer,
   } from 'sandpack-vue3'
+  import beautify from 'js-beautify'
 
   const props = defineProps<{
     code: string
@@ -86,6 +87,18 @@
       value: 'cli',
     },
   ])
+
+  const preview = computed(() => {
+    const unescaped = props.code
+      .replace(/\\n/g, '\n')
+      .replace(/\\"/g, '"')
+      .replace(/\\'/g, "'")
+
+    return beautify(unescaped, {
+      indent_size: 2,
+      indent_char: ' ',
+    })
+  })
 
   function copyCode(): void {
     copy(props.code)
