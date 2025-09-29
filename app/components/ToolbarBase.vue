@@ -1,6 +1,6 @@
 <template>
   <ClientOnly>
-    <UDashboardToolbar v-if="showToolbar">
+    <UDashboardToolbar>
       <div class="w-full flex justify-between">
         <USelectMenu
           v-model="selectedVersion"
@@ -17,6 +17,7 @@
             color="warning"
             variant="subtle"
             size="sm"
+            @click="callEvent('toolbar.preview')"
           >
             Preview
           </UButton>
@@ -25,6 +26,7 @@
             color="secondary"
             variant="subtle"
             size="sm"
+            @click="callEvent('toolbar.edit')"
           >
             Edit
           </UButton>
@@ -33,6 +35,7 @@
             color="primary"
             variant="subtle"
             size="sm"
+            @click="callEvent('toolbar.save')"
           >
             Save
           </UButton>
@@ -43,9 +46,7 @@
 </template>
 
 <script setup lang="ts">
-  defineProps<{
-    showToolbar?: boolean
-  }>()
+  const { callEvent } = useEvent()
 
   const items = ref([
     {
