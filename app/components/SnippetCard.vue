@@ -15,13 +15,13 @@
               surface1: '#1f1f27',
             },
           }"
-          class="!rounded-t-md !rounded-b-none"
+          class="card-preview !rounded-t-md !rounded-b-none"
         >
           <SandpackLayout
-            class="max-h-32 text-xs !border-none !rounded-t-md !rounded-b-none"
+            class="max-h-40 text-[8px] !border-none !rounded-t-md !rounded-b-none"
           >
             <SandpackCodeViewer
-              :code="snippet.preview"
+              :code="preview"
               class="rounded-t-md rounded-b-none"
             />
           </SandpackLayout>
@@ -74,12 +74,25 @@
     SandpackLayout,
     SandpackCodeViewer,
   } from 'sandpack-vue3'
+  import beautify from 'js-beautify'
 
   const props = defineProps<{
     snippet: any
   }>()
 
   const globalStore = useGlobalStore()
+
+  const preview = computed(() => {
+    const unescaped = props.snippet.preview
+      .replace(/\\n/g, '\n')
+      .replace(/\\"/g, '"')
+      .replace(/\\'/g, "'")
+
+    return beautify(unescaped, {
+      indent_size: 2,
+      indent_char: ' ',
+    })
+  })
 
   const tags = computed(() => {
     const tagList = []
@@ -98,3 +111,9 @@
     )
   }
 </script>
+
+<style>
+  .card-preview .cm-scroller {
+    overflow: hidden;
+  }
+</style>
