@@ -1,3 +1,8 @@
+export interface ActiveWorkspace {
+  id: string
+  slug: string
+}
+
 export interface UseLogout {
   logout: () => Promise<void>
 }
@@ -19,7 +24,7 @@ export interface UseEvent {
   unsubscribeEvent: () => void
 }
 
-export interface ActiveWorkspace {
-  id: string
-  slug: string
+export interface UseCodeFormat {
+  beautifyCode: (code: string) => string
+  minifyCode: (code: string) => string
 }
