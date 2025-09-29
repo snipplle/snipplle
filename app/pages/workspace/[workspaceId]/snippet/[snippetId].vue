@@ -60,13 +60,12 @@
     SandpackConsole,
   } from 'sandpack-vue3'
   import { LazyEditSnippet } from '#components'
-  import jsStringEscape from 'js-string-escape'
-  import beautify from 'js-beautify'
 
   const { params } = useRoute()
   const { subscribeEvent, unsubscribeEvent } = useEvent()
   const overlay = useOverlay()
   const globalStore = useGlobalStore()
+  const { beautifyCode, minifyCode } = useCodeFormat()
 
   const modal = overlay.create(LazyEditSnippet)
 
@@ -96,15 +95,7 @@
       const response = await fetch(fileUrl)
       const code = await response.text()
 
-      const unescaped = code
-        .replace(/\\n/g, '\n')
-        .replace(/\\"/g, '"')
-        .replace(/\\'/g, "'")
-
-      files.value['index.ts'] = beautify(unescaped, {
-        indent_size: 2,
-        indent_char: ' ',
-      })
+      files.value['index.ts'] = beautifyCode(code)
     },
     {
       deep: true,
@@ -141,7 +132,7 @@
   }
 
   async function saveSnippet(): Promise<void> {
-    const escapedCode = jsStringEscape(files.value['index.ts'])
+    const escapedCode = minifyCode(files.value['index.ts'])
 
     try {
       await $fetch(`/api/snippet/${params.snippetId}`, {
