@@ -18,3 +18,6 @@ export const tagColors = [
   'purple',
   'pink',
 ]
+
+export const editorHtml =
+  '<!DOCTYPE html><html><head><style>html, body { background: #181923 !important; }</style></head><body><div id="root"></div></body></html>'
