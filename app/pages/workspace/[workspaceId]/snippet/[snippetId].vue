@@ -1,6 +1,6 @@
 <template>
   <ClientOnly>
-    <NuxtLayout name="workspace" :show-toolbar="true">
+    <NuxtLayout name="editor">
       <div class="h-full">
         <SandpackProvider
           :theme="{
@@ -12,22 +12,21 @@
             autorun: false,
             classes: {
               'sp-preview-container': '!bg-[#181923]',
+              'sp-code-editor': '!min-w-150 !w-full',
             },
           }"
           template="vanilla-ts"
-          :files="{
-            'index.html': html,
-            'index.ts': code,
-          }"
+          :files="files"
           class="!rounded-md !h-full"
         >
           <SandpackLayout
             class="group min-h-24 h-full text-xs !border border-neutral-700 !rounded-md"
           >
-            <div class="flex flex-col">
+            <div class="flex flex-col" :class="{ '!w-full': !previewEnabled }">
               <SandpackCodeEditor
                 :show-tabs="false"
-                class="rounded-l-md h-full"
+                :show-line-numbers="true"
+                class="rounded-tl-md h-full max-h-[calc(100vh-321px)]"
               />
               <USeparator
                 orientation="horizontal"
@@ -35,13 +34,17 @@
                   border: 'border-zinc-800',
                 }"
               />
-              <SandpackConsole class="!h-40" />
+              <SandpackConsole :standalone="true" class="!h-40" />
             </div>
             <SandpackPreview
+              v-if="previewEnabled"
               :show-open-in-code-sandbox="false"
               class="!h-full"
             />
           </SandpackLayout>
+          <CodeEditorListener
+            @change="(newCode) => (files['index.ts'] = newCode)"
+          />
         </SandpackProvider>
       </div>
     </NuxtLayout>
@@ -56,9 +59,107 @@
     SandpackPreview,
     SandpackConsole,
   } from 'sandpack-vue3'
+  import { LazyEditSnippet } from '#components'
+  import jsStringEscape from 'js-string-escape'
+  import beautify from 'js-beautify'
 
-  const html =
-    '<!DOCTYPE html><html><head><style>html, body { background: #181923 !important; }</style></head><body><div id="root"></div></body></html>'
-  const code =
-    'const users: { id: number; name: string }[] = [\n  { id: 1, name: "Alice" },\n  { id: 2, name: "Bob" },\n  { id: 3, name: "Charlie" },\n]\n\nfunction findUser(id: number) {\n  return users.find(u => u.id === id) ?? { id, name: "Unknown" }\n}\n\nconsole.log(findUser(2))'
+  const { params } = useRoute()
+  const { subscribeEvent, unsubscribeEvent } = useEvent()
+  const overlay = useOverlay()
+  const globalStore = useGlobalStore()
+
+  const modal = overlay.create(LazyEditSnippet)
+
+  const previewEnabled = ref(false)
+  const files = ref({
+    'index.html': editorHtml,
+    'index.ts': '',
+  })
+  const language = ref('ts')
+
+  const { data: snippet } = await useFetch(
+    `/api/snippet/${params.snippetId}?workspaceId=${globalStore.activeWorkspace?.id}`,
+    {
+      method: 'get',
+    },
+  )
+
+  watch(
+    () => snippet.value?.snippetFile,
+    async (fileUrl) => {
+      if (!fileUrl) {
+        files.value['index.ts'] = ''
+
+        return
+      }
+
+      const response = await fetch(fileUrl)
+      const code = await response.text()
+
+      const unescaped = code
+        .replace(/\\n/g, '\n')
+        .replace(/\\"/g, '"')
+        .replace(/\\'/g, "'")
+
+      files.value['index.ts'] = beautify(unescaped, {
+        indent_size: 2,
+        indent_char: ' ',
+      })
+    },
+    {
+      deep: true,
+      immediate: true,
+    },
+  )
+
+  watch(
+    () => subscribeEvent.value,
+    (newEvent) => {
+      if (newEvent) {
+        switch (newEvent) {
+          case 'toolbar.preview':
+            enablePreview()
+
+            break
+          case 'toolbar.edit':
+            modal.open()
+
+            break
+          case 'toolbar.save':
+            saveSnippet()
+
+            break
+        }
+
+        unsubscribeEvent()
+      }
+    },
+  )
+
+  function enablePreview(): void {
+    previewEnabled.value = !previewEnabled.value
+  }
+
+  async function saveSnippet(): Promise<void> {
+    const escapedCode = jsStringEscape(files.value['index.ts'])
+
+    try {
+      await $fetch(`/api/snippet/${params.snippetId}`, {
+        method: 'PUT',
+        body: {
+          workspaceId: globalStore.activeWorkspace?.id,
+          snippetCode: escapedCode,
+          language: language.value,
+        },
+      })
+    } catch (error) {
+      console.log(error)
+    }
+  }
 </script>
+
+<style>
+  .cm-lineNumbers {
+    font-size: 12px !important;
+  }
+</style>
