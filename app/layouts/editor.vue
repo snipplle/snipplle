@@ -5,6 +5,7 @@
     <UDashboardPanel>
       <template #header>
         <NavbarBase />
+        <ToolbarBase />
       </template>
 
       <template #body>
