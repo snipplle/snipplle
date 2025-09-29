@@ -25,6 +25,8 @@
     "drizzle-orm": "^0.44.5",
     "eslint": "^9.36.0",
     "eslint-plugin-prettier": "^5.5.4",
+    "js-beautify": "^1.15.4",
+    "js-string-escape": "^1.0.1",
     "nuxt": "^4.1.2",
     "nuxt-security": "^2.4.0",
     "pinia": "^3.0.3",
@@ -40,6 +42,8 @@
   },
   "devDependencies": {
     "@iconify-json/hugeicons": "^1.2.16",
+    "@types/js-beautify": "^1.14.3",
+    "@types/js-string-escape": "^1.0.3",
     "drizzle-kit": "^0.31.4",
     "supabase": "^2.40.7"
   }
