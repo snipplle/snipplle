@@ -11,7 +11,7 @@
 
       <template #header>
         <div class="flex items-center text-white space-x-2">
-          <UIcon name="i-hugeicons-document-code" class="text-xl" />
+          <UIcon name="i-hugeicons-document-code" class="text-3xl" />
 
           <div>
             <h1 class="font-semibold">{{ `Create ${pageTitle}` }}</h1>
