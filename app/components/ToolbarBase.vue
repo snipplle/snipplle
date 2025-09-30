@@ -17,7 +17,7 @@
             color="warning"
             variant="subtle"
             size="sm"
-            @click="callEvent('toolbar.preview')"
+            @click="call('toolbar:preview')"
           >
             Preview
           </UButton>
@@ -26,7 +26,7 @@
             color="secondary"
             variant="subtle"
             size="sm"
-            @click="callEvent('toolbar.edit')"
+            @click="call('toolbar:edit')"
           >
             Edit
           </UButton>
@@ -35,7 +35,7 @@
             color="primary"
             variant="subtle"
             size="sm"
-            @click="callEvent('toolbar.save')"
+            @click="call('toolbar:save')"
           >
             Save
           </UButton>
@@ -46,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-  const { callEvent } = useEvent()
+  const { call } = useToolbarEvent()
 
   const items = ref([
     {

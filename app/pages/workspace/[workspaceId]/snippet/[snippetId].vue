@@ -62,10 +62,10 @@
   import { LazyEditSnippet } from '#components'
 
   const { params } = useRoute()
-  const { subscribeEvent, unsubscribeEvent } = useEvent()
   const overlay = useOverlay()
   const globalStore = useGlobalStore()
   const { beautifyCode, minifyCode } = useCodeFormat()
+  const { listen } = useToolbarEvent()
 
   const modal = overlay.create(LazyEditSnippet)
 
@@ -103,29 +103,9 @@
     },
   )
 
-  watch(
-    () => subscribeEvent.value,
-    (newEvent) => {
-      if (newEvent) {
-        switch (newEvent) {
-          case 'toolbar.preview':
-            enablePreview()
-
-            break
-          case 'toolbar.edit':
-            modal.open()
-
-            break
-          case 'toolbar.save':
-            saveSnippet()
-
-            break
-        }
-
-        unsubscribeEvent()
-      }
-    },
-  )
+  listen('toolbar:preview', enablePreview)
+  listen('toolbar:edit', modal.open)
+  listen('toolbar:save', saveSnippet)
 
   function enablePreview(): void {
     previewEnabled.value = !previewEnabled.value
