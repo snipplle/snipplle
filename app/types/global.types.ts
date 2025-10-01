@@ -17,6 +17,6 @@ export interface UseCodeFormat {
 }
 
 export interface UseToolbarEvent {
-  call: (event: ToolbarEvent) => void
+  call: (event: ToolbarEvent, ...args: any[]) => void
   listen: (event: ToolbarEvent, callback: (...args: any[]) => void) => void
 }

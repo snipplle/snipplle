@@ -1,5 +1,5 @@
 export type ToolbarEvent =
-  | 'toolbar:update-version'
+  | 'toolbar:change-version'
   | 'toolbar:preview'
   | 'toolbar:edit'
   | 'toolbar:save'
