@@ -2,6 +2,7 @@ import {
   boolean,
   integer,
   json,
+  pgEnum,
   pgTable,
   text,
   timestamp,
@@ -14,6 +15,8 @@ import { workspace } from './workspace'
 import { snippetVersion } from './snippetVersion'
 import { snippetTag } from './snippetTag'
 import { reaction } from './reaction'
+
+export const PreviewMode = pgEnum('preview_mode', ['none', 'console', 'full'])
 
 export const snippet = pgTable(
   'snippets',
@@ -33,6 +36,7 @@ export const snippet = pgTable(
     preview: text('preview'),
     downloads: integer('downloads').default(0).notNull(),
     isPublic: boolean('is_public').default(true).notNull(),
+    previewMode: PreviewMode('preview_mode').default('none').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
