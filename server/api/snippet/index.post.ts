@@ -2,7 +2,7 @@ import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
 import { createId } from '@paralleldrive/cuid2'
 import slugify from 'slugify'
 
-import type { Database } from '~/types/database.types'
+import type { Database } from '~~/server/types/database.types'
 
 export default defineEventHandler(async (event) => {
   const { name, description, tags, isPublic, workspaceId } =
@@ -27,6 +27,8 @@ export default defineEventHandler(async (event) => {
       .single()
 
     if (existTag) {
+      tagIds.push(existTag.id)
+
       continue
     }
 
