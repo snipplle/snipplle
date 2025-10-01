@@ -283,27 +283,30 @@ export type Database = {
       snippet_versions: {
         Row: {
           created_at: string
-          files: Json
+          files: Json | null
           id: string
+          is_latest: boolean
           path: string
           snippet_id: string
-          version: string
+          version: number
         }
         Insert: {
           created_at?: string
-          files: Json
+          files?: Json | null
           id: string
+          is_latest?: boolean
           path: string
           snippet_id: string
-          version: string
+          version: number
         }
         Update: {
           created_at?: string
-          files?: Json
+          files?: Json | null
           id?: string
+          is_latest?: boolean
           path?: string
           snippet_id?: string
-          version?: string
+          version?: number
         }
         Relationships: [
           {
@@ -326,7 +329,6 @@ export type Database = {
           is_public: boolean
           language: string | null
           name: string
-          path: string | null
           preview: string | null
           slug: string
           updated_at: string
@@ -342,7 +344,6 @@ export type Database = {
           is_public?: boolean
           language?: string | null
           name: string
-          path?: string | null
           preview?: string | null
           slug: string
           updated_at?: string
@@ -358,7 +359,6 @@ export type Database = {
           is_public?: boolean
           language?: string | null
           name?: string
-          path?: string | null
           preview?: string | null
           slug?: string
           updated_at?: string
