@@ -3,8 +3,9 @@
     <UDashboardToolbar>
       <div class="w-full flex justify-between">
         <USelectMenu
+          v-if="versions.length"
           v-model="selectedVersion"
-          :items="items"
+          :items="versions"
           color="neutral"
           variant="subtle"
           size="sm"
@@ -46,17 +47,31 @@
 </template>
 
 <script setup lang="ts">
+  const props = defineProps<{
+    versions: any[]
+  }>()
+
   const { call } = useToolbarEvent()
 
-  const items = ref([
-    {
-      label: 'latest',
-      value: 'v-latest',
-    },
-    {
-      label: 'v1.0.0',
-      value: 'v1.0.0',
-    },
-  ])
-  const selectedVersion = ref(items.value[0])
+  const versions = computed(() => {
+    if (!props.versions) {
+      return []
+    }
+
+    const versionList = props.versions.map((version) => ({
+      label: version.is_latest ? 'latest' : `Version ${version.version}`,
+      value: version.id,
+      is_latest: version.is_latest,
+    }))
+
+    return versionList.sort((a, b) => b.is_latest - a.is_latest)
+  })
+
+  const selectedVersion = ref(
+    versions.value.find((version) => version.is_latest),
+  )
+
+  watch(selectedVersion, (newVersion) => {
+    call('toolbar:change-version', newVersion?.value)
+  })
 </script>

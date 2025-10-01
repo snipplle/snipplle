@@ -1,6 +1,6 @@
 <template>
   <ClientOnly>
-    <NuxtLayout name="editor">
+    <NuxtLayout name="editor" :versions="snippet.snippet_versions">
       <div class="h-full">
         <SandpackProvider
           :theme="{
@@ -76,7 +76,7 @@
   })
   const language = ref('ts')
 
-  const { data: snippet } = await useFetch(
+  const { data: snippet } = await useFetch<any>(
     `/api/snippet/${params.snippetId}?workspaceId=${globalStore.activeWorkspace?.id}`,
     {
       method: 'get',
@@ -103,9 +103,27 @@
     },
   )
 
+  listen('toolbar:change-version', changeVersion)
   listen('toolbar:preview', enablePreview)
   listen('toolbar:edit', modal.open)
   listen('toolbar:save', saveSnippet)
+
+  async function changeVersion(versionId: string): Promise<void> {
+    const version = await $fetch(`/api/snippet/version/${versionId[0]}`, {
+      method: 'get',
+    })
+
+    if (!version?.snippetFile) {
+      files.value['index.ts'] = ''
+
+      return
+    }
+
+    const response = await fetch(version?.snippetFile)
+    const code = await response.text()
+
+    files.value['index.ts'] = beautifyCode(code)
+  }
 
   function enablePreview(): void {
     previewEnabled.value = !previewEnabled.value
@@ -115,9 +133,10 @@
     const escapedCode = minifyCode(files.value['index.ts'])
 
     try {
-      await $fetch(`/api/snippet/${params.snippetId}`, {
-        method: 'PUT',
+      await $fetch(`/api/snippet/${snippet.value?.id}`, {
+        method: 'PUT' as any,
         body: {
+          slug: params.snippetId,
           workspaceId: globalStore.activeWorkspace?.id,
           snippetCode: escapedCode,
           language: language.value,

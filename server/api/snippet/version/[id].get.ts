@@ -3,8 +3,7 @@ import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
 import type { Database } from '~~/server/types/database.types'
 
 export default defineEventHandler(async (event) => {
-  const { id: slug } = await getRouterParams(event)
-  const { workspaceId } = getQuery(event)
+  const { id } = await getRouterParams(event)
   const user = await serverSupabaseUser(event)
   const supabase = await serverSupabaseClient<Database>(event)
 
@@ -16,10 +15,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const { data, error } = await supabase
-    .from('snippets')
-    .select('*, snippet_versions(id, version, is_latest, path)')
-    .eq('slug', slug)
-    .eq('workspace_id', workspaceId as string)
+    .from('snippet_versions')
+    .select('path')
+    .eq('id', id)
     .single()
 
   if (error) {
@@ -29,15 +27,12 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const latestVersion = data.snippet_versions.find(
-    (version) => version.is_latest,
-  )
   let snippetFile
 
-  if (latestVersion?.path) {
+  if (data?.path) {
     const { data: file } = await supabase.storage
       .from('snippets')
-      .createSignedUrl(latestVersion.path, 60)
+      .createSignedUrl(data.path, 60)
 
     snippetFile = file?.signedUrl
   }

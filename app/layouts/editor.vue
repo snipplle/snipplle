@@ -5,7 +5,7 @@
     <UDashboardPanel>
       <template #header>
         <NavbarBase />
-        <ToolbarBase />
+        <ToolbarBase :versions="versions" />
       </template>
 
       <template #body>
@@ -14,3 +14,9 @@
     </UDashboardPanel>
   </UDashboardGroup>
 </template>
+
+<script setup lang="ts">
+  defineProps<{
+    versions: any[]
+  }>()
+</script>

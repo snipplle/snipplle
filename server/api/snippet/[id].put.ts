@@ -1,10 +1,11 @@
 import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
+import { createId } from '@paralleldrive/cuid2'
 
-import type { Database } from '~/types/database.types'
+import type { Database } from '~~/server/types/database.types'
 
 export default defineEventHandler(async (event) => {
-  const { id: slug } = await getRouterParams(event)
-  const { workspaceId, snippetCode, language } = await readBody(event)
+  const { id } = await getRouterParams(event)
+  const { slug, workspaceId, snippetCode, language } = await readBody(event)
   const user = await serverSupabaseUser(event)
   const supabase = await serverSupabaseClient<Database>(event)
 
@@ -22,10 +23,27 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  const { data: lastVersion } = await supabase
+    .from('snippet_versions')
+    .update({
+      is_latest: false,
+    })
+    .eq('snippet_id', id)
+    .eq('is_latest', true)
+    .order('created_at', { ascending: false })
+    .select()
+    .single()
+
+  let newVersion = 1
+
+  if (lastVersion) {
+    newVersion = lastVersion.version + 1
+  }
+
   const { data: file, error: uploadError } = await supabase.storage
     .from('snippets')
     .upload(
-      `${workspaceId}/snippets/${slug}/latest/index.${language}`,
+      `${workspaceId}/snippets/${slug}/${newVersion}/index.${language}`,
       snippetCode,
       {
         contentType: 'application/typescript',
@@ -47,14 +65,23 @@ export default defineEventHandler(async (event) => {
     })
     .eq('slug', slug)
     .eq('workspace_id', workspaceId)
+    .select()
     .single()
 
   if (error) {
     throw createError({
-      statusCode: 404,
-      message: 'Snippet not found',
+      statusCode: 400,
+      message: error.message,
     })
   }
+
+  await supabase.from('snippet_versions').insert({
+    id: createId(),
+    snippet_id: id,
+    version: newVersion,
+    is_latest: true,
+    path: file.path,
+  })
 
   return data
 })
