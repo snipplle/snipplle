@@ -36,6 +36,27 @@
       "when": 1759078139729,
       "tag": "0004_AddedAdditionalFields",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1759337052351,
+      "tag": "0005_AddedIsLatestField",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1759339602883,
+      "tag": "0006_ConvertedFieldToOptional",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1759340135562,
+      "tag": "0007_RemovedPathField",
+      "breakpoints": true
     }
   ]
 }

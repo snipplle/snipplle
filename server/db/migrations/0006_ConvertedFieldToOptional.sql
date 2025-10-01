@@ -1,0 +1,1 @@
+ALTER TABLE "snippet_versions" ALTER COLUMN "files" DROP NOT NULL;

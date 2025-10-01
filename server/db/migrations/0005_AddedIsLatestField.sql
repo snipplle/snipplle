@@ -1,0 +1,2 @@
+ALTER TABLE "snippet_versions" ALTER COLUMN "version" TYPE integer USING "version"::integer;--> statement-breakpoint
+ALTER TABLE "snippet_versions" ADD COLUMN "is_latest" boolean DEFAULT false NOT NULL;
