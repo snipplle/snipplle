@@ -4,8 +4,8 @@ import type { ToolbarEvent } from '~/types/event.types'
 export function useToolbarEvent(): UseToolbarEvent {
   const emitter = useEmitter()
 
-  const call = (event: ToolbarEvent): void => {
-    emitter.emit(event)
+  const call = (event: ToolbarEvent, ...args: any[]): void => {
+    emitter.emit(event, { ...args })
   }
 
   const listen = (
