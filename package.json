@@ -18,6 +18,7 @@
     "@nuxtjs/supabase": "1.6.2",
     "@paralleldrive/cuid2": "^2.2.2",
     "@pinia/nuxt": "^0.11.2",
+    "@supabase/supabase-js": "^2.58.0",
     "@tailwindcss/vite": "^4.1.13",
     "@types/node": "^24.5.2",
     "@vueuse/core": "^13.9.0",
