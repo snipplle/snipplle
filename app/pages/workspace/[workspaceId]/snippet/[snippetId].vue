@@ -9,7 +9,7 @@
             },
           }"
           :options="{
-            autorun: false,
+            autorun: previewState === 'none',
             classes: {
               'sp-preview-container': '!bg-[#181923]',
               'sp-code-editor': '!min-w-150 !w-full',
@@ -22,11 +22,21 @@
           <SandpackLayout
             class="group min-h-24 h-full text-xs !border border-neutral-700 !rounded-md"
           >
-            <div class="flex flex-col" :class="{ '!w-full': !previewEnabled }">
+            <div
+              class="flex flex-col"
+              :class="{
+                '!w-full':
+                  previewState === 'console' || previewState === 'none',
+              }"
+            >
               <SandpackCodeEditor
                 :show-tabs="false"
                 :show-line-numbers="true"
-                class="rounded-tl-md h-full max-h-[calc(100vh-321px)]"
+                :show-run-button="previewState !== 'none'"
+                class="rounded-tl-md h-full"
+                :class="{
+                  '!max-h-[calc(100vh-321px)]': previewState !== 'none',
+                }"
               />
               <USeparator
                 orientation="horizontal"
@@ -34,10 +44,14 @@
                   border: 'border-zinc-800',
                 }"
               />
-              <SandpackConsole :standalone="true" class="!h-40" />
+              <SandpackConsole
+                v-if="previewState === 'console' || previewState === 'full'"
+                :standalone="true"
+                class="!h-40"
+              />
             </div>
             <SandpackPreview
-              v-if="previewEnabled"
+              v-if="previewState === 'full'"
               :show-open-in-code-sandbox="false"
               class="!h-full"
             />
@@ -69,7 +83,7 @@
 
   const modal = overlay.create(LazyEditSnippet)
 
-  const previewEnabled = ref(false)
+  const previewState = ref('none')
   const files = ref({
     'index.html': editorHtml,
     'index.ts': '',
@@ -80,6 +94,16 @@
     `/api/snippet/${params.snippetId}?workspaceId=${globalStore.activeWorkspace?.id}`,
     {
       method: 'get',
+    },
+  )
+
+  watch(
+    () => snippet.value?.preview_mode,
+    (previewMode) => {
+      previewState.value = previewMode
+    },
+    {
+      immediate: true,
     },
   )
 
@@ -104,8 +128,8 @@
   )
 
   listen('toolbar:change-version', changeVersion)
-  listen('toolbar:preview', enablePreview)
-  listen('toolbar:edit', modal.open)
+  // listen('toolbar:preview', enablePreview)
+  listen('toolbar:edit', openEditModal)
   listen('toolbar:save', saveSnippet)
 
   async function changeVersion(versionId: string): Promise<void> {
@@ -125,8 +149,14 @@
     files.value['index.ts'] = beautifyCode(code)
   }
 
-  function enablePreview(): void {
-    previewEnabled.value = !previewEnabled.value
+  // function enablePreview(): void {
+  //   previewEnabled.value = !previewEnabled.value
+  // }
+
+  function openEditModal(): void {
+    modal.open({
+      snippet: snippet.value,
+    })
   }
 
   async function saveSnippet(): Promise<void> {
