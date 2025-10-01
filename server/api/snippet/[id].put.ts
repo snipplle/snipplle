@@ -61,6 +61,7 @@ export default defineEventHandler(async (event) => {
     .from('snippets')
     .update({
       preview: snippetCode,
+      language,
       path: file.path,
     })
     .eq('slug', slug)
