@@ -29,7 +29,6 @@ export const snippet = pgTable(
     slug: text('slug').notNull(),
     description: text('description'),
     language: text('language'),
-    path: text('path'),
     files: json('files'),
     preview: text('preview'),
     downloads: integer('downloads').default(0).notNull(),

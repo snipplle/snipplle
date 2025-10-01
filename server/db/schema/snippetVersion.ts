@@ -1,4 +1,12 @@
-import { json, pgTable, text, timestamp, unique } from 'drizzle-orm/pg-core'
+import {
+  boolean,
+  integer,
+  json,
+  pgTable,
+  text,
+  timestamp,
+  unique,
+} from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 import { createId } from '@paralleldrive/cuid2'
 import { snippet } from './snippet'
@@ -10,9 +18,10 @@ export const snippetVersion = pgTable(
     snippetId: text('snippet_id')
       .notNull()
       .references(() => snippet.id, { onDelete: 'cascade' }),
-    version: text('version').notNull(),
+    version: integer('version').notNull(),
+    isLatest: boolean('is_latest').default(false).notNull(),
     path: text('path').notNull(),
-    files: json('files').notNull(),
+    files: json('files'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (table) => {
