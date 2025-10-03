@@ -25,7 +25,7 @@
   import { capitalize, type Component } from 'vue'
 
   const route = useRoute()
-  const router = useRouter()
+  const globalStore = useGlobalStore()
 
   const modals = ref<Record<string, any>>({
     snippets: import('./CreateSnippet.vue'),
@@ -49,7 +49,7 @@
     return true
   })
 
-  function goBack(): void {
-    router.back()
+  async function goBack(): Promise<void> {
+    await navigateTo(`/workspace/${globalStore.activeWorkspace?.slug}/snippets`)
   }
 </script>
