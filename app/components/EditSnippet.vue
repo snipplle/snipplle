@@ -133,6 +133,7 @@
 
   const props = defineProps<{
     snippet: any
+    refreshCallback: () => void
   }>()
 
   const emits = defineEmits(['close'])
@@ -217,6 +218,7 @@
       await navigateTo(
         `/workspace/${globalStore.activeWorkspace?.slug}/snippet/${response.slug}`,
       )
+      await props.refreshCallback()
     } catch (error: any) {
       toast.add({
         title: 'Oops',

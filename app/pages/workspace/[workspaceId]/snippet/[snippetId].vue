@@ -90,7 +90,7 @@
   })
   const language = ref('ts')
 
-  const { data: snippet } = await useFetch<any>(
+  const { data: snippet, refresh } = await useFetch<any>(
     `/api/snippet/${params.snippetId}?workspaceId=${globalStore.activeWorkspace?.id}`,
     {
       method: 'get',
@@ -156,6 +156,7 @@
   function openEditModal(): void {
     modal.open({
       snippet: snippet.value,
+      refreshCallback: refresh,
     })
   }
 
