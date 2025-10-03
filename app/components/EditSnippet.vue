@@ -139,7 +139,6 @@
   const emits = defineEmits(['close'])
 
   const toast = useToast()
-  const globalStore = useGlobalStore()
 
   const items = ref([
     {
@@ -215,9 +214,6 @@
 
       emits('close', false)
 
-      await navigateTo(
-        `/workspace/${globalStore.activeWorkspace?.slug}/snippet/${response.slug}`,
-      )
       await props.refreshCallback()
     } catch (error: any) {
       toast.add({

@@ -1,5 +1,4 @@
 import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
-import slugify from 'slugify'
 
 import type { Database } from '~~/server/types/database.types'
 
@@ -20,10 +19,6 @@ export default defineEventHandler(async (event) => {
     .from('snippets')
     .update({
       name,
-      slug: slugify(name, {
-        lower: true,
-        remove: /[*+~.()'"!:@]/g,
-      }),
       description,
       is_public: isPublic,
     })
