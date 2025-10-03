@@ -146,6 +146,7 @@
         description: error.statusMessage,
         color: 'error',
         icon: 'i-hugeicons-fire',
+        duration: 1500,
       })
     }
   }

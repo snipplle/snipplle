@@ -221,7 +221,8 @@
         title: 'Oops',
         description: error.statusMessage,
         color: 'error',
-        icon: 'i-hugeicons-exclamation-circle-01',
+        icon: 'i-hugeicons-fire',
+        duration: 1500,
       })
     }
   }
@@ -240,6 +241,7 @@
         description: 'Preview mode updated successfully',
         color: 'success',
         icon: 'i-hugeicons-checkmark-circle-01',
+        duration: 1500,
       })
 
       emits('close', false)
@@ -250,7 +252,8 @@
         title: 'Oops',
         description: error.statusMessage,
         color: 'error',
-        icon: 'i-hugeicons-exclamation-circle-01',
+        icon: 'i-hugeicons-fire',
+        duration: 1500,
       })
     }
   }

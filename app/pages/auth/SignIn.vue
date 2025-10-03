@@ -138,6 +138,7 @@
         description: error.message,
         color: 'error',
         icon: 'i-hugeicons-fire',
+        duration: 1500,
       })
 
       return

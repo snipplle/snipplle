@@ -60,6 +60,7 @@
       description: 'Snippet URL copied to clipboard',
       color: 'success',
       icon: 'i-hugeicons-checkmark-circle-01',
+      duration: 1500,
     })
   }
 </script>

@@ -86,6 +86,7 @@
           description: 'Failed to create workspace',
           color: 'error',
           icon: 'i-hugeicons-fire',
+          duration: 1500,
         })
 
         return
@@ -103,6 +104,7 @@
         description: error.statusMessage,
         color: 'error',
         icon: 'i-hugeicons-fire',
+        duration: 1500,
       })
     }
   }
