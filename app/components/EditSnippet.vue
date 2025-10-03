@@ -210,6 +210,7 @@
         description: 'Snippet updated successfully',
         color: 'success',
         icon: 'i-hugeicons-checkmark-circle-01',
+        duration: 1500,
       })
 
       emits('close', false)
@@ -226,6 +227,31 @@
   }
 
   async function updatePreviewMode(): Promise<void> {
-    console.log(previewMode.value)
+    try {
+      await $fetch(`/api/snippet/${props.snippet.id}/preview-update`, {
+        method: 'post',
+        body: {
+          previewMode: previewMode.value,
+        },
+      })
+
+      toast.add({
+        title: 'Success',
+        description: 'Preview mode updated successfully',
+        color: 'success',
+        icon: 'i-hugeicons-checkmark-circle-01',
+      })
+
+      emits('close', false)
+
+      await props.refreshCallback()
+    } catch (error: any) {
+      toast.add({
+        title: 'Oops',
+        description: error.statusMessage,
+        color: 'error',
+        icon: 'i-hugeicons-exclamation-circle-01',
+      })
+    }
   }
 </script>
