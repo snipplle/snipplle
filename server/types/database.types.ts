@@ -330,6 +330,7 @@ export type Database = {
           language: string | null
           name: string
           preview: string | null
+          preview_mode: Database['public']['Enums']['preview_mode']
           slug: string
           updated_at: string
           workspace_id: string
@@ -345,6 +346,7 @@ export type Database = {
           language?: string | null
           name: string
           preview?: string | null
+          preview_mode?: Database['public']['Enums']['preview_mode']
           slug: string
           updated_at?: string
           workspace_id: string
@@ -360,6 +362,7 @@ export type Database = {
           language?: string | null
           name?: string
           preview?: string | null
+          preview_mode?: Database['public']['Enums']['preview_mode']
           slug?: string
           updated_at?: string
           workspace_id?: string
@@ -544,6 +547,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      preview_mode: 'none' | 'console' | 'full'
       role: 'owner' | 'admin' | 'member'
     }
     CompositeTypes: {
@@ -675,6 +679,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      preview_mode: ['none', 'console', 'full'],
       role: ['owner', 'admin', 'member'],
     },
   },
