@@ -135,6 +135,11 @@
     snippet: any
   }>()
 
+  const emits = defineEmits(['close'])
+
+  const toast = useToast()
+  const globalStore = useGlobalStore()
+
   const items = ref([
     {
       label: 'General',
@@ -176,7 +181,6 @@
         isPublic: snippet.is_public,
       }
 
-      console.log(snippet.preview_mode)
       previewMode.value = snippet.preview_mode
     },
     {
@@ -194,7 +198,34 @@
 
   type Schema = z.output<typeof schema>
 
-  async function updateSnippet(event: FormSubmitEvent<Schema>): Promise<void> {}
+  async function updateSnippet(event: FormSubmitEvent<Schema>): Promise<void> {
+    try {
+      const response = await $fetch(`/api/snippet/${props.snippet.id}/edit`, {
+        method: 'post',
+        body: event.data,
+      })
+
+      toast.add({
+        title: 'Success',
+        description: 'Snippet updated successfully',
+        color: 'success',
+        icon: 'i-hugeicons-checkmark-circle-01',
+      })
+
+      emits('close', false)
+
+      await navigateTo(
+        `/workspace/${globalStore.activeWorkspace?.slug}/snippet/${response.slug}`,
+      )
+    } catch (error: any) {
+      toast.add({
+        title: 'Oops',
+        description: error.statusMessage,
+        color: 'error',
+        icon: 'i-hugeicons-exclamation-circle-01',
+      })
+    }
+  }
 
   async function updatePreviewMode(): Promise<void> {
     console.log(previewMode.value)
