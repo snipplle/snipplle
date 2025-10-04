@@ -25,6 +25,7 @@ export default defineEventHandler(async (event) => {
     .from('snippet_versions')
     .select('*')
     .eq('snippet_id', snippetId as string)
+    .order('version', { ascending: false })
 
   if (error) {
     throw createError({

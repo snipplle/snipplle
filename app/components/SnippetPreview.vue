@@ -43,7 +43,7 @@
                 </div>
               </div>
 
-              <DownloadSnippet v-if="item.value === 'cli'" />
+              <DownloadSnippet v-if="item.value === 'cli'" :snippet="snippet" />
             </template>
           </UTabs>
         </div>
@@ -61,6 +61,7 @@
   } from 'sandpack-vue3'
 
   const props = defineProps<{
+    snippet: any
     code: string
   }>()
 

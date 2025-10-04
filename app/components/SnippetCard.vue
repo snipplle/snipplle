@@ -128,6 +128,7 @@
       icon: 'i-hugeicons-view',
       onClick: (): void => {
         modal.open({
+          snippet: props.snippet,
           code: props.snippet.preview,
         })
       },
