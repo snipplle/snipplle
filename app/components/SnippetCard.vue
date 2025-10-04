@@ -29,7 +29,7 @@
 
         <div
           v-else
-          class="min-h-32 bg-[#1f1f27] flex items-center justify-center"
+          class="min-h-40 bg-[#1f1f27] flex items-center justify-center"
         >
           <UIcon
             name="i-hugeicons-document-code"
@@ -57,15 +57,37 @@
         </div>
 
         <div class="flex items-center justify-between">
-          <div class="space-x-1">
+          <div class="flex items-center space-x-1">
             <UBadge
-              v-for="tag in tags"
+              v-for="tag in tags.slice(0, 3)"
               :key="tag.id"
               :color="tag.color"
               variant="subtle"
               size="sm"
-              >{{ tag.name }}</UBadge
             >
+              {{ tag.name }}
+            </UBadge>
+
+            <UPopover v-if="tags.length > 3" mode="hover">
+              <UIcon
+                name="i-hugeicons-plus-sign-circle"
+                class="text-neutral-400"
+              />
+
+              <template #content>
+                <div class="flex p-1 space-x-1">
+                  <UBadge
+                    v-for="tag in tags"
+                    :key="tag.id"
+                    :color="tag.color"
+                    variant="subtle"
+                    size="sm"
+                  >
+                    {{ tag.name }}
+                  </UBadge>
+                </div>
+              </template>
+            </UPopover>
           </div>
 
           <div class="flex items-center space-x-1">
