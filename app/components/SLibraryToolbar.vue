@@ -60,11 +60,26 @@
         </div>
 
         <UInput
+          v-model="searchQuery"
           icon="i-hugeicons-search-01"
           variant="subtle"
           size="sm"
           placeholder="Search..."
-        />
+          :ui="{
+            trailing: 'pe-1',
+          }"
+          @input="call('toolbar:search', $event.target.value)"
+        >
+          <template v-if="searchQuery.length" #trailing>
+            <UButton
+              icon="i-hugeicons-cancel-01"
+              color="neutral"
+              variant="link"
+              size="xs"
+              @click="resetSearch"
+            />
+          </template>
+        </UInput>
       </div>
     </UDashboardToolbar>
   </ClientOnly>
@@ -203,11 +218,19 @@
   ])
   const orderByValue = ref(orderBy.value[0]?.value)
 
+  const searchQuery = ref('')
+
   function resetFilters(): void {
     selectedLanguage.value = undefined
     selectedTag.value = undefined
 
     call('toolbar:filter-language', undefined)
     call('toolbar:filter-tag', undefined)
+  }
+
+  function resetSearch(): void {
+    searchQuery.value = ''
+
+    call('toolbar:search', '')
   }
 </script>

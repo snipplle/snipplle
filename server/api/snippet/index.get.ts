@@ -4,7 +4,7 @@ import type { Database } from '~~/server/types/database.types'
 import { orderByMap } from '~~/server/utils/order'
 
 export default defineEventHandler(async (event) => {
-  const { orderBy, lang, tag } = getQuery(event)
+  const { orderBy, lang, tag, search } = getQuery(event)
   const user = await serverSupabaseUser(event)
   const supabase = await serverSupabaseClient<Database>(event)
 
@@ -56,6 +56,10 @@ export default defineEventHandler(async (event) => {
 
   if (tag) {
     query.eq('snippet_tags.tags.name', tag as string)
+  }
+
+  if (search) {
+    query.ilike('name', `%${search}%`)
   }
 
   const { data, error } = await query

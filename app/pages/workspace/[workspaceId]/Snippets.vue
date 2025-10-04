@@ -41,6 +41,7 @@
     orderBy: 'date',
     lang: '',
     tag: '',
+    search: '',
   })
 
   const { data: snippets } = await useFetch('/api/snippet', {
@@ -58,5 +59,9 @@
 
   listen('toolbar:filter-tag', (tag: Record<string, string>) => {
     queryFields.value.tag = tag[0] as string
+  })
+
+  listen('toolbar:search', (search: Record<string, string>) => {
+    queryFields.value.search = search[0] as string
   })
 </script>

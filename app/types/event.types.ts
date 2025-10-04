@@ -6,3 +6,4 @@ export type ToolbarEvent =
   | 'toolbar:order-by'
   | 'toolbar:filter-language'
   | 'toolbar:filter-tag'
+  | 'toolbar:search'
