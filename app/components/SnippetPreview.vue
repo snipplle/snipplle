@@ -1,15 +1,6 @@
 <template>
   <ClientOnly>
     <UModal>
-      <UButton
-        icon="i-hugeicons-view"
-        class="hidden group-hover:block p-0"
-        color="neutral"
-        variant="link"
-        size="sm"
-        @click.stop
-      />
-
       <template #content>
         <div class="p-1">
           <UTabs :items="items" variant="link">

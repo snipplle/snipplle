@@ -42,7 +42,18 @@
         <div class="flex items-center justify-between">
           <h1 class="font-semibold">{{ snippet.name }}</h1>
 
-          <SnippetPreview :code="snippet.preview" />
+          <div class="flex items-center space-x-1">
+            <UDropdownMenu :items="options">
+              <UButton
+                icon="i-hugeicons-more-horizontal"
+                color="neutral"
+                variant="link"
+                size="sm"
+                class="p-0"
+                @click.stop
+              />
+            </UDropdownMenu>
+          </div>
         </div>
 
         <div class="flex items-center justify-between">
@@ -75,12 +86,38 @@
     SandpackCodeViewer,
   } from 'sandpack-vue3'
 
+  import { LazySnippetPreview } from '#components'
+
   const props = defineProps<{
     snippet: any
   }>()
 
   const globalStore = useGlobalStore()
   const { beautifyCode } = useCodeFormat()
+  const overlay = useOverlay()
+  const toast = useToast()
+
+  const modal = overlay.create(LazySnippetPreview)
+
+  const options = ref([
+    {
+      label: 'Preview',
+      value: 'preview',
+      icon: 'i-hugeicons-view',
+      onClick: (): void => {
+        modal.open({
+          code: props.snippet.preview,
+        })
+      },
+    },
+    {
+      label: 'Delete',
+      value: 'delete',
+      icon: 'i-hugeicons-delete-01',
+      color: 'red' as any,
+      onClick: (): Promise<void> => deleteSnippet(),
+    },
+  ])
 
   const preview = computed(() => {
     return beautifyCode(props.snippet.preview)
@@ -101,6 +138,30 @@
     return navigateTo(
       `/workspace/${globalStore.activeWorkspace?.slug}/snippet/${props.snippet.slug}`,
     )
+  }
+
+  async function deleteSnippet(): Promise<void> {
+    try {
+      await $fetch(`/api/snippet/:id`, {
+        method: 'DELETE',
+      })
+
+      toast.add({
+        title: 'Success',
+        description: 'Snippet deleted successfully',
+        color: 'success',
+        icon: 'i-hugeicons-checkmark-circle-01',
+        duration: 1500,
+      })
+    } catch (error: any) {
+      toast.add({
+        title: 'Oops',
+        description: error.message,
+        color: 'error',
+        icon: 'i-hugeicons-fire',
+        duration: 1500,
+      })
+    }
   }
 </script>
 
