@@ -30,5 +30,17 @@ export default withNuxt({
         caughtErrorsIgnorePattern: '^_',
       },
     ],
+    'vue/html-self-closing': [
+      'warn',
+      {
+        html: {
+          void: 'always',
+          normal: 'never',
+          component: 'always',
+        },
+        svg: 'always',
+        math: 'always',
+      },
+    ],
   },
 })
