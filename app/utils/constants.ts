@@ -81,4 +81,8 @@ export const language: Record<string, any> = {
     label: 'Rust',
     color: 'amber',
   },
+  java: {
+    label: 'Java',
+    color: 'orange',
+  },
 }
