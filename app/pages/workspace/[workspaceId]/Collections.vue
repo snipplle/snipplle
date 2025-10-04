@@ -29,5 +29,7 @@
     layout: 'library',
   })
 
-  const collections = ref([])
+  const { data: collections } = await useFetch('/api/collection', {
+    method: 'get',
+  })
 </script>
