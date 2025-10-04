@@ -13,8 +13,8 @@
 
       <template #right>
         <component
-          :is="resolveActionButtonComponent(pageTitle)"
-          v-if="isGeneralPath"
+          :is="resolveActionButtonComponent"
+          v-if="isGeneralPath && hasActionButton"
         />
       </template>
     </UDashboardNavbar>
@@ -22,23 +22,29 @@
 </template>
 
 <script setup lang="ts">
-  import { capitalize, type Component } from 'vue'
+  import { capitalize } from 'vue'
 
   const route = useRoute()
-  const globalStore = useGlobalStore()
+  const router = useRouter()
 
   const modals = ref<Record<string, any>>({
     snippets: import('./CreateSnippet.vue'),
   })
 
-  function resolveActionButtonComponent(action: string): Component {
-    return defineAsyncComponent(() => modals.value[action.toLowerCase()])
-  }
-
   const pageTitle = computed(() => {
     const pathList = route.fullPath.split('/')
 
     return capitalize(pathList[pathList.length - 1] as string)
+  })
+
+  const hasActionButton = computed(() => {
+    return actionButtons.includes(pageTitle.value.toLowerCase())
+  })
+
+  const resolveActionButtonComponent = computed(() => {
+    return defineAsyncComponent(
+      () => modals.value[pageTitle.value.toLowerCase()],
+    )
   })
 
   const isGeneralPath = computed(() => {
@@ -50,6 +56,6 @@
   })
 
   async function goBack(): Promise<void> {
-    await navigateTo(`/workspace/${globalStore.activeWorkspace?.slug}/snippets`)
+    await router.back()
   }
 </script>
