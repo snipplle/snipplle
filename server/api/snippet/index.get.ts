@@ -1,8 +1,10 @@
 import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
 
 import type { Database } from '~~/server/types/database.types'
+import { orderByMap } from '~~/server/utils/order'
 
 export default defineEventHandler(async (event) => {
+  const { orderBy, lang, tag } = getQuery(event)
   const user = await serverSupabaseUser(event)
   const supabase = await serverSupabaseClient<Database>(event)
 
@@ -25,13 +27,13 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const { data, error } = await supabase
+  const query = supabase
     .from('snippets')
     .select(
       `
       *,
-      snippet_tags(
-        tags(*)
+      snippet_tags!inner(
+        tags!inner(name, color)
       )
     `,
     )
@@ -39,6 +41,24 @@ export default defineEventHandler(async (event) => {
       'workspace_id',
       workspaceIds.map((workspace) => workspace.workspace_id),
     )
+
+  if (orderBy) {
+    const order = orderByMap[orderBy as string]
+
+    query.order(order.field, {
+      ascending: order.ascending,
+    })
+  }
+
+  if (lang) {
+    query.eq('language', lang as string)
+  }
+
+  if (tag) {
+    query.eq('snippet_tags.tags.name', tag as string)
+  }
+
+  const { data, error } = await query
 
   if (error) {
     throw createError({

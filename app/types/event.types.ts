@@ -3,3 +3,6 @@ export type ToolbarEvent =
   | 'toolbar:preview'
   | 'toolbar:edit'
   | 'toolbar:save'
+  | 'toolbar:order-by'
+  | 'toolbar:filter-language'
+  | 'toolbar:filter-tag'

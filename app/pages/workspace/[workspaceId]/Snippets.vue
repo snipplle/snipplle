@@ -35,7 +35,28 @@
     layout: 'library',
   })
 
+  const { listen } = useToolbarEvent()
+
+  const queryFields = ref({
+    orderBy: 'date',
+    lang: '',
+    tag: '',
+  })
+
   const { data: snippets } = await useFetch('/api/snippet', {
     method: 'get',
+    query: queryFields.value,
+  })
+
+  listen('toolbar:order-by', (orderBy: Record<string, string>) => {
+    queryFields.value.orderBy = orderBy[0] as string
+  })
+
+  listen('toolbar:filter-language', (language: Record<string, string>) => {
+    queryFields.value.lang = language[0] as string
+  })
+
+  listen('toolbar:filter-tag', (tag: Record<string, string>) => {
+    queryFields.value.tag = tag[0] as string
   })
 </script>
