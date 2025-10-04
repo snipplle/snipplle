@@ -1,3 +1,5 @@
+export const actionButtons = ['snippets']
+
 export const tagColors = [
   'red',
   'orange',
