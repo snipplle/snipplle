@@ -1,11 +1,11 @@
 <template>
   <UDashboardGroup>
-    <SidebarBase />
+    <SSidebar />
 
     <UDashboardPanel>
       <template #header>
-        <NavbarBase />
-        <ToolbarBase :versions="versions" />
+        <SNavbar />
+        <SToolbar :versions="versions" />
       </template>
 
       <template #body>

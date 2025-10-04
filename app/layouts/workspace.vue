@@ -1,10 +1,10 @@
 <template>
   <UDashboardGroup>
-    <SidebarBase />
+    <SSidebar />
 
     <UDashboardPanel>
       <template #header>
-        <NavbarBase />
+        <SNavbar />
       </template>
 
       <template #body>
