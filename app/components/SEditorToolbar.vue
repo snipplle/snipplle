@@ -12,6 +12,8 @@
           class="min-w-32"
         />
 
+        <div v-else></div>
+
         <div class="space-x-1">
           <UDropdownMenu :items="previewModes">
             <UButton
