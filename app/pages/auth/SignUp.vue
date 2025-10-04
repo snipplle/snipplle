@@ -71,6 +71,10 @@
   import * as z from 'zod'
   import type { FormSubmitEvent } from '@nuxt/ui'
 
+  definePageMeta({
+    middleware: 'logged-in',
+  })
+
   type size = 'lg' | 'xs' | 'sm' | 'md' | 'xl' | undefined
 
   const supabase = useSupabaseClient()
