@@ -9,7 +9,7 @@
             },
           }"
           :options="{
-            autorun: previewState === 'none',
+            autorun: false,
             classes: {
               'sp-preview-container': '!bg-[#181923]',
               'sp-code-editor': '!min-w-150 !w-full',
@@ -32,7 +32,6 @@
               <SandpackCodeEditor
                 :show-tabs="false"
                 :show-line-numbers="true"
-                :show-run-button="previewState !== 'none'"
                 class="rounded-tl-md h-full"
                 :class="{
                   '!max-h-[calc(100vh-321px)]': previewState !== 'none',
@@ -56,7 +55,9 @@
               class="!h-full"
             />
           </SandpackLayout>
+
           <CodeEditorListener
+            :enable-auto-run="previewState === 'none'"
             @change="(newCode) => (files['index.ts'] = newCode)"
           />
         </SandpackProvider>
@@ -128,7 +129,7 @@
   )
 
   listen('toolbar:change-version', changeVersion)
-  // listen('toolbar:preview', enablePreview)
+  listen('toolbar:preview', togglePreview)
   listen('toolbar:edit', openEditModal)
   listen('toolbar:save', saveSnippet)
 
@@ -149,15 +150,15 @@
     files.value['index.ts'] = beautifyCode(code)
   }
 
-  // function enablePreview(): void {
-  //   previewEnabled.value = !previewEnabled.value
-  // }
-
   function openEditModal(): void {
     modal.open({
       snippet: snippet.value,
       refreshCallback: refresh,
     })
+  }
+
+  function togglePreview(previewMode: string): void {
+    previewState.value = previewMode[0] as string
   }
 
   async function saveSnippet(): Promise<void> {

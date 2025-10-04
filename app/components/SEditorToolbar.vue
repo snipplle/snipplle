@@ -13,15 +13,17 @@
         />
 
         <div class="space-x-1">
-          <UButton
-            icon="i-hugeicons-view"
-            color="warning"
-            variant="subtle"
-            size="sm"
-            @click="call('toolbar:preview')"
-          >
-            Preview
-          </UButton>
+          <UDropdownMenu :items="previewModes">
+            <UButton
+              icon="i-hugeicons-view"
+              color="warning"
+              variant="subtle"
+              size="sm"
+            >
+              Preview
+            </UButton>
+          </UDropdownMenu>
+
           <UButton
             icon="i-hugeicons-edit-01"
             color="secondary"
@@ -52,6 +54,27 @@
   }>()
 
   const { call } = useToolbarEvent()
+
+  const previewModes = ref([
+    {
+      label: 'None',
+      value: 'none',
+      icon: 'i-hugeicons-unavailable',
+      onClick: (): void => call('toolbar:preview', 'none'),
+    },
+    {
+      label: 'Console',
+      value: 'console',
+      icon: 'i-hugeicons-computer-terminal-01',
+      onClick: (): void => call('toolbar:preview', 'console'),
+    },
+    {
+      label: 'Full preview',
+      value: 'full',
+      icon: 'i-hugeicons-layout-03',
+      onClick: (): void => call('toolbar:preview', 'full'),
+    },
+  ])
 
   const versions = computed(() => {
     if (!props.versions) {
