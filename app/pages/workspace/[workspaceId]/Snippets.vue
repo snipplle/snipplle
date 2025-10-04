@@ -1,16 +1,34 @@
 <template>
   <ClientOnly>
     <div class="h-full space-y-4">
-      <div v-if="snippets?.length" class="grid grid-cols-4 gap-4">
-        <SnippetCard
-          v-for="snippet in snippets"
-          :key="snippet.id"
-          :snippet="snippet"
-        />
+      <div
+        v-if="snippets?.length"
+        class="w-full h-full flex flex-col justify-between"
+      >
+        <div class="grid grid-cols-4 gap-4">
+          <SnippetCard
+            v-for="snippet in snippets"
+            :key="snippet.id"
+            :snippet="snippet"
+          />
+        </div>
+
+        <div class="flex justify-center">
+          <UPagination
+            v-model:page="queryFields.page"
+            :items-per-page="queryFields.itemsPerPage"
+            :total="total"
+            color="neutral"
+            variant="subtle"
+            active-variant="subtle"
+            size="sm"
+            @update:page="(page) => (queryFields.page = page)"
+          />
+        </div>
       </div>
 
       <div
-        v-if="!snippets?.length"
+        v-else
         class="h-full flex flex-col items-center justify-center space-y-2"
       >
         <img src="assets/images/Dev.svg" />
@@ -42,12 +60,17 @@
     lang: '',
     tag: '',
     search: '',
+    page: 1,
+    itemsPerPage: 8,
   })
 
-  const { data: snippets } = await useFetch('/api/snippet', {
+  const { data } = await useFetch('/api/snippet', {
     method: 'get',
     query: queryFields.value,
   })
+
+  const snippets = computed(() => data.value?.snippets || [])
+  const total = computed(() => data.value?.count || 0)
 
   listen('toolbar:order-by', (orderBy: Record<string, string>) => {
     queryFields.value.orderBy = orderBy[0] as string

@@ -4,7 +4,7 @@ import type { Database } from '~~/server/types/database.types'
 import { orderByMap } from '~~/server/utils/order'
 
 export default defineEventHandler(async (event) => {
-  const { orderBy, lang, tag, search } = getQuery(event)
+  const { orderBy, lang, tag, search, page, itemsPerPage } = getQuery(event)
   const user = await serverSupabaseUser(event)
   const supabase = await serverSupabaseClient<Database>(event)
 
@@ -27,6 +27,9 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  const from = (Number(page) - 1) * Number(itemsPerPage)
+  const to = from + Number(itemsPerPage) - 1
+
   const query = supabase
     .from('snippets')
     .select(
@@ -36,11 +39,13 @@ export default defineEventHandler(async (event) => {
         tags!inner(name, color)
       )
     `,
+      { count: 'exact' },
     )
     .in(
       'workspace_id',
       workspaceIds.map((workspace) => workspace.workspace_id),
     )
+    .range(from, to)
 
   if (orderBy) {
     const order = orderByMap[orderBy as string]
@@ -62,7 +67,7 @@ export default defineEventHandler(async (event) => {
     query.ilike('name', `%${search}%`)
   }
 
-  const { data, error } = await query
+  const { data, count, error } = await query
 
   if (error) {
     throw createError({
@@ -71,5 +76,8 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  return data
+  return {
+    snippets: data,
+    count,
+  }
 })
