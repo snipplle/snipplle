@@ -202,7 +202,10 @@
     try {
       const response = await $fetch(`/api/snippet/${props.snippet.id}/edit`, {
         method: 'post',
-        body: event.data,
+        body: {
+          ...event.data,
+          isPublic: state.value.isPublic,
+        },
       })
 
       toast.add({

@@ -7,3 +7,4 @@ export type ToolbarEvent =
   | 'toolbar:filter-language'
   | 'toolbar:filter-tag'
   | 'toolbar:search'
+  | 'toolbar:change-language'

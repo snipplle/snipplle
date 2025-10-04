@@ -2,17 +2,26 @@
   <ClientOnly>
     <UDashboardToolbar>
       <div class="w-full flex justify-between">
-        <USelectMenu
-          v-if="versions.length"
-          v-model="selectedVersion"
-          :items="versions"
-          color="neutral"
-          variant="subtle"
-          size="sm"
-          class="min-w-32"
-        />
+        <div class="space-x-1">
+          <USelectMenu
+            v-if="versions.length"
+            v-model="selectedVersion"
+            :items="versions"
+            color="neutral"
+            variant="subtle"
+            size="sm"
+            class="min-w-32"
+          />
 
-        <div v-else></div>
+          <USelectMenu
+            v-model="selectedLanguage"
+            :items="languages"
+            color="neutral"
+            variant="subtle"
+            size="sm"
+            class="min-w-32"
+          />
+        </div>
 
         <div class="space-x-1">
           <UDropdownMenu :items="previewModes">
@@ -53,9 +62,99 @@
 <script setup lang="ts">
   const props = defineProps<{
     versions: any[]
+    language: string
   }>()
 
   const { call } = useToolbarEvent()
+
+  const languages = ref([
+    {
+      label: 'JavaScript',
+      value: 'js',
+      onSelect: (): void => call('toolbar:change-language', 'js'),
+    },
+    {
+      label: 'TypeScript',
+      value: 'ts',
+      onSelect: (): void => call('toolbar:change-language', 'ts'),
+    },
+    {
+      label: 'HTML',
+      value: 'html',
+      onSelect: (): void => call('toolbar:change-language', 'html'),
+    },
+    {
+      label: 'CSS',
+      value: 'css',
+      onSelect: (): void => call('toolbar:change-language', 'css'),
+    },
+    {
+      label: 'JSON',
+      value: 'json',
+      onSelect: (): void => call('toolbar:change-language', 'json'),
+    },
+    {
+      label: 'Markdown',
+      value: 'md',
+      onSelect: (): void => call('toolbar:change-language', 'md'),
+    },
+    {
+      label: 'XML',
+      value: 'xml',
+      onSelect: (): void => call('toolbar:change-language', 'xml'),
+    },
+    {
+      label: 'YAML',
+      value: 'yaml',
+      onSelect: (): void => call('toolbar:change-language', 'yaml'),
+    },
+    {
+      label: 'SQL',
+      value: 'sql',
+      onSelect: (): void => call('toolbar:change-language', 'sql'),
+    },
+    {
+      label: 'PHP',
+      value: 'php',
+      onSelect: (): void => call('toolbar:change-language', 'php'),
+    },
+    {
+      label: 'Ruby',
+      value: 'rb',
+      onSelect: (): void => call('toolbar:change-language', 'rb'),
+    },
+    {
+      label: 'Python',
+      value: 'py',
+      onSelect: (): void => call('toolbar:change-language', 'py'),
+    },
+    {
+      label: 'Go',
+      value: 'go',
+      onSelect: (): void => call('toolbar:change-language', 'go'),
+    },
+    {
+      label: 'Rust',
+      value: 'rust',
+      onSelect: (): void => call('toolbar:change-language', 'rust'),
+    },
+    {
+      label: 'Java',
+      value: 'java',
+      onSelect: (): void => call('toolbar:change-language', 'java'),
+    },
+  ])
+  const selectedLanguage = ref()
+
+  watch(
+    () => props.language,
+    (newLanguage) => {
+      selectedLanguage.value =
+        languages.value.find((language) => language.value === newLanguage) ||
+        languages.value[0]
+    },
+    { immediate: true },
+  )
 
   const previewModes = ref([
     {

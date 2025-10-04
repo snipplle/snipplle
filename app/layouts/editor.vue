@@ -5,11 +5,11 @@
     <UDashboardPanel>
       <template #header>
         <SNavbar />
-        <SEditorToolbar :versions="versions" />
+        <SEditorToolbar :versions="versions" :language="language" />
       </template>
 
       <template #body>
-        <slot />
+        <slot></slot>
       </template>
     </UDashboardPanel>
   </UDashboardGroup>
@@ -18,5 +18,6 @@
 <script setup lang="ts">
   defineProps<{
     versions: any[]
+    language: string
   }>()
 </script>

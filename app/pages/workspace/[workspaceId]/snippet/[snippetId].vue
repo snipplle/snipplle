@@ -1,6 +1,10 @@
 <template>
   <ClientOnly>
-    <NuxtLayout name="editor" :versions="snippet.snippet_versions">
+    <NuxtLayout
+      name="editor"
+      :versions="snippet.snippet_versions"
+      :language="snippet.language"
+    >
       <div class="h-full">
         <SandpackProvider
           :theme="{
@@ -81,6 +85,7 @@
   const globalStore = useGlobalStore()
   const { beautifyCode, minifyCode } = useCodeFormat()
   const { listen } = useToolbarEvent()
+  const toast = useToast()
 
   const modal = overlay.create(LazyEditSnippet)
 
@@ -129,6 +134,7 @@
   )
 
   listen('toolbar:change-version', changeVersion)
+  listen('toolbar:change-language', changeLanguage)
   listen('toolbar:preview', togglePreview)
   listen('toolbar:edit', openEditModal)
   listen('toolbar:save', saveSnippet)
@@ -148,6 +154,33 @@
     const code = await response.text()
 
     files.value['index.ts'] = beautifyCode(code)
+  }
+
+  async function changeLanguage(newLanguage: string): Promise<void> {
+    try {
+      await $fetch(`/api/snippet/${snippet.value?.id}/edit`, {
+        method: 'post',
+        body: {
+          language: newLanguage[0],
+        },
+      })
+
+      toast.add({
+        title: 'Success',
+        description: 'Snippet updated successfully',
+        color: 'success',
+        icon: 'i-hugeicons-checkmark-circle-01',
+        duration: 1500,
+      })
+    } catch (error: any) {
+      toast.add({
+        title: 'Oops',
+        description: error.statusMessage,
+        color: 'error',
+        icon: 'i-hugeicons-fire',
+        duration: 1500,
+      })
+    }
   }
 
   function openEditModal(): void {
