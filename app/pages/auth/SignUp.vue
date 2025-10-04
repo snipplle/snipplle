@@ -35,21 +35,21 @@
                   <p class="w-80 text-center">
                     By proceeding you acknowledge that you have read, understood
                     and agree to our
-                    <ULink to="https://loglybase.com/privacy" external
+                    <ULink to="https://snipplle.com/privacy" external
                       >Privacy Policy</ULink
                     >
                     and
-                    <ULink to="https://loglybase.com/terms" external
+                    <ULink to="https://snipplle.com/terms" external
                       >Terms and Conditions</ULink
                     >.
                   </p>
 
                   <div class="flex space-x-6">
                     <p>© 2025 Snipplle</p>
-                    <ULink to="https://loglybase.com/privacy" external
+                    <ULink to="https://snipplle.com/privacy" external
                       >Privacy Policy</ULink
                     >
-                    <ULink to="https://loglybase.com/terms" external
+                    <ULink to="https://snipplle.com/terms" external
                       >Terms of Use</ULink
                     >
                   </div>

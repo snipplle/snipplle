@@ -34,10 +34,10 @@
                 <div class="flex flex-col items-center text-xs space-y-4">
                   <div class="flex space-x-6">
                     <p>© 2025 Snipplle</p>
-                    <ULink to="https://loglybase.com/privacy" external
+                    <ULink to="https://snipplle.com/privacy" external
                       >Privacy Policy</ULink
                     >
-                    <ULink to="https://loglybase.com/terms" external
+                    <ULink to="https://snipplle.com/terms" external
                       >Terms of Use</ULink
                     >
                   </div>
