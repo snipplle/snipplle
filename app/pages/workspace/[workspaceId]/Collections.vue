@@ -14,7 +14,7 @@
         </div>
 
         <div class="flex justify-center">
-          <!-- <UPagination
+          <UPagination
             v-model:page="queryFields.page"
             :items-per-page="queryFields.itemsPerPage"
             :total="total"
@@ -23,7 +23,7 @@
             active-variant="subtle"
             size="sm"
             @update:page="(page) => (queryFields.page = page)"
-          /> -->
+          />
         </div>
       </div>
 
@@ -53,7 +53,38 @@
     layout: 'library',
   })
 
-  const { data: collections } = await useFetch('/api/collection', {
+  const { listen } = useToolbarEvent()
+
+  const queryFields = ref({
+    orderBy: 'date',
+    lang: '',
+    tag: '',
+    search: '',
+    page: 1,
+    itemsPerPage: 8,
+  })
+
+  const { data } = await useFetch('/api/collection', {
     method: 'get',
+    query: queryFields.value,
+  })
+
+  const collections = computed(() => data.value?.collections || [])
+  const total = computed(() => data.value?.count || 0)
+
+  listen('toolbar:order-by', (orderBy: Record<string, string>) => {
+    queryFields.value.orderBy = orderBy[0] as string
+  })
+
+  listen('toolbar:filter-language', (language: Record<string, string>) => {
+    queryFields.value.lang = language[0] as string
+  })
+
+  listen('toolbar:filter-tag', (tag: Record<string, string>) => {
+    queryFields.value.tag = tag[0] as string
+  })
+
+  listen('toolbar:search', (search: Record<string, string>) => {
+    queryFields.value.search = search[0] as string
   })
 </script>
