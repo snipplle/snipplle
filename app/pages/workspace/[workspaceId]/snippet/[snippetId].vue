@@ -100,6 +100,7 @@
           slug: params.snippetId,
           workspaceId: globalStore.activeWorkspace?.id,
           snippetCode: escapedCode,
+          language: snippet.value?.language,
         },
       })
     } catch (error) {
