@@ -152,10 +152,13 @@ export type Database = {
           created_at: string
           created_by: string
           description: string | null
+          downloads: number
           files: Json | null
           id: string
           is_public: boolean
+          language: string
           name: string
+          slug: string
           updated_at: string
           workspace_id: string
         }
@@ -163,10 +166,13 @@ export type Database = {
           created_at?: string
           created_by: string
           description?: string | null
+          downloads?: number
           files?: Json | null
           id: string
           is_public?: boolean
+          language: string
           name: string
+          slug: string
           updated_at?: string
           workspace_id: string
         }
@@ -174,10 +180,13 @@ export type Database = {
           created_at?: string
           created_by?: string
           description?: string | null
+          downloads?: number
           files?: Json | null
           id?: string
           is_public?: boolean
+          language?: string
           name?: string
+          slug?: string
           updated_at?: string
           workspace_id?: string
         }
