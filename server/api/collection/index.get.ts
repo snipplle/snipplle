@@ -27,7 +27,15 @@ export default defineEventHandler(async (event) => {
 
   const { data, error } = await supabase
     .from('collections')
-    .select('*')
+    .select(
+      `
+      *,
+      collection_tags!inner(
+        tags!inner(name, color)
+      )
+    `,
+      { count: 'exact' },
+    )
     .in(
       'workspace_id',
       workspaceIds.map((workspace) => workspace.workspace_id),
