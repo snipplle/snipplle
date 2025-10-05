@@ -119,11 +119,6 @@
       onSelect: (): void => call('toolbar:change-language', 'php'),
     },
     {
-      label: 'Ruby',
-      value: 'rb',
-      onSelect: (): void => call('toolbar:change-language', 'rb'),
-    },
-    {
       label: 'Python',
       value: 'py',
       onSelect: (): void => call('toolbar:change-language', 'py'),

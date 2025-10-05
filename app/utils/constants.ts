@@ -65,10 +65,6 @@ export const language: Record<string, any> = {
     label: 'PHP',
     color: 'blue',
   },
-  rb: {
-    label: 'Ruby',
-    color: 'red',
-  },
   py: {
     label: 'Python',
     color: 'blue',
