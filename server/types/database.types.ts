@@ -118,6 +118,7 @@ export type Database = {
           created_at: string
           files: Json
           id: string
+          is_latest: boolean
           path: string
           version: string
         }
@@ -126,6 +127,7 @@ export type Database = {
           created_at?: string
           files: Json
           id: string
+          is_latest?: boolean
           path: string
           version: string
         }
@@ -134,6 +136,7 @@ export type Database = {
           created_at?: string
           files?: Json
           id?: string
+          is_latest?: boolean
           path?: string
           version?: string
         }
