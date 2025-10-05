@@ -24,6 +24,10 @@
 <script setup lang="ts">
   import { capitalize } from 'vue'
 
+  const props = defineProps<{
+    title?: string
+  }>()
+
   const route = useRoute()
   const router = useRouter()
 
@@ -35,7 +39,7 @@
   const pageTitle = computed(() => {
     const pathList = route.fullPath.split('/')
 
-    return capitalize(pathList[pathList.length - 1] as string)
+    return props.title || capitalize(pathList[pathList.length - 1] as string)
   })
 
   const hasActionButton = computed(() => {
