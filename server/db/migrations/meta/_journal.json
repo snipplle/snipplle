@@ -64,6 +64,13 @@
       "when": 1759349952586,
       "tag": "0008_AddedPreviewModeField",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1759688155537,
+      "tag": "0009_AddedAdditionalFieldsToCollection",
+      "breakpoints": true
     }
   ]
 }

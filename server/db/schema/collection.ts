@@ -5,6 +5,7 @@ import {
   json,
   boolean,
   unique,
+  integer,
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 import { createId } from '@paralleldrive/cuid2'
@@ -22,9 +23,12 @@ export const collection = pgTable(
       .notNull()
       .references(() => workspace.id, { onDelete: 'cascade' }),
     name: text('name').notNull(),
+    slug: text('slug').notNull(),
     description: text('description'),
+    language: text('language').notNull(),
     isPublic: boolean('is_public').default(true).notNull(),
     files: json('files'),
+    downloads: integer('downloads').default(0).notNull(),
     createdBy: text('created_by')
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
