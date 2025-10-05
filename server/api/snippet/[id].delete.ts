@@ -14,7 +14,11 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const { error } = await supabase.from('snippets').delete().eq('id', id)
+  const { error } = await supabase
+    .from('snippets')
+    .delete()
+    .eq('id', id)
+    .eq('created_by', user.id)
 
   if (error) {
     throw createError({
