@@ -41,7 +41,7 @@
             </p>
           </div>
 
-          <UButton color="primary" variant="subtle">Create snippet</UButton>
+          <CreateSnippet variant="subtle" />
         </div>
       </div>
     </div>

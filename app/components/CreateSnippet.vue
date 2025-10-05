@@ -7,7 +7,7 @@
         body: 'sm:pt-0 pb-6',
       }"
     >
-      <UButton> Create {{ pageTitle }} </UButton>
+      <UButton :variant="variant">Create {{ pageTitle }}</UButton>
 
       <template #header>
         <div class="flex items-center text-white space-x-2">
@@ -47,7 +47,7 @@
             >
               <USelect
                 v-model="state.language"
-                :items="languages"
+                :items="languageOptions"
                 variant="subtle"
                 class="w-full"
               />
@@ -108,70 +108,22 @@
   import * as z from 'zod'
   import type { FormSubmitEvent } from '@nuxt/ui'
 
+  withDefaults(
+    defineProps<{
+      variant?: 'solid' | 'subtle'
+    }>(),
+    {
+      variant: 'solid',
+    },
+  )
+
   const route = useRoute()
   const globalStore = useGlobalStore()
   const toast = useToast()
 
   const isOpen = ref(false)
   const tagsFocused = ref(false)
-  const languages = ref([
-    {
-      label: 'TypeScript',
-      value: 'ts',
-    },
-    {
-      label: 'JavaScript',
-      value: 'js',
-    },
-    {
-      label: 'HTML',
-      value: 'html',
-    },
-    {
-      label: 'CSS',
-      value: 'css',
-    },
-    {
-      label: 'JSON',
-      value: 'json',
-    },
-    {
-      label: 'Markdown',
-      value: 'md',
-    },
-    {
-      label: 'YAML',
-      value: 'yaml',
-    },
-    {
-      label: 'SQL',
-      value: 'sql',
-    },
-    {
-      label: 'XML',
-      value: 'xml',
-    },
-    {
-      label: 'PHP',
-      value: 'php',
-    },
-    {
-      label: 'Python',
-      value: 'py',
-    },
-    {
-      label: 'Rust',
-      value: 'rs',
-    },
-    {
-      label: 'Go',
-      value: 'go',
-    },
-    {
-      label: 'Java',
-      value: 'java',
-    },
-  ])
+
   const state = ref({
     name: '',
     language: undefined,
