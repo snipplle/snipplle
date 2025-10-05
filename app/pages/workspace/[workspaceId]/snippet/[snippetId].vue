@@ -1,6 +1,10 @@
 <template>
   <ClientOnly>
-    <NuxtLayout name="editor" :versions="snippet.snippet_versions">
+    <NuxtLayout
+      name="editor"
+      :versions="snippet.snippet_versions"
+      :title="snippet.name"
+    >
       <div class="h-full">
         <Codemirror
           v-model="snippetCode"
@@ -35,9 +39,12 @@
   const snippetCode = ref('')
 
   const { data: snippet, refresh } = await useFetch<any>(
-    `/api/snippet/${params.snippetId}?workspaceId=${globalStore.activeWorkspace?.id}`,
+    `/api/snippet/${params.snippetId}`,
     {
       method: 'get',
+      query: {
+        workspaceId: globalStore.activeWorkspace?.id,
+      },
     },
   )
 
