@@ -1,83 +1,26 @@
 <template>
   <ClientOnly>
-    <NuxtLayout
-      name="editor"
-      :versions="snippet.snippet_versions"
-      :language="snippet.language"
-    >
+    <NuxtLayout name="editor" :versions="snippet.snippet_versions">
       <div class="h-full">
-        <SandpackProvider
-          :theme="{
-            colors: {
-              surface1: '#181923',
-            },
+        <Codemirror
+          v-model="snippetCode"
+          class="editor"
+          :style="{
+            height: '100%',
+            padding: '12px',
+            border: '1px solid #24273a',
           }"
-          :options="{
-            autorun: false,
-            classes: {
-              'sp-preview-container': '!bg-[#181923]',
-              'sp-code-editor': '!min-w-150 !w-full',
-            },
-          }"
-          template="vanilla-ts"
-          :files="files"
-          class="!rounded-md !h-full"
-        >
-          <SandpackLayout
-            class="group min-h-24 h-full text-xs !border border-neutral-700 !rounded-md"
-          >
-            <div
-              class="flex flex-col"
-              :class="{
-                '!w-full':
-                  previewState === 'console' || previewState === 'none',
-              }"
-            >
-              <SandpackCodeEditor
-                :show-tabs="false"
-                :show-line-numbers="true"
-                class="rounded-tl-md h-full"
-                :class="{
-                  '!max-h-[calc(100vh-321px)]': previewState !== 'none',
-                }"
-              />
-              <USeparator
-                orientation="horizontal"
-                :ui="{
-                  border: 'border-zinc-800',
-                }"
-              />
-              <SandpackConsole
-                v-if="previewState === 'console' || previewState === 'full'"
-                :standalone="true"
-                class="!h-40"
-              />
-            </div>
-            <SandpackPreview
-              v-if="previewState === 'full'"
-              :show-open-in-code-sandbox="false"
-              class="!h-full"
-            />
-          </SandpackLayout>
-
-          <CodeEditorListener
-            :enable-auto-run="previewState === 'none'"
-            @change="(newCode) => (files['index.ts'] = newCode)"
-          />
-        </SandpackProvider>
+          :extensions="extensions"
+        />
       </div>
     </NuxtLayout>
   </ClientOnly>
 </template>
 
 <script setup lang="ts">
-  import {
-    SandpackProvider,
-    SandpackLayout,
-    SandpackCodeEditor,
-    SandpackPreview,
-    SandpackConsole,
-  } from 'sandpack-vue3'
+  import { Codemirror } from 'vue-codemirror'
+  import { catppuccinMocha } from '@catppuccin/codemirror'
+
   import { LazyEditSnippet } from '#components'
 
   const { params } = useRoute()
@@ -85,16 +28,11 @@
   const globalStore = useGlobalStore()
   const { beautifyCode, minifyCode } = useCodeFormat()
   const { listen } = useToolbarEvent()
-  const toast = useToast()
 
   const modal = overlay.create(LazyEditSnippet)
 
-  const previewState = ref('none')
-  const files = ref({
-    'index.html': editorHtml,
-    'index.ts': '',
-  })
-  const language = ref('ts')
+  let extensions = [catppuccinMocha]
+  const snippetCode = ref('')
 
   const { data: snippet, refresh } = await useFetch<any>(
     `/api/snippet/${params.snippetId}?workspaceId=${globalStore.activeWorkspace?.id}`,
@@ -104,20 +42,10 @@
   )
 
   watch(
-    () => snippet.value?.preview_mode,
-    (previewMode) => {
-      previewState.value = previewMode
-    },
-    {
-      immediate: true,
-    },
-  )
-
-  watch(
     () => snippet.value?.snippetFile,
     async (fileUrl) => {
       if (!fileUrl) {
-        files.value['index.ts'] = ''
+        snippetCode.value = ''
 
         return
       }
@@ -125,7 +53,8 @@
       const response = await fetch(fileUrl)
       const code = await response.text()
 
-      files.value['index.ts'] = beautifyCode(code)
+      snippetCode.value = beautifyCode(code)
+      extensions = [...extensions, languages[snippet.value.language || 'js']]
     },
     {
       deep: true,
@@ -134,8 +63,6 @@
   )
 
   listen('toolbar:change-version', changeVersion)
-  listen('toolbar:change-language', changeLanguage)
-  listen('toolbar:preview', togglePreview)
   listen('toolbar:edit', openEditModal)
   listen('toolbar:save', saveSnippet)
 
@@ -145,7 +72,7 @@
     })
 
     if (!version?.snippetFile) {
-      files.value['index.ts'] = ''
+      snippetCode.value = ''
 
       return
     }
@@ -153,34 +80,7 @@
     const response = await fetch(version?.snippetFile)
     const code = await response.text()
 
-    files.value['index.ts'] = beautifyCode(code)
-  }
-
-  async function changeLanguage(newLanguage: string): Promise<void> {
-    try {
-      await $fetch(`/api/snippet/${snippet.value?.id}/edit`, {
-        method: 'post',
-        body: {
-          language: newLanguage[0],
-        },
-      })
-
-      toast.add({
-        title: 'Success',
-        description: 'Snippet updated successfully',
-        color: 'success',
-        icon: 'i-hugeicons-checkmark-circle-01',
-        duration: 1500,
-      })
-    } catch (error: any) {
-      toast.add({
-        title: 'Oops',
-        description: error.statusMessage,
-        color: 'error',
-        icon: 'i-hugeicons-fire',
-        duration: 1500,
-      })
-    }
+    snippetCode.value = beautifyCode(code)
   }
 
   function openEditModal(): void {
@@ -190,12 +90,8 @@
     })
   }
 
-  function togglePreview(previewMode: string): void {
-    previewState.value = previewMode[0] as string
-  }
-
   async function saveSnippet(): Promise<void> {
-    const escapedCode = minifyCode(files.value['index.ts'])
+    const escapedCode = minifyCode(snippetCode.value)
 
     try {
       await $fetch(`/api/snippet/${snippet.value?.id}`, {
@@ -204,7 +100,6 @@
           slug: params.snippetId,
           workspaceId: globalStore.activeWorkspace?.id,
           snippetCode: escapedCode,
-          language: language.value,
         },
       })
     } catch (error) {
@@ -212,9 +107,3 @@
     }
   }
 </script>
-
-<style>
-  .cm-lineNumbers {
-    font-size: 12px !important;
-  }
-</style>

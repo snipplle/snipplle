@@ -5,31 +5,28 @@
         <div class="p-1">
           <UTabs :items="items" variant="link">
             <template #content="{ item }">
-              <div v-if="item.value === 'preview'">
-                <SandpackProvider
-                  v-if="code"
-                  :theme="{
-                    colors: {
-                      surface1: '#1f1f27',
-                    },
-                  }"
-                  class="!rounded-md !p-2"
-                >
-                  <SandpackLayout
-                    class="group min-h-24 text-xs !border-none !rounded-md"
-                  >
-                    <SandpackCodeViewer :code="preview" class="rounded-md" />
+              <div v-if="item.value === 'preview'" class="p-2">
+                <div v-if="preview" class="relative">
+                  <CodeViewer
+                    :content="preview"
+                    :extensions="extensions"
+                    :is-preview="true"
+                    :styles="{
+                      maxHeight: '300px',
+                      fontSize: '12px',
+                      overflow: 'auto',
+                    }"
+                  />
 
-                    <UButton
-                      icon="i-hugeicons-copy-01"
-                      color="neutral"
-                      variant="link"
-                      size="sm"
-                      class="absolute top-2 right-2"
-                      @click="copyCode"
-                    />
-                  </SandpackLayout>
-                </SandpackProvider>
+                  <UButton
+                    icon="i-hugeicons-copy-01"
+                    color="neutral"
+                    variant="link"
+                    size="sm"
+                    class="absolute top-2 right-2"
+                    @click="copyCode"
+                  />
+                </div>
 
                 <div
                   v-else
@@ -54,11 +51,7 @@
 
 <script setup lang="ts">
   import type { TabsItem } from '@nuxt/ui'
-  import {
-    SandpackProvider,
-    SandpackLayout,
-    SandpackCodeViewer,
-  } from 'sandpack-vue3'
+  import { catppuccinMocha } from '@catppuccin/codemirror'
 
   const props = defineProps<{
     snippet: any
@@ -79,10 +72,25 @@
       value: 'cli',
     },
   ])
+  const extensions = [
+    catppuccinMocha,
+    languages[props.snippet.language || 'js'],
+  ]
+  const preview = ref()
 
-  const preview = computed(() => {
-    return beautifyCode(props.code)
-  })
+  watch(
+    () => props.code,
+    (newCode) => {
+      if (!newCode) {
+        return
+      }
+
+      preview.value = beautifyCode(newCode)
+    },
+    {
+      immediate: true,
+    },
+  )
 
   function copyCode(): void {
     copy(props.code)
@@ -96,3 +104,10 @@
     })
   }
 </script>
+
+<style>
+  .preview .cm-editor,
+  .preview .cm-scrolled {
+    border-radius: 8px !important;
+  }
+</style>

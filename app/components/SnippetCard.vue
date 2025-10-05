@@ -8,24 +8,12 @@
       @click="openSnippet"
     >
       <div class="w-full p-0 rounded-md">
-        <SandpackProvider
+        <CodeViewer
           v-if="snippet.preview"
-          :theme="{
-            colors: {
-              surface1: '#1f1f27',
-            },
-          }"
-          class="card-preview !rounded-t-md !rounded-b-none"
-        >
-          <SandpackLayout
-            class="max-h-40 text-[8px] !border-none !rounded-t-md !rounded-b-none"
-          >
-            <SandpackCodeViewer
-              :code="preview"
-              class="rounded-t-md rounded-b-none"
-            />
-          </SandpackLayout>
-        </SandpackProvider>
+          :content="code"
+          :extensions="extensions"
+          :is-preview="true"
+        />
 
         <div
           v-else
@@ -102,11 +90,7 @@
 
 <script setup lang="ts">
   import type { NavigationFailure, RouteLocationRaw } from 'vue-router'
-  import {
-    SandpackProvider,
-    SandpackLayout,
-    SandpackCodeViewer,
-  } from 'sandpack-vue3'
+  import { catppuccinMocha } from '@catppuccin/codemirror'
 
   import { LazySnippetPreview } from '#components'
 
@@ -120,6 +104,12 @@
   const toast = useToast()
 
   const modal = overlay.create(LazySnippetPreview)
+
+  const extensions = [
+    catppuccinMocha,
+    languages[props.snippet.language || 'js'],
+  ]
+  const code = ref()
 
   const options = ref([
     {
@@ -142,9 +132,19 @@
     },
   ])
 
-  const preview = computed(() => {
-    return beautifyCode(props.snippet.preview)
-  })
+  watch(
+    () => props.snippet.preview,
+    (newValue) => {
+      if (!newValue) {
+        return
+      }
+
+      code.value = beautifyCode(newValue)
+    },
+    {
+      immediate: true,
+    },
+  )
 
   const tags = computed(() => {
     const tagList = []
@@ -187,9 +187,3 @@
     }
   }
 </script>
-
-<style>
-  .card-preview .cm-scroller {
-    overflow: hidden;
-  }
-</style>
