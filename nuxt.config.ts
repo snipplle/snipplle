@@ -39,6 +39,7 @@ export default defineNuxtConfig({
     'nuxt-security',
     '@nuxtjs/seo',
     '@nuxtjs/supabase',
+    'nuxt-codemirror',
   ],
 
   css: ['~/assets/css/main.css'],
