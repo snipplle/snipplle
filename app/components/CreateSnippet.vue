@@ -27,15 +27,32 @@
           class="space-y-4"
           @submit="createSnippet"
         >
-          <UFormField
-            label="Name"
-            name="name"
-            description="The name of the snippet."
-            class="w-full"
-            required
-          >
-            <UInput v-model="state.name" variant="subtle" class="w-full" />
-          </UFormField>
+          <div class="flex space-x-2">
+            <UFormField
+              label="Name"
+              name="name"
+              description="The name of the snippet."
+              class="w-full"
+              required
+            >
+              <UInput v-model="state.name" variant="subtle" class="w-full" />
+            </UFormField>
+
+            <UFormField
+              label="Language"
+              name="language"
+              description="The language of the snippet."
+              class="w-full"
+              required
+            >
+              <USelect
+                v-model="state.language"
+                :items="languages"
+                variant="subtle"
+                class="w-full"
+              />
+            </UFormField>
+          </div>
 
           <UFormField
             label="Description"
@@ -97,8 +114,67 @@
 
   const isOpen = ref(false)
   const tagsFocused = ref(false)
+  const languages = ref([
+    {
+      label: 'TypeScript',
+      value: 'ts',
+    },
+    {
+      label: 'JavaScript',
+      value: 'js',
+    },
+    {
+      label: 'HTML',
+      value: 'html',
+    },
+    {
+      label: 'CSS',
+      value: 'css',
+    },
+    {
+      label: 'JSON',
+      value: 'json',
+    },
+    {
+      label: 'Markdown',
+      value: 'md',
+    },
+    {
+      label: 'YAML',
+      value: 'yaml',
+    },
+    {
+      label: 'SQL',
+      value: 'sql',
+    },
+    {
+      label: 'XML',
+      value: 'xml',
+    },
+    {
+      label: 'PHP',
+      value: 'php',
+    },
+    {
+      label: 'Python',
+      value: 'py',
+    },
+    {
+      label: 'Rust',
+      value: 'rs',
+    },
+    {
+      label: 'Go',
+      value: 'go',
+    },
+    {
+      label: 'Java',
+      value: 'java',
+    },
+  ])
   const state = ref({
     name: '',
+    language: undefined,
     description: '',
     tags: [] as string[],
     isPublic: true,
@@ -108,6 +184,7 @@
     name: z
       .string('Snippet name is required')
       .min(1, 'Snippet name must be at least 1 character long'),
+    language: z.string('Snippet language is required'),
     description: z.string().optional(),
     tags: z.array(z.string().optional()),
     isPublic: z.boolean(),
@@ -130,6 +207,7 @@
         method: 'POST',
         body: {
           name: event.data.name,
+          language: event.data.language,
           description: event.data.description,
           tags: tagsColored,
           isPublic: event.data.isPublic,
@@ -154,6 +232,7 @@
   function close(): void {
     state.value = {
       name: '',
+      language: undefined,
       description: '',
       tags: [],
       isPublic: true,

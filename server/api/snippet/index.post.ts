@@ -5,7 +5,7 @@ import slugify from 'slugify'
 import type { Database } from '~~/server/types/database.types'
 
 export default defineEventHandler(async (event) => {
-  const { name, description, tags, isPublic, workspaceId } =
+  const { name, language, description, tags, isPublic, workspaceId } =
     await readBody(event)
   const user = await serverSupabaseUser(event)
   const supabase = await serverSupabaseClient<Database>(event)
@@ -61,6 +61,7 @@ export default defineEventHandler(async (event) => {
         lower: true,
         remove: /[*+~.()'"!:@]/g,
       }),
+      language,
       description,
       is_public: isPublic,
       created_by: user?.id,
