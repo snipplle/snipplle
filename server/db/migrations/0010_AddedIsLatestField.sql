@@ -1,0 +1,1 @@
+ALTER TABLE "collection_versions" ADD COLUMN "is_latest" boolean DEFAULT false NOT NULL;

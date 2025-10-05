@@ -1,4 +1,11 @@
-import { pgTable, text, timestamp, json, unique } from 'drizzle-orm/pg-core'
+import {
+  pgTable,
+  text,
+  timestamp,
+  json,
+  unique,
+  boolean,
+} from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 import { createId } from '@paralleldrive/cuid2'
 import { collection } from './collection'
@@ -11,6 +18,7 @@ export const collectionVersion = pgTable(
       .notNull()
       .references(() => collection.id, { onDelete: 'cascade' }),
     version: text('version').notNull(),
+    isLatest: boolean('is_latest').default(false).notNull(),
     files: json('files').notNull(),
     path: text('path').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),

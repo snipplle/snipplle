@@ -71,6 +71,13 @@
       "when": 1759688155537,
       "tag": "0009_AddedAdditionalFieldsToCollection",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1759695272602,
+      "tag": "0010_AddedIsLatestField",
+      "breakpoints": true
     }
   ]
 }
