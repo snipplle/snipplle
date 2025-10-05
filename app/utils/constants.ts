@@ -1,4 +1,4 @@
-export const actionButtons = ['snippets']
+export const actionButtons = ['snippets', 'collections']
 
 export const tagColors = [
   'red',
@@ -82,3 +82,8 @@ export const language: Record<string, any> = {
     color: 'orange',
   },
 }
+
+export const languageOptions = Object.entries(language).map(([key, value]) => ({
+  label: value.label,
+  value: key,
+}))

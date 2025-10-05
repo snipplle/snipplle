@@ -29,6 +29,7 @@
 
   const modals = ref<Record<string, any>>({
     snippets: import('./CreateSnippet.vue'),
+    collections: import('./CreateCollection.vue'),
   })
 
   const pageTitle = computed(() => {

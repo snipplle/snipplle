@@ -1,7 +1,31 @@
 <template>
   <ClientOnly>
     <div class="h-full space-y-4">
-      <div v-if="collections?.length" class="grid grid-cols-4 gap-4" />
+      <div
+        v-if="collections?.length"
+        class="w-full h-full flex flex-col justify-between"
+      >
+        <div class="grid grid-cols-4 gap-4">
+          <CollectionCard
+            v-for="collection in collections"
+            :key="collection.id"
+            :collection="collection"
+          />
+        </div>
+
+        <div class="flex justify-center">
+          <!-- <UPagination
+            v-model:page="queryFields.page"
+            :items-per-page="queryFields.itemsPerPage"
+            :total="total"
+            color="neutral"
+            variant="subtle"
+            active-variant="subtle"
+            size="sm"
+            @update:page="(page) => (queryFields.page = page)"
+          /> -->
+        </div>
+      </div>
 
       <div
         v-if="!collections?.length"
@@ -17,7 +41,7 @@
             </p>
           </div>
 
-          <UButton color="primary" variant="subtle">Create collection</UButton>
+          <CreateCollection variant="subtle" />
         </div>
       </div>
     </div>
