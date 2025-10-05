@@ -10,7 +10,7 @@
       <div class="w-full p-0 rounded-md">
         <div class="min-h-40 bg-[#1f1f27] flex items-center justify-center">
           <UIcon
-            name="i-hugeicons-document-code"
+            name="i-hugeicons-code-folder"
             class="text-[54px] text-neutral-600"
           />
         </div>
