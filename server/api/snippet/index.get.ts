@@ -4,7 +4,8 @@ import type { Database } from '~~/server/types/database.types'
 import { orderByMap } from '~~/server/utils/order'
 
 export default defineEventHandler(async (event) => {
-  const { orderBy, lang, tag, search, page, itemsPerPage } = getQuery(event)
+  const { orderBy, lang, tag, search, page, itemsPerPage, withUrl } =
+    getQuery(event)
   const user = await serverSupabaseUser(event)
   const supabase = await serverSupabaseClient<Database>(event)
 
@@ -38,6 +39,7 @@ export default defineEventHandler(async (event) => {
       snippet_tags!inner(
         tags!inner(name, color)
       )
+      ${withUrl === 'true' ? ',snippet_versions(is_latest, path)' : ''}
     `,
       { count: 'exact' },
     )
@@ -73,6 +75,30 @@ export default defineEventHandler(async (event) => {
     throw createError({
       statusCode: 500,
       message: error.message,
+    })
+  }
+
+  if (withUrl === 'true') {
+    const { data: signedUrls, error: signedUrlError } = await supabase.storage
+      .from('snippets')
+      .createSignedUrls(
+        data.map((snippet: any) => {
+          return snippet.snippet_versions.find(
+            (version: any) => version.is_latest,
+          )?.path
+        }),
+        60,
+      )
+
+    if (signedUrlError) {
+      throw createError({
+        statusCode: 500,
+        message: signedUrlError.message,
+      })
+    }
+
+    data.forEach((snippet: any, index) => {
+      snippet.snippetUrl = signedUrls[index]?.signedUrl
     })
   }
 

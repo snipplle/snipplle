@@ -17,7 +17,12 @@ export default defineEventHandler(async (event) => {
 
   const { data, error } = await supabase
     .from('collections')
-    .select('*, collection_versions(id, version, is_latest, path)')
+    .select(
+      `*,
+      collection_versions(id, version, is_latest, path),
+      snippets(id, name, snippet_tags(tags(name, color)))
+      `,
+    )
     .eq('slug', slug)
     .eq('workspace_id', workspaceId as string)
     .single()
