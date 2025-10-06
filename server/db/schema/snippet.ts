@@ -15,6 +15,7 @@ import { workspace } from './workspace'
 import { snippetVersion } from './snippetVersion'
 import { snippetTag } from './snippetTag'
 import { reaction } from './reaction'
+import { collectionSnippet } from './collectionSnippet'
 
 export const PreviewMode = pgEnum('preview_mode', ['none', 'console', 'full'])
 
@@ -57,4 +58,5 @@ export const snippetRelations = relations(snippet, ({ one, many }) => ({
   versions: many(snippetVersion),
   snippetTags: many(snippetTag),
   reactions: many(reaction),
+  collections: many(collectionSnippet),
 }))

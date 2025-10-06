@@ -14,6 +14,7 @@ import { user } from './user'
 import { collectionVersion } from './collectionVersion'
 import { collectionTag } from './collectionTag'
 import { reaction } from './reaction'
+import { collectionSnippet } from './collectionSnippet'
 
 export const collection = pgTable(
   'collections',
@@ -52,4 +53,5 @@ export const collectionRelations = relations(collection, ({ one, many }) => ({
   versions: many(collectionVersion),
   collectionTags: many(collectionTag),
   reactions: many(reaction),
+  snippets: many(collectionSnippet),
 }))
