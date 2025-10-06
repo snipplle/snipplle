@@ -32,8 +32,8 @@
   const router = useRouter()
 
   const modals = ref<Record<string, any>>({
-    snippets: import('./CreateSnippet.vue'),
-    collections: import('./CreateCollection.vue'),
+    snippets: import('./snippets/CreateSnippet.vue'),
+    collections: import('./collections/CreateCollection.vue'),
   })
 
   const pageTitle = computed(() => {
