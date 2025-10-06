@@ -79,6 +79,39 @@ export type Database = {
           },
         ]
       }
+      collection_snippets: {
+        Row: {
+          collection_id: string
+          created_at: string
+          snippet_id: string
+        }
+        Insert: {
+          collection_id: string
+          created_at?: string
+          snippet_id: string
+        }
+        Update: {
+          collection_id?: string
+          created_at?: string
+          snippet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'collection_snippets_collection_id_collections_id_fk'
+            columns: ['collection_id']
+            isOneToOne: false
+            referencedRelation: 'collections'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'collection_snippets_snippet_id_snippets_id_fk'
+            columns: ['snippet_id']
+            isOneToOne: false
+            referencedRelation: 'snippets'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       collection_tags: {
         Row: {
           collection_id: string
