@@ -21,10 +21,20 @@
                       size="sm"
                       color="neutral"
                       variant="link"
+                      @click="getSnippetPreview(snippet.snippet_url)"
                     />
 
                     <template #content>
-                      <div>test</div>
+                      <div class="p-2">
+                        <CodeViewer
+                          :content="previewCode"
+                          :is-preview="true"
+                          :extensions="extensions"
+                          :styles="{
+                            fontSize: '14px',
+                          }"
+                        />
+                      </div>
                     </template>
                   </UPopover>
 
@@ -69,10 +79,20 @@
                       size="sm"
                       color="neutral"
                       variant="link"
+                      @click="getSnippetPreview(snippet.snippet_url)"
                     />
 
                     <template #content>
-                      <div>test</div>
+                      <div class="p-2">
+                        <CodeViewer
+                          :content="previewCode"
+                          :is-preview="true"
+                          :extensions="extensions"
+                          :styles="{
+                            fontSize: '14px',
+                          }"
+                        />
+                      </div>
                     </template>
                   </UPopover>
 
@@ -110,12 +130,16 @@
 </template>
 
 <script setup lang="ts">
+  import { catppuccinMocha } from '@catppuccin/codemirror'
+
   const { params } = useRoute()
   const globalStore = useGlobalStore()
   const { listen } = useToolbarEvent()
+  const { beautifyCode } = useCodeFormat()
 
   const snippets = ref<any[]>([])
   const selectedSnippets = ref<any[]>([])
+  const previewCode = ref<string>('')
 
   const { data: collection } = await useFetch<any>(
     `/api/collection/${params.collectionId}`,
@@ -126,6 +150,11 @@
       },
     },
   )
+
+  const extensions = [
+    catppuccinMocha,
+    languages[collection?.value.language || 'js'],
+  ]
 
   const { data } = await useFetch<any>(`/api/snippet`, {
     method: 'get',
@@ -155,6 +184,18 @@
     },
     { immediate: true },
   )
+
+  async function getSnippetPreview(url: string): Promise<void> {
+    if (!url) {
+      return
+    }
+
+    const response = await fetch(url)
+
+    const code = await response.text()
+
+    previewCode.value = beautifyCode(code)
+  }
 
   function selectSnippet(snippet: any): void {
     selectedSnippets.value.push(snippet)

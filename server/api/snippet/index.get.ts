@@ -98,7 +98,7 @@ export default defineEventHandler(async (event) => {
     }
 
     data.forEach((snippet: any, index) => {
-      snippet.snippetUrl = signedUrls[index]?.signedUrl
+      snippet.snippet_url = signedUrls[index]?.signedUrl
     })
   }
 
