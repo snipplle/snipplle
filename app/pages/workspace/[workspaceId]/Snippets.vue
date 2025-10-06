@@ -69,7 +69,7 @@
     query: queryFields.value,
   })
 
-  const snippets = computed(() => data.value?.snippets || [])
+  const snippets = computed(() => (data.value?.snippets as any) || [])
   const total = computed(() => data.value?.count || 0)
 
   listen('toolbar:order-by', (orderBy: Record<string, string>) => {
