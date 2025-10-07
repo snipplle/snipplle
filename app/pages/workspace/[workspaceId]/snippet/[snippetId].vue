@@ -115,3 +115,33 @@
     }
   }
 </script>
+
+<style>
+  .editor .cm-editor {
+    border: 1px solid #24273a;
+  }
+
+  .editor .cm-editor,
+  .editor .cm-gutter {
+    background-color: #181923;
+    padding: 4px;
+    height: 100%;
+  }
+
+  .editor .cm-activeLineGutter {
+    background-color: transparent !important;
+  }
+
+  .editor .cm-activeLine {
+    border-radius: 4px !important;
+  }
+
+  .editor .cm-editor,
+  .editor .cm-scroller {
+    border-radius: 8px;
+  }
+
+  .editor.cm-lineNumbers {
+    font-size: 12px !important;
+  }
+</style>
