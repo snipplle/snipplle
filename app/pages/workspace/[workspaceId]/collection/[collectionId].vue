@@ -15,9 +15,16 @@
           />
         </div>
 
-        <div
-          class="bg-default border border-light-gray-800 w-full h-full rounded-lg"
-        ></div>
+        <CodeViewer
+          :content="resultCode ? Object.values(resultCode).join('\n') : ''"
+          :extensions="extensions"
+          :styles="{
+            height: '100%',
+            fontSize: '12px',
+            overflow: 'auto',
+          }"
+          class="w-full"
+        />
       </div>
     </NuxtLayout>
   </ClientOnly>
@@ -29,9 +36,11 @@
   const { params } = useRoute()
   const globalStore = useGlobalStore()
   const { listen } = useToolbarEvent()
+  const { beautifyCode } = useCodeFormat()
 
   const snippets = ref<any[]>([])
   const selectedSnippets = ref<any[]>([])
+  const resultCode = ref()
 
   const { data: collection } = await useFetch<any>(
     `/api/collection/${params.collectionId}`,
@@ -77,17 +86,33 @@
     { immediate: true },
   )
 
-  function selectSnippet(selectedSnippet: any): void {
+  async function selectSnippet(selectedSnippet: any): Promise<void> {
     selectedSnippets.value.push(selectedSnippet)
     snippets.value = snippets.value.filter(
       (item) => item.id !== selectedSnippet.id,
     )
+
+    resultCode.value = {
+      [selectedSnippet.id]: await getSnippetCode(selectedSnippet),
+    }
   }
 
-  function deselectSnippet(snippet: any): void {
+  async function deselectSnippet(snippet: any): Promise<void> {
     selectedSnippets.value = selectedSnippets.value.filter(
       (item) => item.id !== snippet.id,
     )
     snippets.value.push(snippet)
+
+    resultCode.value = Object.fromEntries(
+      Object.entries(resultCode.value).filter(([key]) => key !== snippet.id),
+    )
+  }
+
+  async function getSnippetCode(snippet: any): Promise<string> {
+    const response = await fetch(snippet.snippet_url)
+
+    const snippetCode = await response.text()
+
+    return beautifyCode(snippetCode)
   }
 </script>
