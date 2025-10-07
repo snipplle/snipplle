@@ -5,9 +5,9 @@
         v-model="code"
         :class="[type]"
         :style="style"
-        :auto-focus="!isPreview"
-        :editable="!isPreview"
-        :read-only="isPreview"
+        :auto-focus="false"
+        :editable="false"
+        :read-only="true"
         :extensions="extensionList"
         :basic-setup="true"
         :indent-with-tab="true"
@@ -63,10 +63,6 @@
   watch(
     () => props.content,
     (newContent) => {
-      if (!newContent) {
-        return
-      }
-
       code.value = newContent
     },
     { immediate: true },
@@ -75,7 +71,7 @@
   watch(
     () => props.isPreview,
     (newIsPreview) => {
-      type.value = newIsPreview ? 'preview' : 'editor'
+      type.value = newIsPreview ? 'preview' : 'editor-style'
 
       if (props.styles) {
         style.value = props.styles
@@ -108,7 +104,7 @@
 </script>
 
 <style>
-  .preview .cm-scroller {
+  .editor-style .cm-scroller {
     overflow: hidden;
   }
 
@@ -117,48 +113,46 @@
     background-color: #1f1f27;
   }
 
-  .preview .cm-activeLineGutter {
+  .editor-style .cm-activeLineGutter {
     display: none;
   }
 
+  .editor-style .cm-activeLine,
   .preview .cm-activeLine {
     background-color: transparent;
   }
 
+  .editor-style .cm-gutters,
   .preview .cm-gutters {
     display: none;
   }
 
-  .preview .cm-editor {
+  .editor-style .cm-editor {
     user-select: none;
     pointer-events: none;
   }
 
-  .editor .cm-editor {
-    border: 1px solid #24273a;
-  }
-
-  .editor .cm-editor,
-  .editor .cm-gutter {
+  .editor-style .cm-editor,
+  .editor-style .cm-gutter {
     background-color: #181923;
     padding: 4px;
     height: 100%;
   }
 
-  .editor .cm-activeLineGutter {
+  .editor-style .cm-activeLineGutter {
     background-color: transparent !important;
   }
 
-  .editor .cm-activeLine {
+  .editor-style .cm-activeLine {
     border-radius: 4px !important;
   }
 
-  .editor .cm-editor,
-  .editor .cm-scroller {
+  .editor-style .cm-editor,
+  .editor-style .cm-scroller {
     border-radius: 8px;
   }
 
-  .editor.cm-lineNumbers {
+  .editor-style.cm-lineNumbers {
     font-size: 12px !important;
   }
 </style>
