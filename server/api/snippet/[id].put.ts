@@ -1,5 +1,6 @@
 import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
 import { createId } from '@paralleldrive/cuid2'
+import beautify from 'js-beautify'
 
 import type { Database } from '~~/server/types/database.types'
 
@@ -44,7 +45,10 @@ export default defineEventHandler(async (event) => {
     .from('snippets')
     .upload(
       `${workspaceId}/snippets/${slug}/${newVersion}/index.${language}`,
-      snippetCode,
+      beautify(snippetCode, {
+        indent_size: 2,
+        indent_char: ' ',
+      }),
       {
         contentType: 'application/typescript',
       },
@@ -62,7 +66,6 @@ export default defineEventHandler(async (event) => {
     .update({
       preview: snippetCode,
       language,
-      path: file.path,
     })
     .eq('slug', slug)
     .eq('workspace_id', workspaceId)

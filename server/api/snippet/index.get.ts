@@ -87,7 +87,7 @@ export default defineEventHandler(async (event) => {
             (version: any) => version.is_latest,
           )?.path
         }),
-        60,
+        3600,
       )
 
     if (signedUrlError) {
