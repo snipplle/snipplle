@@ -85,6 +85,20 @@
       "when": 1759769100055,
       "tag": "0011_AddedCollectionSnippetRelation",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1759949734846,
+      "tag": "0012_UpdatedSchemasAndFields",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1759949979460,
+      "tag": "0013_ConvertedFieldToOptional",
+      "breakpoints": true
     }
   ]
 }

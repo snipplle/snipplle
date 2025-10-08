@@ -10,6 +10,7 @@ import {
 import { relations } from 'drizzle-orm'
 import { createId } from '@paralleldrive/cuid2'
 import { snippet } from './snippet'
+import { collectionSnippet } from './collectionSnippet'
 
 export const snippetVersion = pgTable(
   'snippet_versions',
@@ -31,9 +32,13 @@ export const snippetVersion = pgTable(
   },
 )
 
-export const snippetVersionRelations = relations(snippetVersion, ({ one }) => ({
-  snippet: one(snippet, {
-    fields: [snippetVersion.snippetId],
-    references: [snippet.id],
+export const snippetVersionRelations = relations(
+  snippetVersion,
+  ({ one, many }) => ({
+    snippet: one(snippet, {
+      fields: [snippetVersion.snippetId],
+      references: [snippet.id],
+    }),
+    collectionVersions: many(collectionSnippet),
   }),
-}))
+)

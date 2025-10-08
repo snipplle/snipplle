@@ -1,0 +1,1 @@
+ALTER TABLE "collection_versions" ALTER COLUMN "files" DROP NOT NULL;

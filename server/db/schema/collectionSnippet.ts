@@ -1,22 +1,24 @@
 import { pgTable, primaryKey, text, timestamp } from 'drizzle-orm/pg-core'
-import { collection } from './collection'
-import { snippet } from './snippet'
 import { relations } from 'drizzle-orm'
+import { collectionVersion } from './collectionVersion'
+import { snippetVersion } from './snippetVersion'
 
 export const collectionSnippet = pgTable(
   'collection_snippets',
   {
-    collectionId: text('collection_id')
+    collectionVersionId: text('collection_version_id')
       .notNull()
-      .references(() => collection.id, { onDelete: 'cascade' }),
-    snippetId: text('snippet_id')
+      .references(() => collectionVersion.id, { onDelete: 'cascade' }),
+    snippetVersionId: text('snippet_version_id')
       .notNull()
-      .references(() => snippet.id, { onDelete: 'cascade' }),
+      .references(() => snippetVersion.id, { onDelete: 'cascade' }),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (table) => {
     return {
-      pk: primaryKey({ columns: [table.collectionId, table.snippetId] }),
+      pk: primaryKey({
+        columns: [table.collectionVersionId, table.snippetVersionId],
+      }),
     }
   },
 )
@@ -24,13 +26,13 @@ export const collectionSnippet = pgTable(
 export const collectionSnippetRelations = relations(
   collectionSnippet,
   ({ one }) => ({
-    collection: one(collection, {
-      fields: [collectionSnippet.collectionId],
-      references: [collection.id],
+    collectionVersion: one(collectionVersion, {
+      fields: [collectionSnippet.collectionVersionId],
+      references: [collectionVersion.id],
     }),
-    snippet: one(snippet, {
-      fields: [collectionSnippet.snippetId],
-      references: [snippet.id],
+    snippetVersion: one(snippetVersion, {
+      fields: [collectionSnippet.snippetVersionId],
+      references: [snippetVersion.id],
     }),
   }),
 )
