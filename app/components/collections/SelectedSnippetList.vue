@@ -3,7 +3,7 @@
     <div
       class="bg-default border border-light-gray-800 w-full h-full p-2 rounded-lg space-y-2"
     >
-      <div v-if="selectedSnippets?.length">
+      <div v-if="selectedSnippets?.length" class="space-y-2">
         <div
           v-for="snippet in selectedSnippets"
           :key="snippet.id"
