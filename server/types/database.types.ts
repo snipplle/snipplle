@@ -81,33 +81,33 @@ export type Database = {
       }
       collection_snippets: {
         Row: {
-          collection_id: string
+          collection_version_id: string
           created_at: string
-          snippet_id: string
+          snippet_version_id: string
         }
         Insert: {
-          collection_id: string
+          collection_version_id: string
           created_at?: string
-          snippet_id: string
+          snippet_version_id: string
         }
         Update: {
-          collection_id?: string
+          collection_version_id?: string
           created_at?: string
-          snippet_id?: string
+          snippet_version_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: 'collection_snippets_collection_id_collections_id_fk'
-            columns: ['collection_id']
+            foreignKeyName: 'collection_snippets_collection_version_id_collection_versions_i'
+            columns: ['collection_version_id']
             isOneToOne: false
-            referencedRelation: 'collections'
+            referencedRelation: 'collection_versions'
             referencedColumns: ['id']
           },
           {
-            foreignKeyName: 'collection_snippets_snippet_id_snippets_id_fk'
-            columns: ['snippet_id']
+            foreignKeyName: 'collection_snippets_snippet_version_id_snippet_versions_id_fk'
+            columns: ['snippet_version_id']
             isOneToOne: false
-            referencedRelation: 'snippets'
+            referencedRelation: 'snippet_versions'
             referencedColumns: ['id']
           },
         ]
@@ -149,29 +149,29 @@ export type Database = {
         Row: {
           collection_id: string
           created_at: string
-          files: Json
+          files: Json | null
           id: string
           is_latest: boolean
           path: string
-          version: string
+          version: number
         }
         Insert: {
           collection_id: string
           created_at?: string
-          files: Json
+          files?: Json | null
           id: string
           is_latest?: boolean
           path: string
-          version: string
+          version: number
         }
         Update: {
           collection_id?: string
           created_at?: string
-          files?: Json
+          files?: Json | null
           id?: string
           is_latest?: boolean
           path?: string
-          version?: string
+          version?: number
         }
         Relationships: [
           {
