@@ -36,7 +36,8 @@
   const { params } = useRoute()
   const globalStore = useGlobalStore()
   const { listen } = useToolbarEvent()
-  const { beautifyCode } = useCodeFormat()
+  const { beautifyCode, minifyCode } = useCodeFormat()
+  const toast = useToast()
 
   const snippets = ref<any[]>([])
   const selectedSnippets = ref<any[]>([])
@@ -54,13 +55,13 @@
 
   const extensions = [
     catppuccinMocha,
-    languages[collection?.value.language || 'js'],
+    languages[collection?.value?.language || 'js'],
   ]
 
   const { data } = await useFetch<any>(`/api/snippet`, {
     method: 'get',
     query: {
-      lang: collection?.value.language,
+      lang: collection?.value?.language,
       page: 1,
       itemsPerPage: 10,
       withUrl: 'true',
@@ -69,8 +70,19 @@
 
   watch(
     () => collection.value,
-    (newData) => {
+    async (newData) => {
+      if (!newData) {
+        return
+      }
+
       selectedSnippets.value = newData.snippets
+
+      for (const snippet of selectedSnippets.value) {
+        resultCode.value = {
+          ...resultCode.value,
+          [snippet.id]: await getSnippetCode(snippet),
+        }
+      }
     },
     { immediate: true },
   )
@@ -78,6 +90,10 @@
   watch(
     () => data.value,
     (newData) => {
+      if (!newData) {
+        return
+      }
+
       snippets.value = newData.snippets.filter(
         (item: any) =>
           !selectedSnippets.value.some((selected) => selected.id === item.id),
@@ -114,5 +130,43 @@
     const snippetCode = await response.text()
 
     return beautifyCode(snippetCode)
+  }
+
+  listen('toolbar:save', saveCollection)
+
+  async function saveCollection(): Promise<void> {
+    const joinedCode = Object.values(resultCode.value).join('\n')
+    const escapedCode = minifyCode(joinedCode)
+
+    try {
+      await $fetch(`/api/collection/${collection.value?.id}`, {
+        method: 'PUT' as any,
+        body: {
+          slug: params.collectionId,
+          workspaceId: globalStore.activeWorkspace?.id,
+          collectionCode: escapedCode,
+          snippets: selectedSnippets.value.map((item) => ({
+            id: item.id,
+          })),
+          language: collection.value?.language,
+        },
+      })
+
+      toast.add({
+        title: 'Success',
+        description: 'Collection saved successfully',
+        color: 'success',
+        icon: 'i-hugeicons-checkmark-circle-01',
+        duration: 1500,
+      })
+    } catch (error: any) {
+      toast.add({
+        title: 'Oops',
+        description: error.statusMessage,
+        color: 'error',
+        icon: 'i-hugeicons-fire',
+        duration: 1500,
+      })
+    }
   }
 </script>
