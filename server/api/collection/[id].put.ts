@@ -110,12 +110,10 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const { error } = await supabase.from('collection_snippets').insert({
+    await supabase.from('collection_snippets').insert({
       collection_version_id: collectionVersion.id,
       snippet_version_id: snippetVersion.id,
     })
-
-    console.log(error)
   }
 
   return data
