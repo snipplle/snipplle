@@ -49,7 +49,7 @@
   )
 
   watch(
-    () => snippet.value?.snippetFile,
+    () => snippet.value?.snippet_file,
     async (fileUrl) => {
       if (!fileUrl) {
         snippetCode.value = ''
@@ -78,13 +78,13 @@
       method: 'get',
     })
 
-    if (!version?.snippetFile) {
+    if (!version?.snippet_file) {
       snippetCode.value = ''
 
       return
     }
 
-    const response = await fetch(version?.snippetFile)
+    const response = await fetch(version?.snippet_file)
     const code = await response.text()
 
     snippetCode.value = beautifyCode(code)
