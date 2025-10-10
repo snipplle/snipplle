@@ -1,6 +1,5 @@
 import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server'
-import slugify from 'slugify'
-import { createId } from '@paralleldrive/cuid2'
+import { WorkspaceService } from '~~/server/services/workspace.service'
 
 import type { Database } from '~~/server/types/database.types'
 
@@ -8,6 +7,7 @@ export default defineEventHandler(async (event) => {
   const { name } = await readBody(event)
   const supabase = await serverSupabaseClient<Database>(event)
   const user = await serverSupabaseUser(event)
+  const workspaceService = new WorkspaceService(supabase)
 
   if (!user) {
     throw createError({
@@ -16,32 +16,16 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const { data, error } = await supabase
-    .from('workspaces')
-    .insert({
-      id: createId(),
-      name,
-      slug: slugify(name, {
-        lower: true,
-        remove: /[*+~.()'"!:@]/g,
-      }),
-    })
-    .select()
-    .single()
+  const { data, error } = await workspaceService.createWorkspace(name)
 
-  if (error) {
+  if (!data || error) {
     throw createError({
       statusCode: 400,
-      message: error.message,
+      message: error?.message,
     })
   }
 
-  await supabase.from('workspace_members').insert({
-    id: createId(),
-    workspace_id: data.id,
-    user_id: user.id,
-    role: 'owner',
-  })
+  await workspaceService.addMember(data.id, user.id, 'owner')
 
   await supabase.auth.updateUser({
     data: {

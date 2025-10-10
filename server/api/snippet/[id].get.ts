@@ -1,4 +1,5 @@
 import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
+import { SnippetService } from '~~/server/services/snippet.service'
 
 import type { Database } from '~~/server/types/database.types'
 
@@ -7,6 +8,7 @@ export default defineEventHandler(async (event) => {
   const { workspaceId } = getQuery(event)
   const user = await serverSupabaseUser(event)
   const supabase = await serverSupabaseClient<Database>(event)
+  const snippetService = new SnippetService(supabase)
 
   if (!user) {
     throw createError({
@@ -15,12 +17,10 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const { data, error } = await supabase
-    .from('snippets')
-    .select('*, snippet_versions(id, version, is_latest, path)')
-    .eq('slug', slug)
-    .eq('workspace_id', workspaceId as string)
-    .single()
+  const { data, error } = await snippetService.getSnippet(
+    slug,
+    workspaceId as string,
+  )
 
   if (error) {
     throw createError({
@@ -29,21 +29,5 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const latestVersion = data.snippet_versions.find(
-    (version) => version.is_latest,
-  )
-  let snippetFile
-
-  if (latestVersion?.path) {
-    const { data: file } = await supabase.storage
-      .from('snippets')
-      .createSignedUrl(latestVersion.path, 60)
-
-    snippetFile = file?.signedUrl
-  }
-
-  return {
-    ...data,
-    snippetFile,
-  }
+  return data
 })

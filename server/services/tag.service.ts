@@ -1,26 +1,36 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createId } from '@paralleldrive/cuid2'
 
-import type { Database } from '~~/server/types/database.types'
+import type { Database, Tables } from '../types/database.types'
+import type { ServiceResponse } from '../types/api.types'
 
 export class TagService {
   constructor(private supabase: SupabaseClient<Database>) {}
 
-  async getTag(name: string) {
+  async getTag(
+    name: string,
+    select = '*',
+  ): Promise<ServiceResponse<Partial<Tables<'tags'>> | null>> {
     const { data, error } = await this.supabase
       .from('tags')
-      .select('*')
+      .select(select)
       .eq('name', name)
       .single()
 
     if (error) {
-      return error
+      return {
+        data: null,
+        error,
+      }
     }
 
-    return data
+    return {
+      data: data as Partial<Tables<'tags'>>,
+      error,
+    }
   }
 
-  async createTag(tag: any) {
+  async createTag(tag: any): Promise<ServiceResponse<Tables<'tags'> | null>> {
     const { data, error } = await this.supabase
       .from('tags')
       .insert({
@@ -28,30 +38,19 @@ export class TagService {
         name: tag.name,
         color: tag.color,
       })
-      .select('id')
+      .select()
       .single()
 
     if (error) {
-      return error
+      return {
+        data: null,
+        error,
+      }
     }
 
-    return data
-  }
-
-  async createSnippetTag(snippetId: string, tagId: string) {
-    const { data, error } = await this.supabase
-      .from('snippet_tags')
-      .insert({
-        snippet_id: snippetId,
-        tag_id: tagId,
-      })
-      .select('id')
-      .single()
-
-    if (error) {
-      return error
+    return {
+      data,
+      error,
     }
-
-    return data
   }
 }

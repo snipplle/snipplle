@@ -19,8 +19,8 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const { data: workspaces, error: workspaceError } =
-    await workspaceService.getWorkspaces('workspace_id', user?.id)
+  const { data: workspaceIds, error: workspaceError } =
+    await workspaceService.getUserWorkspaces(user?.id)
 
   if (workspaceError) {
     throw createError({
@@ -36,37 +36,14 @@ export default defineEventHandler(async (event) => {
     search,
     page,
     itemsPerPage,
-    workspaces,
+    workspaceIds,
+    withUrl,
   })
 
   if (error) {
     throw createError({
       statusCode: 500,
       message: error.message,
-    })
-  }
-
-  if (withUrl === 'true') {
-    const { data: signedUrls, error: signedUrlError } = await supabase.storage
-      .from('snippets')
-      .createSignedUrls(
-        data.map((snippet: any) => {
-          return snippet.snippet_versions.find(
-            (version: any) => version.is_latest,
-          )?.path
-        }),
-        3600,
-      )
-
-    if (signedUrlError) {
-      throw createError({
-        statusCode: 500,
-        message: signedUrlError.message,
-      })
-    }
-
-    data.forEach((snippet: any, index) => {
-      snippet.snippet_url = signedUrls[index]?.signedUrl
     })
   }
 

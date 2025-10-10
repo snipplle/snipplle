@@ -2,31 +2,44 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { createId } from '@paralleldrive/cuid2'
 import slugify from 'slugify'
 
-import { orderByMap } from '~~/server/utils/order'
-import type { Database } from '~~/server/types/database.types'
+import { orderByMap } from '../utils/order'
+
+import type { Database, Tables } from '../types/database.types'
+import type {
+  DatabaseResponse,
+  StorageData,
+  SnippetFile,
+} from '../types/api.types'
+import { StorageService } from './storage.service'
 
 export class SnippetService {
-  constructor(private supabase: SupabaseClient<Database>) {}
+  private storageService: StorageService
 
-  async getSnippets(payload: any) {
+  constructor(private supabase: SupabaseClient<Database>) {
+    this.storageService = new StorageService(supabase)
+  }
+
+  async getSnippets(payload: any): Promise<DatabaseResponse<any[] | null>> {
     const from = (Number(payload.page) - 1) * Number(payload.itemsPerPage)
     const to = from + Number(payload.itemsPerPage) - 1
 
-    const query = this.supabase
-      .from('snippets')
-      .select(
-        `
+    let select = `
       *,
       snippet_tags!inner(
         tags!inner(name, color)
       )
-      ${payload.withUrl === 'true' ? ',snippet_versions(is_latest, path)' : ''}
-    `,
-        { count: 'exact' },
-      )
+    `
+
+    if (payload.withUrl === 'true') {
+      select += ',snippet_versions(is_latest, path)'
+    }
+
+    const query = this.supabase
+      .from('snippets')
+      .select(select, { count: 'exact' })
       .in(
         'workspace_id',
-        payload.workspaces.map((workspace: any) => workspace.workspace_id),
+        payload.workspaceIds.map((workspace: any) => workspace.workspace_id),
       )
       .range(from, to)
 
@@ -52,12 +65,37 @@ export class SnippetService {
 
     const { data, count, error } = await query
 
+    console.log(data, count, error)
+
     if (error) {
       return {
-        data: [],
+        data: null,
         count: 0,
         error,
       }
+    }
+
+    if (payload.withUrl === 'true') {
+      const { data: signedUrls, error: signedUrlError } =
+        await this.supabase.storage.from('snippets').createSignedUrls(
+          data.map((snippet: any) => {
+            return snippet.snippet_versions.find(
+              (version: any) => version.is_latest,
+            )?.path
+          }),
+          3600,
+        )
+
+      if (signedUrlError) {
+        throw createError({
+          statusCode: 500,
+          message: signedUrlError.message,
+        })
+      }
+
+      data.forEach((snippet: any, index: number) => {
+        snippet.snippet_url = signedUrls[index]?.signedUrl
+      })
     }
 
     return {
@@ -67,7 +105,51 @@ export class SnippetService {
     }
   }
 
-  async createSnippet(snippet: any, user: any, workspaceId: string) {
+  async getSnippet(
+    slug: string,
+    workspaceId: string,
+  ): Promise<DatabaseResponse<any | null>> {
+    const { data, error } = await this.supabase
+      .from('snippets')
+      .select('*, snippet_versions(id, version, is_latest, path)')
+      .eq('slug', slug)
+      .eq('workspace_id', workspaceId as string)
+      .single()
+
+    if (error) {
+      return {
+        data: null,
+        error,
+      }
+    }
+
+    const latestVersion = data.snippet_versions.find(
+      (version) => version.is_latest,
+    )
+    let snippetFile
+
+    if (latestVersion?.path) {
+      const { data: file } = await this.storageService.getSignedUrl(
+        latestVersion.path,
+      )
+
+      snippetFile = (file as StorageData)?.signedUrl
+    }
+
+    return {
+      data: {
+        ...data,
+        snippet_file: snippetFile,
+      },
+      error,
+    }
+  }
+
+  async createSnippet(
+    snippet: any,
+    userId: string,
+    workspaceId: string,
+  ): Promise<DatabaseResponse<Tables<'snippets'> | null>> {
     const { data, error } = await this.supabase
       .from('snippets')
       .insert({
@@ -80,16 +162,83 @@ export class SnippetService {
         language: snippet.language,
         description: snippet.description,
         is_public: snippet.isPublic,
-        created_by: user?.id,
+        created_by: userId,
         workspace_id: workspaceId,
       })
       .select()
       .single()
 
     if (error) {
-      return error
+      return {
+        data: null,
+        error,
+      }
     }
 
-    return data
+    return {
+      data,
+      error,
+    }
+  }
+
+  async createSnippetTag(
+    snippetId: string,
+    tagId: string,
+  ): Promise<DatabaseResponse<Tables<'snippet_tags'> | null>> {
+    const { data, error } = await this.supabase
+      .from('snippet_tags')
+      .insert({
+        snippet_id: snippetId,
+        tag_id: tagId,
+      })
+      .select()
+      .single()
+
+    if (error) {
+      return {
+        data: null,
+        error,
+      }
+    }
+
+    return {
+      data,
+      error,
+    }
+  }
+
+  async getSnippetVersion(
+    id: string,
+  ): Promise<
+    DatabaseResponse<(Tables<'snippet_versions'> & SnippetFile) | null>
+  > {
+    const { data, error } = await this.supabase
+      .from('snippet_versions')
+      .select()
+      .eq('id', id)
+      .single()
+
+    if (error) {
+      return {
+        data: null,
+        error,
+      }
+    }
+
+    let snippetFile: string | undefined
+
+    if (data?.path) {
+      const { data: file } = await this.storageService.getSignedUrl(data.path)
+
+      snippetFile = (file as StorageData)?.signedUrl
+    }
+
+    return {
+      data: {
+        ...data,
+        snippet_file: snippetFile,
+      },
+      error,
+    }
   }
 }
