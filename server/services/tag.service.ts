@@ -17,13 +17,6 @@ export class TagService {
       .eq('name', name)
       .single()
 
-    if (error) {
-      return {
-        data: null,
-        error,
-      }
-    }
-
     return {
       data: data as Partial<Tables<'tags'>>,
       error,
@@ -40,13 +33,6 @@ export class TagService {
       })
       .select()
       .single()
-
-    if (error) {
-      return {
-        data: null,
-        error,
-      }
-    }
 
     return {
       data,

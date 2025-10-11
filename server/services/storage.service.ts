@@ -17,13 +17,6 @@ export class StorageService {
       .from('snippets')
       .createSignedUrls(paths, 60)
 
-    if (error) {
-      return {
-        data: null,
-        error,
-      }
-    }
-
     return {
       data,
       error,
@@ -35,13 +28,6 @@ export class StorageService {
       .from('snippets')
       .createSignedUrl(path, 60)
 
-    if (error) {
-      return {
-        data: null,
-        error,
-      }
-    }
-
     return {
       data,
       error,
@@ -52,13 +38,6 @@ export class StorageService {
     const { data, error } = await this.supabase.storage
       .from(scope)
       .download(path)
-
-    if (error) {
-      return {
-        data: null,
-        error,
-      }
-    }
 
     return {
       data,
@@ -76,13 +55,6 @@ export class StorageService {
       .from(scope)
       .upload(path, file, options)
 
-    if (error) {
-      return {
-        data: null,
-        error,
-      }
-    }
-
     return {
       data,
       error,
@@ -93,13 +65,6 @@ export class StorageService {
     const { data, error } = await this.supabase.storage
       .from(scope)
       .remove(paths)
-
-    if (error) {
-      return {
-        data: null,
-        error,
-      }
-    }
 
     return {
       data,

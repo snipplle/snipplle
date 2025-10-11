@@ -187,13 +187,6 @@ export class SnippetService {
       .select()
       .single()
 
-    if (error) {
-      return {
-        data: null,
-        error,
-      }
-    }
-
     return {
       data,
       error,
@@ -210,13 +203,6 @@ export class SnippetService {
       .eq('id', id)
       .select()
       .single()
-
-    if (error) {
-      return {
-        data: null,
-        error,
-      }
-    }
 
     return {
       data,
@@ -237,13 +223,6 @@ export class SnippetService {
       .select()
       .single()
 
-    if (error) {
-      return {
-        data: null,
-        error,
-      }
-    }
-
     return {
       data,
       error,
@@ -253,7 +232,7 @@ export class SnippetService {
   async getSnippetVersions(
     workspaceId: string,
     snippetId: string,
-  ): Promise<DatabaseResponse<any | null>> {
+  ): Promise<any> {
     const { data: snippet, error: snippetError } = await this.getSnippet({
       workspaceId,
       id: snippetId,
@@ -273,10 +252,10 @@ export class SnippetService {
       )
 
     if (!metaFile || metaFileError) {
-      throw createError({
-        statusCode: 400,
-        message: metaFileError?.message,
-      })
+      return {
+        data: null,
+        error: metaFileError,
+      }
     }
 
     const metaData = JSON.parse(await metaFile.text())
@@ -371,6 +350,22 @@ export class SnippetService {
     }
 
     const { data, error } = await this.uploadNewVersion(payload, snippet)
+
+    return {
+      data,
+      error,
+    }
+  }
+
+  async deleteSnippet(
+    id: string,
+    userId: string,
+  ): Promise<DatabaseResponse<any | null>> {
+    const { data, error } = await this.supabase
+      .from('snippets')
+      .delete()
+      .eq('id', id)
+      .eq('created_by', userId)
 
     return {
       data,
