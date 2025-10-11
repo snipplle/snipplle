@@ -11,7 +11,7 @@ export class WorkspaceService {
   async getWorkspaces(): Promise<
     DatabaseResponse<Tables<'workspaces'>[] | null>
   > {
-    const { data, error } = await this.supabase.from('workspaces').select('*')
+    const { data, error } = await this.supabase.from('workspaces').select()
 
     return {
       data,
@@ -98,7 +98,7 @@ export class WorkspaceService {
 
     const { data, error } = await this.supabase
       .from('workspaces')
-      .select('*')
+      .select()
       .eq('id', member.workspace_id)
       .single()
 

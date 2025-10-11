@@ -104,7 +104,7 @@ export class SnippetService {
   async getSnippet(payload: any): Promise<DatabaseResponse<any | null>> {
     const query = this.supabase
       .from('snippets')
-      .select('*')
+      .select()
       .eq('workspace_id', payload.workspaceId as string)
 
     if (payload.slug) {
@@ -366,6 +366,8 @@ export class SnippetService {
       .delete()
       .eq('id', id)
       .eq('created_by', userId)
+      .select()
+      .single()
 
     return {
       data,
