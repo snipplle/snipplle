@@ -8,11 +8,7 @@ import { orderByMap } from '../utils/order'
 import { beautifyCode } from '../utils/codeFormat'
 
 import type { Database, Tables } from '../types/database.types'
-import type {
-  DatabaseResponse,
-  StorageData,
-  SnippetFile,
-} from '../types/api.types'
+import type { DatabaseResponse, StorageData } from '../types/api.types'
 
 export class SnippetService {
   private storageService: StorageService
@@ -254,38 +250,101 @@ export class SnippetService {
     }
   }
 
-  async getSnippetVersion(
-    id: string,
-  ): Promise<
-    DatabaseResponse<(Tables<'snippet_versions'> & SnippetFile) | null>
-  > {
-    const { data, error } = await this.supabase
-      .from('snippet_versions')
-      .select()
-      .eq('id', id)
-      .single()
+  async getSnippetVersions(
+    workspaceId: string,
+    snippetId: string,
+  ): Promise<DatabaseResponse<any | null>> {
+    const { data: snippet, error: snippetError } = await this.getSnippet({
+      workspaceId,
+      id: snippetId,
+    })
 
-    if (error) {
+    if (snippetError) {
       return {
         data: null,
-        error,
+        error: snippetError,
       }
     }
 
-    let snippetFile: string | undefined
+    const { data: metaFile, error: metaFileError } =
+      await this.storageService.download(
+        'snippets',
+        `${snippet.workspace_id}/snippets/${snippet.slug}/meta.json`,
+      )
 
-    if (data?.path) {
-      const { data: file } = await this.storageService.getSignedUrl(data.path)
-
-      snippetFile = (file as StorageData)?.signedUrl
+    if (!metaFile || metaFileError) {
+      throw createError({
+        statusCode: 400,
+        message: metaFileError?.message,
+      })
     }
+
+    const metaData = JSON.parse(await metaFile.text())
+
+    const versions = metaData.versions.map((version: any) => ({
+      id: version.id,
+      version: version.v,
+      is_latest: version.v === metaData.latest,
+    }))
+
+    return {
+      data: versions,
+      error: null,
+    }
+  }
+
+  async getSnippetVersion(
+    workspaceId: string,
+    snippetId: string,
+    versionId: string,
+  ): Promise<any> {
+    const { data: snippet, error: snippetError } = await this.getSnippet({
+      workspaceId,
+      id: snippetId,
+    })
+
+    if (snippetError) {
+      throw createError({
+        statusCode: 400,
+        message: snippetError.message,
+      })
+    }
+
+    const { data: metaFile, error: metaFileError } =
+      await this.storageService.download(
+        'snippets',
+        `${snippet.workspace_id}/snippets/${snippet.slug}/meta.json`,
+      )
+
+    if (!metaFile || metaFileError) {
+      return {
+        data: null,
+        error: metaFileError,
+      }
+    }
+
+    const metaData = JSON.parse(await metaFile.text())
+    const version = metaData.versions.find(
+      (version: any) => version.id === versionId,
+    )
+
+    if (!version) {
+      return {
+        data: null,
+        error: createError({
+          statusCode: 400,
+          message: 'Version not found',
+        }),
+      }
+    }
+
+    const { data: file } = await this.storageService.getSignedUrl(version.path)
 
     return {
       data: {
-        ...data,
-        snippet_file: snippetFile,
+        snippet_file: (file as StorageData)?.signedUrl,
       },
-      error,
+      error: null,
     }
   }
 

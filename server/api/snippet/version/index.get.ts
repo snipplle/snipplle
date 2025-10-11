@@ -1,11 +1,13 @@
 import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
+import { SnippetService } from '~~/server/services/snippet.service'
 
 import type { Database } from '~~/server/types/database.types'
 
 export default defineEventHandler(async (event) => {
-  const { snippetId } = getQuery(event)
+  const { workspaceId, snippetId } = getQuery(event)
   const user = await serverSupabaseUser(event)
   const supabase = await serverSupabaseClient<Database>(event)
+  const snippetService = new SnippetService(supabase)
 
   if (!user) {
     throw createError({
@@ -14,44 +16,24 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  if (!snippetId) {
+  if (!workspaceId || !snippetId) {
     throw createError({
       statusCode: 400,
-      message: 'Snippet ID is required',
+      message: 'Workspace ID and Snippet ID are required',
     })
   }
 
-  const { data: snippet, error: snippetError } = await supabase
-    .from('snippets')
-    .select('*')
-    .eq('id', snippetId as string)
-    .single()
+  const { data, error } = await snippetService.getSnippetVersions(
+    workspaceId as string,
+    snippetId as string,
+  )
 
-  if (snippetError) {
+  if (error) {
     throw createError({
       statusCode: 400,
-      message: snippetError.message,
+      message: error.message,
     })
   }
 
-  const { data: metaFile, error: metaFileError } = await supabase.storage
-    .from('snippets')
-    .download(`${snippet.workspace_id}/snippets/${snippet.slug}/meta.json`)
-
-  if (metaFileError) {
-    throw createError({
-      statusCode: 400,
-      message: metaFileError.message,
-    })
-  }
-
-  const metaData = JSON.parse(await metaFile.text())
-
-  const versions = metaData.versions.map((version: any) => ({
-    id: version.id,
-    version: version.v,
-    is_latest: version.v === metaData.latest,
-  }))
-
-  return versions
+  return data
 })
