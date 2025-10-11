@@ -16,11 +16,17 @@ export interface StorageData {
   error?: string | null
 }
 
+export interface UploadData {
+  id: string
+  path: string
+  fullPath: string
+}
+
 interface StorageError {
   message: string
 }
 
-export interface StorageResponse {
-  data: StorageData | StorageData[] | null
+export interface StorageResponse<T> {
+  data: T | null
   error: StorageError | null
 }

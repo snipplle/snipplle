@@ -1,5 +1,5 @@
 import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
-import { createId } from '@paralleldrive/cuid2'
+import { SnippetService } from '~~/server/services/snippet.service'
 
 import type { Database } from '~~/server/types/database.types'
 
@@ -8,6 +8,7 @@ export default defineEventHandler(async (event) => {
   const { slug, workspaceId, snippetCode, language } = await readBody(event)
   const user = await serverSupabaseUser(event)
   const supabase = await serverSupabaseClient<Database>(event)
+  const snippetService = new SnippetService(supabase)
 
   if (!user) {
     throw createError({
@@ -23,50 +24,13 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const { data: lastVersion } = await supabase
-    .from('snippet_versions')
-    .update({
-      is_latest: false,
-    })
-    .eq('snippet_id', id)
-    .eq('is_latest', true)
-    .order('created_at', { ascending: false })
-    .select()
-    .single()
-
-  let newVersion = 1
-
-  if (lastVersion) {
-    newVersion = lastVersion.version + 1
-  }
-
-  const { data: file, error: uploadError } = await supabase.storage
-    .from('snippets')
-    .upload(
-      `${workspaceId}/snippets/${slug}/${newVersion}/index.${language}`,
-      snippetCode,
-      {
-        contentType: 'application/typescript',
-      },
-    )
-
-  if (uploadError) {
-    throw createError({
-      statusCode: 400,
-      message: uploadError.message,
-    })
-  }
-
-  const { data, error } = await supabase
-    .from('snippets')
-    .update({
-      preview: snippetCode,
-      language,
-    })
-    .eq('slug', slug)
-    .eq('workspace_id', workspaceId)
-    .select()
-    .single()
+  const { data, error } = await snippetService.uploadSnippet({
+    workspaceId,
+    id,
+    slug,
+    snippetCode,
+    language,
+  })
 
   if (error) {
     throw createError({
@@ -74,14 +38,6 @@ export default defineEventHandler(async (event) => {
       message: error.message,
     })
   }
-
-  await supabase.from('snippet_versions').insert({
-    id: createId(),
-    snippet_id: id,
-    version: newVersion,
-    is_latest: true,
-    path: file.path,
-  })
 
   return data
 })

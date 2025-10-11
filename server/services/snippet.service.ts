@@ -2,7 +2,10 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { createId } from '@paralleldrive/cuid2'
 import slugify from 'slugify'
 
+import { StorageService } from './storage.service'
+
 import { orderByMap } from '../utils/order'
+import { beautifyCode } from '../utils/codeFormat'
 
 import type { Database, Tables } from '../types/database.types'
 import type {
@@ -10,7 +13,6 @@ import type {
   StorageData,
   SnippetFile,
 } from '../types/api.types'
-import { StorageService } from './storage.service'
 
 export class SnippetService {
   private storageService: StorageService
@@ -65,8 +67,6 @@ export class SnippetService {
 
     const { data, count, error } = await query
 
-    console.log(data, count, error)
-
     if (error) {
       return {
         data: null,
@@ -105,16 +105,21 @@ export class SnippetService {
     }
   }
 
-  async getSnippet(
-    slug: string,
-    workspaceId: string,
-  ): Promise<DatabaseResponse<any | null>> {
-    const { data, error } = await this.supabase
+  async getSnippet(payload: any): Promise<DatabaseResponse<any | null>> {
+    const query = this.supabase
       .from('snippets')
-      .select('*, snippet_versions(id, version, is_latest, path)')
-      .eq('slug', slug)
-      .eq('workspace_id', workspaceId as string)
-      .single()
+      .select('*')
+      .eq('workspace_id', payload.workspaceId as string)
+
+    if (payload.slug) {
+      query.eq('slug', payload.slug)
+    }
+
+    if (payload.id) {
+      query.eq('id', payload.id)
+    }
+
+    const { data, error } = await query.single()
 
     if (error) {
       return {
@@ -123,14 +128,32 @@ export class SnippetService {
       }
     }
 
-    const latestVersion = data.snippet_versions.find(
-      (version) => version.is_latest,
+    if (!payload.withUrl) {
+      return {
+        data,
+        error,
+      }
+    }
+
+    const { data: metaFile } = await this.storageService.download(
+      'snippets',
+      `${payload.workspaceId}/snippets/${data.slug}/meta.json`,
     )
+
+    if (!metaFile) {
+      return {
+        data,
+        error,
+      }
+    }
+
+    const metaData = JSON.parse(await metaFile.text())
     let snippetFile
 
-    if (latestVersion?.path) {
+    if (metaData) {
       const { data: file } = await this.storageService.getSignedUrl(
-        latestVersion.path,
+        metaData.versions.find((version: any) => version.v === metaData.latest)
+          ?.path,
       )
 
       snippetFile = (file as StorageData)?.signedUrl
@@ -165,6 +188,30 @@ export class SnippetService {
         created_by: userId,
         workspace_id: workspaceId,
       })
+      .select()
+      .single()
+
+    if (error) {
+      return {
+        data: null,
+        error,
+      }
+    }
+
+    return {
+      data,
+      error,
+    }
+  }
+
+  async updateSnippet(
+    id: string,
+    payload: any,
+  ): Promise<DatabaseResponse<Tables<'snippets'> | null>> {
+    const { data, error } = await this.supabase
+      .from('snippets')
+      .update(payload)
+      .eq('id', id)
       .select()
       .single()
 
@@ -240,5 +287,232 @@ export class SnippetService {
       },
       error,
     }
+  }
+
+  async uploadSnippet(payload: any): Promise<DatabaseResponse<any | null>> {
+    const { data: snippet, error: snippetError } = await this.getSnippet({
+      workspaceId: payload.workspaceId,
+      id: payload.id,
+    })
+
+    if (snippetError) {
+      return {
+        data: null,
+        error: snippetError,
+      }
+    }
+
+    if (!snippet.path) {
+      const { data, error } = await this.uploadFirstVersion(payload, snippet)
+
+      return {
+        data,
+        error,
+      }
+    }
+
+    const { data, error } = await this.uploadNewVersion(payload, snippet)
+
+    return {
+      data,
+      error,
+    }
+  }
+
+  private async uploadFirstVersion(
+    payload: any,
+    snippet: Tables<'snippets'>,
+  ): Promise<any> {
+    const latestVersion = 1
+    const codeFile = this.prepareCodeFile(payload.snippetCode)
+
+    const { data: file, error: uploadError } = await this.uploadSnippetFile(
+      `${payload.workspaceId}/snippets/${snippet.slug}/${latestVersion}/index.${snippet.language}`,
+      codeFile,
+    )
+
+    if (!file || uploadError) {
+      return {
+        data: null,
+        error: uploadError,
+      }
+    }
+
+    const metaData = this.prepareMetaData(latestVersion, file.path)
+
+    const { data: metaFile, error: metaUploadError } =
+      await this.uploadMetaFile(
+        `${payload.workspaceId}/snippets/${snippet.slug}/meta.json`,
+        metaData,
+      )
+
+    if (!metaFile || metaUploadError) {
+      await this.removeSnippetFiles([
+        `${payload.workspaceId}/snippets/${snippet.slug}/${latestVersion}`,
+      ])
+
+      return {
+        data: null,
+        error: metaUploadError,
+      }
+    }
+
+    const { data, error } = await this.updateSnippet(payload.id, {
+      preview: payload.snippetCode.split('\n').slice(0, 5).join('\n'),
+      path: metaFile.path,
+    })
+
+    return {
+      data,
+      error,
+    }
+  }
+
+  private async uploadNewVersion(
+    payload: any,
+    snippet: Tables<'snippets'>,
+  ): Promise<any> {
+    const { data: metaFile, error: metaFileError } =
+      await this.storageService.download(
+        'snippets',
+        `${payload.workspaceId}/snippets/${snippet.slug}/meta.json`,
+      )
+
+    if (!metaFile || metaFileError) {
+      return {
+        data: null,
+        error: metaFileError,
+      }
+    }
+
+    const metaData = JSON.parse(await metaFile.text())
+    const newVersion = metaData.latest + 1
+
+    const codeFile = this.prepareCodeFile(payload.snippetCode)
+
+    const { data: file, error: uploadError } = await this.uploadSnippetFile(
+      `${payload.workspaceId}/snippets/${snippet.slug}/${newVersion}/index.${snippet.language}`,
+      codeFile,
+    )
+
+    if (!file || uploadError) {
+      return {
+        data: null,
+        error: uploadError,
+      }
+    }
+
+    const newMetaData = this.prepareMetaData(newVersion, file.path, metaData)
+
+    const { data: newMetaFile, error: metaUploadError } =
+      await this.uploadMetaFile(
+        `${payload.workspaceId}/snippets/${snippet.slug}/meta.json`,
+        newMetaData,
+      )
+
+    if (!newMetaFile || metaUploadError) {
+      await this.removeSnippetFiles([
+        `${payload.workspaceId}/snippets/${snippet.slug}/${newVersion}`,
+      ])
+
+      return {
+        data: null,
+        error: metaUploadError,
+      }
+    }
+
+    const { data, error } = await this.updateSnippet(payload.id, {
+      preview: payload.snippetCode.split('\n').slice(0, 5).join('\n'),
+    })
+
+    return {
+      data,
+      error,
+    }
+  }
+
+  private prepareCodeFile(code: string): Blob {
+    const beautifiedCode = beautifyCode(code)
+
+    return new Blob([beautifiedCode], {
+      type: 'application/typescript',
+    })
+  }
+
+  private prepareMetaData(
+    version: number,
+    path: string,
+    oldMetaData?: any,
+  ): Blob {
+    if (!oldMetaData) {
+      const metaData = {
+        latest: version,
+        versions: [
+          {
+            v: version,
+            path,
+            createdAt: new Date(),
+          },
+        ],
+      }
+
+      return new Blob([JSON.stringify(metaData, null, 2)], {
+        type: 'application/json',
+      })
+    }
+
+    const metaData = {
+      ...oldMetaData,
+      latest: version,
+      versions: [
+        ...oldMetaData.versions,
+        {
+          v: version,
+          path,
+          createdAt: new Date(),
+        },
+      ],
+    }
+
+    return new Blob([JSON.stringify(metaData, null, 2)], {
+      type: 'application/json',
+    })
+  }
+
+  private async uploadSnippetFile(path: string, codeFile: Blob): Promise<any> {
+    const { data, error } = await this.storageService.upload(
+      'snippets',
+      path,
+      codeFile,
+      {
+        contentType: 'application/typescript',
+      },
+    )
+
+    return {
+      data,
+      error,
+    }
+  }
+
+  private async uploadMetaFile(path: string, metaFile: Blob): Promise<any> {
+    const { data, error } = await this.storageService.upload(
+      'snippets',
+      path,
+      metaFile,
+      {
+        upsert: true,
+        contentType: 'application/json',
+      },
+    )
+
+    return {
+      data,
+      error,
+    }
+  }
+
+  private async removeSnippetFiles(paths: string[]): Promise<void> {
+    await this.storageService.remove('snippets', [...paths])
   }
 }
