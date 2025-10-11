@@ -1,4 +1,5 @@
 import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
+import { SnippetService } from '~~/server/services/snippet.service'
 
 import type { Database } from '~~/server/types/database.types'
 
@@ -7,6 +8,7 @@ export default defineEventHandler(async (event) => {
   const { name, description, isPublic, language } = await readBody(event)
   const user = await serverSupabaseUser(event)
   const supabase = await serverSupabaseClient<Database>(event)
+  const snippetService = new SnippetService(supabase)
 
   if (!user) {
     throw createError({
@@ -15,17 +17,12 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const { data, error } = await supabase
-    .from('snippets')
-    .update({
-      name,
-      description,
-      is_public: isPublic,
-      language,
-    })
-    .eq('id', id)
-    .select()
-    .single()
+  const { data, error } = await snippetService.updateSnippet(id, {
+    name,
+    description,
+    is_public: isPublic,
+    language,
+  })
 
   if (error) {
     throw createError({
