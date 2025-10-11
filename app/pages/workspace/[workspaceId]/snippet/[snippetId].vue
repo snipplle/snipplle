@@ -50,6 +50,7 @@
     {
       method: 'get',
       query: {
+        workspaceId: globalStore.activeWorkspace?.id,
         snippetId: snippet.value?.id,
       },
     },

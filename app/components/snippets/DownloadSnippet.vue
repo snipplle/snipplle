@@ -51,18 +51,18 @@
 </template>
 
 <script setup lang="ts">
-  const { copy } = useClipboard()
-  const toast = useToast()
-
   const props = defineProps<{
     snippet: any
   }>()
 
   const globalStore = useGlobalStore()
+  const { copy } = useClipboard()
+  const toast = useToast()
 
   const { data: versions } = await useFetch('/api/snippet/version', {
     method: 'get',
     query: {
+      workspaceId: globalStore.activeWorkspace?.id,
       snippetId: props.snippet.id,
     },
   })
