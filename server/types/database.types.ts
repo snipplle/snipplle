@@ -369,13 +369,12 @@ export type Database = {
           created_by: string
           description: string | null
           downloads: number
-          files: Json | null
           id: string
           is_public: boolean
           language: string | null
           name: string
+          path: string | null
           preview: string | null
-          preview_mode: Database['public']['Enums']['preview_mode']
           slug: string
           updated_at: string
           workspace_id: string
@@ -385,13 +384,12 @@ export type Database = {
           created_by: string
           description?: string | null
           downloads?: number
-          files?: Json | null
           id: string
           is_public?: boolean
           language?: string | null
           name: string
+          path?: string | null
           preview?: string | null
-          preview_mode?: Database['public']['Enums']['preview_mode']
           slug: string
           updated_at?: string
           workspace_id: string
@@ -401,13 +399,12 @@ export type Database = {
           created_by?: string
           description?: string | null
           downloads?: number
-          files?: Json | null
           id?: string
           is_public?: boolean
           language?: string | null
           name?: string
+          path?: string | null
           preview?: string | null
-          preview_mode?: Database['public']['Enums']['preview_mode']
           slug?: string
           updated_at?: string
           workspace_id?: string
