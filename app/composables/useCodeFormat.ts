@@ -5,7 +5,15 @@ import type { UseCodeFormat } from '~/types/global.types'
 
 export function useCodeFormat(): UseCodeFormat {
   const beautifyCode = (code: string): string => {
-    const unescaped = code
+    let parsedCode = ''
+
+    if (!isValidJson(code)) {
+      parsedCode = code
+    } else {
+      parsedCode = JSON.parse(code)
+    }
+
+    const unescaped = parsedCode
       .replace(/\\n/g, '\n')
       .replace(/\\"/g, '"')
       .replace(/\\'/g, "'")
