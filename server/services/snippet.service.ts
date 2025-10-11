@@ -360,7 +360,7 @@ export class SnippetService {
     const { data, error } = await this.updateSnippet(payload.id, {
       preview: beautifyCode(payload.snippetCode)
         .split('\n')
-        .slice(0, 10)
+        .slice(0, 15)
         .join('\n'),
       path: metaFile.path,
     })
@@ -427,7 +427,7 @@ export class SnippetService {
     const { data, error } = await this.updateSnippet(payload.id, {
       preview: beautifyCode(payload.snippetCode)
         .split('\n')
-        .slice(0, 10)
+        .slice(0, 15)
         .join('\n'),
     })
 
@@ -455,6 +455,7 @@ export class SnippetService {
         latest: version,
         versions: [
           {
+            id: createId(),
             v: version,
             path,
             createdAt: new Date(),
@@ -473,6 +474,7 @@ export class SnippetService {
       versions: [
         ...oldMetaData.versions,
         {
+          id: createId(),
           v: version,
           path,
           createdAt: new Date(),
