@@ -7,6 +7,15 @@ import type { DatabaseResponse } from '../types/api.types'
 export class TagService {
   constructor(private supabase: SupabaseClient<Database>) {}
 
+  async getTags(): Promise<DatabaseResponse<Tables<'tags'>[] | null>> {
+    const { data, error } = await this.supabase.from('tags').select()
+
+    return {
+      data,
+      error,
+    }
+  }
+
   async getTag(
     name: string,
     select = '*',
