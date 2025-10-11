@@ -17,10 +17,11 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const { data, error } = await snippetService.getSnippet(
+  const { data, error } = await snippetService.getSnippet({
     slug,
-    workspaceId as string,
-  )
+    workspaceId,
+    withUrl: true,
+  })
 
   if (error) {
     throw createError({
