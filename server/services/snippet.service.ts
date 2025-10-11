@@ -358,7 +358,10 @@ export class SnippetService {
     }
 
     const { data, error } = await this.updateSnippet(payload.id, {
-      preview: payload.snippetCode.split('\n').slice(0, 5).join('\n'),
+      preview: beautifyCode(payload.snippetCode)
+        .split('\n')
+        .slice(0, 10)
+        .join('\n'),
       path: metaFile.path,
     })
 
@@ -422,7 +425,10 @@ export class SnippetService {
     }
 
     const { data, error } = await this.updateSnippet(payload.id, {
-      preview: payload.snippetCode.split('\n').slice(0, 5).join('\n'),
+      preview: beautifyCode(payload.snippetCode)
+        .split('\n')
+        .slice(0, 10)
+        .join('\n'),
     })
 
     return {
