@@ -1,6 +1,6 @@
 <template>
   <ClientOnly>
-    <NuxtLayout name="editor" :title="snippet.name">
+    <NuxtLayout name="editor" :title="snippet.name" :versions="snippetVersions">
       <div class="h-full">
         <Codemirror
           v-model="snippetCode"
@@ -45,11 +45,22 @@
     },
   )
 
+  const { data: snippetVersions } = await useFetch<any>(
+    `/api/snippet/version`,
+    {
+      method: 'get',
+      query: {
+        snippetId: snippet.value?.id,
+      },
+    },
+  )
+
   watch(
     () => snippet.value?.snippet_file,
     async (fileUrl) => {
       if (!fileUrl) {
         snippetCode.value = ''
+        extensions = [...extensions, languages[snippet.value.language || 'js']]
 
         return
       }
