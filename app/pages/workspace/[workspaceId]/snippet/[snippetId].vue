@@ -31,7 +31,7 @@
 
   const modal = overlay.create(LazyEditSnippet)
 
-  const extensions = [catppuccinMocha]
+  let extensions = [catppuccinMocha]
   const snippetCode = ref('')
 
   const { data: snippet, refresh } = await useFetch<any>(
@@ -44,26 +44,26 @@
     },
   )
 
-  // watch(
-  //   () => snippet.value?.snippet_file,
-  //   async (fileUrl) => {
-  //     if (!fileUrl) {
-  //       snippetCode.value = ''
+  watch(
+    () => snippet.value?.snippet_file,
+    async (fileUrl) => {
+      if (!fileUrl) {
+        snippetCode.value = ''
 
-  //       return
-  //     }
+        return
+      }
 
-  //     const response = await fetch(fileUrl)
-  //     const code = await response.text()
+      const response = await fetch(fileUrl)
+      const code = await response.text()
 
-  //     snippetCode.value = beautifyCode(code)
-  //     extensions = [...extensions, languages[snippet.value.language || 'js']]
-  //   },
-  //   {
-  //     deep: true,
-  //     immediate: true,
-  //   },
-  // )
+      snippetCode.value = beautifyCode(code)
+      extensions = [...extensions, languages[snippet.value.language || 'js']]
+    },
+    {
+      deep: true,
+      immediate: true,
+    },
+  )
 
   listen('toolbar:change-version', changeVersion)
   listen('toolbar:edit', openEditModal)
