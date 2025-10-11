@@ -111,6 +111,7 @@
   .preview .cm-editor,
   .preview .cm-gutter {
     background-color: #1f1f27;
+    min-height: 160px;
   }
 
   .editor-style .cm-activeLineGutter {
