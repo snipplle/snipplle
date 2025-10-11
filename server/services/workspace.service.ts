@@ -3,13 +3,13 @@ import slugify from 'slugify'
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database, Tables } from '../types/database.types'
-import type { ServiceResponse } from '../types/api.types'
+import type { DatabaseResponse } from '../types/api.types'
 
 export class WorkspaceService {
   constructor(private supabase: SupabaseClient<Database>) {}
 
   async getWorkspaces(): Promise<
-    ServiceResponse<Tables<'workspaces'>[] | null>
+    DatabaseResponse<Tables<'workspaces'>[] | null>
   > {
     const { data, error } = await this.supabase.from('workspaces').select('*')
 
@@ -22,7 +22,7 @@ export class WorkspaceService {
   async getUserWorkspaces(
     userId: string,
   ): Promise<
-    ServiceResponse<Pick<Tables<'workspace_members'>, 'workspace_id'>[] | null>
+    DatabaseResponse<Pick<Tables<'workspace_members'>, 'workspace_id'>[] | null>
   > {
     const { data, error } = await this.supabase
       .from('workspace_members')
@@ -37,7 +37,7 @@ export class WorkspaceService {
 
   async createWorkspace(
     name: string,
-  ): Promise<ServiceResponse<Tables<'workspaces'> | null>> {
+  ): Promise<DatabaseResponse<Tables<'workspaces'> | null>> {
     const { data, error } = await this.supabase
       .from('workspaces')
       .insert({
@@ -61,7 +61,7 @@ export class WorkspaceService {
     workspaceId: string,
     userId: string,
     role: Tables<'workspace_members'>['role'],
-  ): Promise<ServiceResponse<Tables<'workspace_members'> | null>> {
+  ): Promise<DatabaseResponse<Tables<'workspace_members'> | null>> {
     const { data, error } = await this.supabase
       .from('workspace_members')
       .insert({
@@ -81,7 +81,7 @@ export class WorkspaceService {
 
   async getDefaultWorkspace(
     userId: string,
-  ): Promise<ServiceResponse<Tables<'workspaces'> | null>> {
+  ): Promise<DatabaseResponse<Tables<'workspaces'> | null>> {
     const { data: member, error: memberError } = await this.supabase
       .from('workspace_members')
       .select('workspace_id')

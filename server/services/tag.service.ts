@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { createId } from '@paralleldrive/cuid2'
 
 import type { Database, Tables } from '../types/database.types'
-import type { ServiceResponse } from '../types/api.types'
+import type { DatabaseResponse } from '../types/api.types'
 
 export class TagService {
   constructor(private supabase: SupabaseClient<Database>) {}
@@ -10,7 +10,7 @@ export class TagService {
   async getTag(
     name: string,
     select = '*',
-  ): Promise<ServiceResponse<Partial<Tables<'tags'>> | null>> {
+  ): Promise<DatabaseResponse<Partial<Tables<'tags'>> | null>> {
     const { data, error } = await this.supabase
       .from('tags')
       .select(select)
@@ -30,7 +30,7 @@ export class TagService {
     }
   }
 
-  async createTag(tag: any): Promise<ServiceResponse<Tables<'tags'> | null>> {
+  async createTag(tag: any): Promise<DatabaseResponse<Tables<'tags'> | null>> {
     const { data, error } = await this.supabase
       .from('tags')
       .insert({
