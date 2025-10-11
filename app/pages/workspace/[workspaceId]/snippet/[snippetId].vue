@@ -28,6 +28,7 @@
   const globalStore = useGlobalStore()
   const { beautifyCode, minifyCode } = useCodeFormat()
   const { listen } = useToolbarEvent()
+  const toast = useToast()
 
   const modal = overlay.create(LazyEditSnippet)
 
@@ -106,8 +107,22 @@
           language: snippet.value?.language,
         },
       })
-    } catch (error) {
-      console.log(error)
+
+      toast.add({
+        title: 'Success',
+        description: 'Snippet saved successfully',
+        color: 'success',
+        icon: 'i-hugeicons-checkmark-circle-01',
+        duration: 1500,
+      })
+    } catch (error: any) {
+      toast.add({
+        title: 'Oops',
+        description: error.message,
+        color: 'error',
+        icon: 'i-hugeicons-fire',
+        duration: 1500,
+      })
     }
   }
 </script>
