@@ -2,7 +2,6 @@ import {
   pgTable,
   text,
   timestamp,
-  json,
   boolean,
   unique,
   integer,
@@ -14,6 +13,7 @@ import { user } from './user'
 import { collectionVersion } from './collectionVersion'
 import { collectionTag } from './collectionTag'
 import { reaction } from './reaction'
+import { collectionSnippet } from './collectionSnippet'
 
 export const collection = pgTable(
   'collections',
@@ -27,7 +27,7 @@ export const collection = pgTable(
     description: text('description'),
     language: text('language').notNull(),
     isPublic: boolean('is_public').default(true).notNull(),
-    files: json('files'),
+    path: text('path'),
     downloads: integer('downloads').default(0).notNull(),
     createdBy: text('created_by')
       .notNull()
@@ -52,4 +52,5 @@ export const collectionRelations = relations(collection, ({ one, many }) => ({
   versions: many(collectionVersion),
   collectionTags: many(collectionTag),
   reactions: many(reaction),
+  snippetForks: many(collectionSnippet),
 }))

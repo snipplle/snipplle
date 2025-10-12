@@ -1,8 +1,6 @@
 import {
   boolean,
   integer,
-  json,
-  pgEnum,
   pgTable,
   text,
   timestamp,
@@ -15,8 +13,6 @@ import { workspace } from './workspace'
 import { snippetVersion } from './snippetVersion'
 import { snippetTag } from './snippetTag'
 import { reaction } from './reaction'
-
-export const PreviewMode = pgEnum('preview_mode', ['none', 'console', 'full'])
 
 export const snippet = pgTable(
   'snippets',
