@@ -21,20 +21,15 @@ export class SnippetService {
     const from = (Number(payload.page) - 1) * Number(payload.itemsPerPage)
     const to = from + Number(payload.itemsPerPage) - 1
 
-    let select = `
-      *,
-      snippet_tags!inner(
-        tags!inner(name, color)
-      )
-    `
-
-    if (payload.withUrl === 'true') {
-      select += ',snippet_versions(is_latest, path)'
-    }
-
     const query = this.supabase
       .from('snippets')
-      .select(select, { count: 'exact' })
+      .select(
+        `*,
+      snippet_tags!inner(
+        tags!inner(name, color)
+      )`,
+        { count: 'exact' },
+      )
       .in(
         'workspace_id',
         payload.workspaceIds.map((workspace: any) => workspace.workspace_id),
@@ -62,37 +57,6 @@ export class SnippetService {
     }
 
     const { data, count, error } = await query
-
-    if (error) {
-      return {
-        data: null,
-        count: 0,
-        error,
-      }
-    }
-
-    if (payload.withUrl === 'true') {
-      const { data: signedUrls, error: signedUrlError } =
-        await this.supabase.storage.from('snippets').createSignedUrls(
-          data.map((snippet: any) => {
-            return snippet.snippet_versions.find(
-              (version: any) => version.is_latest,
-            )?.path
-          }),
-          3600,
-        )
-
-      if (signedUrlError) {
-        throw createError({
-          statusCode: 500,
-          message: signedUrlError.message,
-        })
-      }
-
-      data.forEach((snippet: any, index: number) => {
-        snippet.snippet_url = signedUrls[index]?.signedUrl
-      })
-    }
 
     return {
       data,
