@@ -1,6 +1,6 @@
 import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
-import { createId } from '@paralleldrive/cuid2'
-import slugify from 'slugify'
+import { CollectionService } from '~~/server/services/collection.service'
+import { TagService } from '~~/server/services/tag.service'
 
 import type { Database } from '~~/server/types/database.types'
 
@@ -9,6 +9,8 @@ export default defineEventHandler(async (event) => {
     await readBody(event)
   const user = await serverSupabaseUser(event)
   const supabase = await serverSupabaseClient<Database>(event)
+  const tagService = new TagService(supabase)
+  const collectionService = new CollectionService(supabase)
 
   if (!user?.id) {
     throw createError({
@@ -17,71 +19,49 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const tagIds = []
+  const tagIds: string[] = []
 
   for (const tag of tags) {
-    const { data: existTag } = await supabase
-      .from('tags')
-      .select('id')
-      .eq('name', tag.name)
-      .single()
+    const { data: existTag } = await tagService.getTag(tag.name, 'id')
 
     if (existTag) {
-      tagIds.push(existTag.id)
+      tagIds.push(existTag.id as string)
 
       continue
     }
 
-    const { data, error } = await supabase
-      .from('tags')
-      .insert({
-        id: createId(),
-        name: tag.name,
-        color: tag.color,
-      })
-      .select('id')
-      .single()
+    const { data, error } = await tagService.createTag(tag)
 
-    if (error) {
+    if (!data || error) {
       throw createError({
         statusCode: 500,
-        message: error.message,
+        message: error?.message,
       })
     }
 
     tagIds.push(data.id)
   }
 
-  const { data, error } = await supabase
-    .from('collections')
-    .insert({
-      id: createId(),
+  const { data, error } = await collectionService.createCollection(
+    {
       name,
-      slug: slugify(name, {
-        lower: true,
-        remove: /[*+~.()'"!:@]/g,
-      }),
       language,
       description,
-      is_public: isPublic,
-      created_by: user?.id,
-      workspace_id: workspaceId,
-    })
-    .select()
-    .single()
+      isPublic,
+    },
+    user.id,
+    workspaceId,
+  )
 
-  if (error) {
+  if (!data || error) {
     throw createError({
       statusCode: 500,
-      message: error.message,
+      message: error?.message,
     })
   }
 
   for (const tagId of tagIds) {
-    await supabase.from('collection_tags').insert({
-      collection_id: data.id,
-      tag_id: tagId,
-    })
+    await collectionService.createCollectionTag(data.id, tagId)
   }
 
   return data

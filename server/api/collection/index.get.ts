@@ -1,4 +1,6 @@
 import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
+import { CollectionService } from '~~/server/services/collection.service'
+import { WorkspaceService } from '~~/server/services/workspace.service'
 
 import type { Database } from '~~/server/types/database.types'
 
@@ -6,6 +8,8 @@ export default defineEventHandler(async (event) => {
   const { orderBy, lang, tag, search, page, itemsPerPage } = getQuery(event)
   const user = await serverSupabaseUser(event)
   const supabase = await serverSupabaseClient<Database>(event)
+  const workspaceService = new WorkspaceService(supabase)
+  const collectionService = new CollectionService(supabase)
 
   if (!user) {
     throw createError({
@@ -14,10 +18,8 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const { data: workspaceIds, error: workspaceError } = await supabase
-    .from('workspace_members')
-    .select('workspace_id')
-    .eq('user_id', user?.id)
+  const { data: workspaceIds, error: workspaceError } =
+    await workspaceService.getUserWorkspaces(user?.id)
 
   if (workspaceError) {
     throw createError({
@@ -26,47 +28,15 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const from = (Number(page) - 1) * Number(itemsPerPage)
-  const to = from + Number(itemsPerPage) - 1
-
-  const query = supabase
-    .from('collections')
-    .select(
-      `
-      *,
-      collection_tags!inner(
-        tags!inner(name, color)
-      )
-    `,
-      { count: 'exact' },
-    )
-    .in(
-      'workspace_id',
-      workspaceIds.map((workspace) => workspace.workspace_id),
-    )
-    .range(from, to)
-
-  if (orderBy) {
-    const order = orderByMap[orderBy as string]
-
-    query.order(order.field, {
-      ascending: order.ascending,
-    })
-  }
-
-  if (lang) {
-    query.eq('language', lang as string)
-  }
-
-  if (tag) {
-    query.eq('collection_tags.tags.name', tag as string)
-  }
-
-  if (search) {
-    query.ilike('name', `%${search}%`)
-  }
-
-  const { data, count, error } = await query
+  const { data, count, error } = await collectionService.getCollections({
+    workspaceIds,
+    orderBy,
+    lang,
+    tag,
+    search,
+    page,
+    itemsPerPage,
+  })
 
   if (error) {
     throw createError({
