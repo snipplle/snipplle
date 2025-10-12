@@ -83,7 +83,7 @@ export class SnippetService {
 
     if (error) {
       return {
-        data: null,
+        data,
         error,
       }
     }
@@ -204,7 +204,7 @@ export class SnippetService {
 
     if (snippetError) {
       return {
-        data: null,
+        data: snippet,
         error: snippetError,
       }
     }
@@ -217,7 +217,7 @@ export class SnippetService {
 
     if (!metaFile || metaFileError) {
       return {
-        data: null,
+        data: metaFile,
         error: metaFileError,
       }
     }
@@ -261,7 +261,7 @@ export class SnippetService {
 
     if (!metaFile || metaFileError) {
       return {
-        data: null,
+        data: metaFile,
         error: metaFileError,
       }
     }
@@ -299,7 +299,7 @@ export class SnippetService {
 
     if (snippetError) {
       return {
-        data: null,
+        data: snippet,
         error: snippetError,
       }
     }
@@ -339,32 +339,106 @@ export class SnippetService {
     }
   }
 
+  async createSnippetFork(snippetData: any): Promise<any> {
+    const { data: snippetFork } = await this.supabase
+      .from('snippet_forks')
+      .select()
+      .eq('original_id', snippetData.id)
+      .eq('workspace_id', snippetData.workspace_id)
+      .single()
+
+    if (snippetFork) {
+      return {
+        data: snippetFork,
+        error: null,
+      }
+    }
+
+    const { data: snippet, error: snippetError } = await this.getSnippet({
+      workspaceId: snippetData.workspace_id,
+      id: snippetData.id,
+    })
+
+    if (snippetError) {
+      return {
+        data: snippet,
+        error: snippetError,
+      }
+    }
+
+    const { data: metaFile, error: metaFileError } =
+      await this.storageService.download(
+        'snippets',
+        `${snippet.workspace_id}/snippets/${snippet.slug}/meta.json`,
+      )
+
+    if (!metaFile || metaFileError) {
+      return {
+        data: metaFile,
+        error: metaFileError,
+      }
+    }
+
+    const metaData = JSON.parse(await metaFile.text())
+    const latestVersionPath = metaData.versions.find(
+      (version: any) => version.v === metaData.latest,
+    ).path
+
+    const { data, error } = await this.supabase
+      .from('snippet_forks')
+      .insert({
+        id: createId(),
+        original_id: snippet.id,
+        workspace_id: snippet.workspaceId,
+        name: snippet.name,
+        slug: snippet.slug,
+        description: snippet.description,
+        language: snippet.language,
+        path: latestVersionPath,
+      })
+      .select()
+      .single()
+
+    return {
+      data,
+      error,
+    }
+  }
+
   private async uploadFirstVersion(
     payload: any,
     snippet: Tables<'snippets'>,
   ): Promise<any> {
     const latestVersion = 1
-    const codeFile = this.prepareCodeFile(payload.snippetCode)
+    const codeFile = this.prepareCodeFile(
+      payload.snippetCode,
+      `application/typescript`,
+    )
 
-    const { data: file, error: uploadError } = await this.uploadSnippetFile(
+    const { data: file, error: uploadError } = await this.uploadFile(
       `${payload.workspaceId}/snippets/${snippet.slug}/${latestVersion}/index.${snippet.language}`,
       codeFile,
+      {
+        contentType: `application/typescript`,
+      },
     )
 
     if (!file || uploadError) {
       return {
-        data: null,
+        data: file,
         error: uploadError,
       }
     }
 
     const metaData = this.prepareMetaData(latestVersion, file.path)
 
-    const { data: metaFile, error: metaUploadError } =
-      await this.uploadMetaFile(
-        `${payload.workspaceId}/snippets/${snippet.slug}/meta.json`,
-        metaData,
-      )
+    const { data: metaFile, error: metaUploadError } = await this.uploadFile(
+      `${payload.workspaceId}/snippets/${snippet.slug}/meta.json`,
+      metaData,
+      {
+        contentType: `application/json`,
+      },
+    )
 
     if (!metaFile || metaUploadError) {
       await this.removeSnippetFiles([
@@ -372,7 +446,7 @@ export class SnippetService {
       ])
 
       return {
-        data: null,
+        data: metaFile,
         error: metaUploadError,
       }
     }
@@ -403,7 +477,7 @@ export class SnippetService {
 
     if (!metaFile || metaFileError) {
       return {
-        data: null,
+        data: metaFile,
         error: metaFileError,
       }
     }
@@ -411,27 +485,36 @@ export class SnippetService {
     const metaData = JSON.parse(await metaFile.text())
     const newVersion = metaData.latest + 1
 
-    const codeFile = this.prepareCodeFile(payload.snippetCode)
+    const codeFile = this.prepareCodeFile(
+      payload.snippetCode,
+      `application/typescript`,
+    )
 
-    const { data: file, error: uploadError } = await this.uploadSnippetFile(
+    const { data: file, error: uploadError } = await this.uploadFile(
       `${payload.workspaceId}/snippets/${snippet.slug}/${newVersion}/index.${snippet.language}`,
       codeFile,
+      {
+        contentType: `application/typescript`,
+      },
     )
 
     if (!file || uploadError) {
       return {
-        data: null,
+        data: file,
         error: uploadError,
       }
     }
 
     const newMetaData = this.prepareMetaData(newVersion, file.path, metaData)
 
-    const { data: newMetaFile, error: metaUploadError } =
-      await this.uploadMetaFile(
-        `${payload.workspaceId}/snippets/${snippet.slug}/meta.json`,
-        newMetaData,
-      )
+    const { data: newMetaFile, error: metaUploadError } = await this.uploadFile(
+      `${payload.workspaceId}/snippets/${snippet.slug}/meta.json`,
+      newMetaData,
+      {
+        upsert: true,
+        contentType: `application/json`,
+      },
+    )
 
     if (!newMetaFile || metaUploadError) {
       await this.removeSnippetFiles([
@@ -439,7 +522,7 @@ export class SnippetService {
       ])
 
       return {
-        data: null,
+        data: newMetaFile,
         error: metaUploadError,
       }
     }
@@ -457,11 +540,11 @@ export class SnippetService {
     }
   }
 
-  private prepareCodeFile(code: string): Blob {
+  private prepareCodeFile(code: string, contentType: string): Blob {
     const beautifiedCode = beautifyCode(code)
 
     return new Blob([beautifiedCode], {
-      type: 'application/typescript',
+      type: contentType,
     })
   }
 
@@ -470,29 +553,9 @@ export class SnippetService {
     path: string,
     oldMetaData?: any,
   ): Blob {
-    if (!oldMetaData) {
-      const metaData = {
-        latest: version,
-        versions: [
-          {
-            id: createId(),
-            v: version,
-            path,
-            createdAt: new Date(),
-          },
-        ],
-      }
-
-      return new Blob([JSON.stringify(metaData, null, 2)], {
-        type: 'application/json',
-      })
-    }
-
-    const metaData = {
-      ...oldMetaData,
+    let metaData = {
       latest: version,
       versions: [
-        ...oldMetaData.versions,
         {
           id: createId(),
           v: version,
@@ -502,36 +565,37 @@ export class SnippetService {
       ],
     }
 
+    if (oldMetaData) {
+      metaData = {
+        ...oldMetaData,
+        latest: version,
+        versions: [
+          ...oldMetaData.versions,
+          {
+            id: createId(),
+            v: version,
+            path,
+            createdAt: new Date(),
+          },
+        ],
+      }
+    }
+
     return new Blob([JSON.stringify(metaData, null, 2)], {
       type: 'application/json',
     })
   }
 
-  private async uploadSnippetFile(path: string, codeFile: Blob): Promise<any> {
+  private async uploadFile(
+    path: string,
+    file: Blob,
+    options?: any,
+  ): Promise<any> {
     const { data, error } = await this.storageService.upload(
       'snippets',
       path,
-      codeFile,
-      {
-        contentType: 'application/typescript',
-      },
-    )
-
-    return {
-      data,
-      error,
-    }
-  }
-
-  private async uploadMetaFile(path: string, metaFile: Blob): Promise<any> {
-    const { data, error } = await this.storageService.upload(
-      'snippets',
-      path,
-      metaFile,
-      {
-        upsert: true,
-        contentType: 'application/json',
-      },
+      file,
+      options,
     )
 
     return {
