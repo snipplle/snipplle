@@ -81,33 +81,33 @@ export type Database = {
       }
       collection_snippets: {
         Row: {
-          collection_version_id: string
+          collection_id: string
           created_at: string
-          snippet_version_id: string
+          snippet_fork_id: string
         }
         Insert: {
-          collection_version_id: string
+          collection_id: string
           created_at?: string
-          snippet_version_id: string
+          snippet_fork_id: string
         }
         Update: {
-          collection_version_id?: string
+          collection_id?: string
           created_at?: string
-          snippet_version_id?: string
+          snippet_fork_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: 'collection_snippets_collection_version_id_collection_versions_i'
-            columns: ['collection_version_id']
+            foreignKeyName: 'collection_snippets_collection_id_collections_id_fk'
+            columns: ['collection_id']
             isOneToOne: false
-            referencedRelation: 'collection_versions'
+            referencedRelation: 'collections'
             referencedColumns: ['id']
           },
           {
-            foreignKeyName: 'collection_snippets_snippet_version_id_snippet_versions_id_fk'
-            columns: ['snippet_version_id']
+            foreignKeyName: 'collection_snippets_snippet_fork_id_snippet_forks_id_fk'
+            columns: ['snippet_fork_id']
             isOneToOne: false
-            referencedRelation: 'snippet_versions'
+            referencedRelation: 'snippet_forks'
             referencedColumns: ['id']
           },
         ]
@@ -189,11 +189,11 @@ export type Database = {
           created_by: string
           description: string | null
           downloads: number
-          files: Json | null
           id: string
           is_public: boolean
           language: string
           name: string
+          path: string | null
           slug: string
           updated_at: string
           workspace_id: string
@@ -203,11 +203,11 @@ export type Database = {
           created_by: string
           description?: string | null
           downloads?: number
-          files?: Json | null
           id: string
           is_public?: boolean
           language: string
           name: string
+          path?: string | null
           slug: string
           updated_at?: string
           workspace_id: string
@@ -217,11 +217,11 @@ export type Database = {
           created_by?: string
           description?: string | null
           downloads?: number
-          files?: Json | null
           id?: string
           is_public?: boolean
           language?: string
           name?: string
+          path?: string | null
           slug?: string
           updated_at?: string
           workspace_id?: string
@@ -291,6 +291,45 @@ export type Database = {
             referencedColumns: ['id']
           },
         ]
+      }
+      snippet_forks: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          language: string
+          name: string
+          original_id: string
+          path: string
+          slug: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id: string
+          language: string
+          name: string
+          original_id: string
+          path: string
+          slug: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          language?: string
+          name?: string
+          original_id?: string
+          path?: string
+          slug?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: []
       }
       snippet_tags: {
         Row: {
@@ -589,7 +628,6 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      preview_mode: 'none' | 'console' | 'full'
       role: 'owner' | 'admin' | 'member'
     }
     CompositeTypes: {
@@ -721,7 +759,6 @@ export const Constants = {
   },
   public: {
     Enums: {
-      preview_mode: ['none', 'console', 'full'],
       role: ['owner', 'admin', 'member'],
     },
   },
