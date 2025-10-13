@@ -4,6 +4,7 @@ import slugify from 'slugify'
 
 import { StorageService } from './storage.service'
 
+import { and, desc, eq, inArray, tables, useDrizzle } from '../utils/database'
 import { orderByMap } from '../utils/order'
 import { beautifyCode } from '../utils/codeFormat'
 
@@ -20,6 +21,44 @@ export class SnippetService {
   async getSnippets(payload: any): Promise<DatabaseResponse<any[] | null>> {
     const from = (Number(payload.page) - 1) * Number(payload.itemsPerPage)
     const to = from + Number(payload.itemsPerPage) - 1
+
+    const snippets = await useDrizzle()
+      .select({
+        id: tables.snippet.id,
+        name: tables.snippet.name,
+        slug: tables.snippet.slug,
+        language: tables.snippet.language,
+        description: tables.snippet.description,
+        tags: sql`JSON_AGG(${tables.tag})`,
+        createdAt: tables.snippet.createdAt,
+        updatedAt: tables.snippet.updatedAt,
+      })
+      .from(tables.snippet)
+      .innerJoin(
+        tables.snippetTag,
+        eq(tables.snippetTag.snippetId, tables.snippet.id),
+      )
+      .innerJoin(tables.tag, eq(tables.tag.id, tables.snippetTag.tagId))
+      .where(
+        and(
+          inArray(
+            tables.snippet.workspaceId,
+            payload.workspaceIds.map(
+              (workspace: any) => workspace.workspace_id,
+            ),
+          ),
+          payload.lang
+            ? eq(tables.snippet.language, payload.lang as string)
+            : undefined,
+          payload.tag ? eq(tables.tag.name, payload.tag as string) : undefined,
+        ),
+      )
+      .groupBy(tables.snippet.id)
+      .orderBy(desc(tables.snippet['createdAt']))
+      .limit(Number(payload.itemsPerPage))
+      .offset(from)
+
+    console.log(snippets)
 
     const query = this.supabase
       .from('snippets')
@@ -137,8 +176,8 @@ export class SnippetService {
       .from('snippets')
       .insert({
         id: createId(),
-        name,
-        slug: slugify(name, {
+        name: snippet.name,
+        slug: slugify(snippet.name, {
           lower: true,
           remove: /[*+~.()'"!:@]/g,
         }),
