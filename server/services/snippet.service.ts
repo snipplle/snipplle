@@ -71,9 +71,9 @@ export class SnippetService {
     const { data, error } = await this.supabase
       .from('snippets')
       .select(
-        `*,
+        `id, name, slug, language, path, workspace_id,
       snippet_tags!inner(
-        tags!inner(*)
+        tags!inner(name, color)
       )`,
       )
       .in(
@@ -89,9 +89,13 @@ export class SnippetService {
     }
 
     for (const snippet of data) {
+      if (!snippet.path) {
+        continue
+      }
+
       const { data: metaFile } = await this.storageService.download(
         'snippets',
-        `${snippet.workspace_id}/snippets/${snippet.slug}/meta.json`,
+        snippet.path,
       )
 
       if (!metaFile) {
@@ -300,10 +304,7 @@ export class SnippetService {
     }
 
     const { data: metaFile, error: metaFileError } =
-      await this.storageService.download(
-        'snippets',
-        `${snippet.workspace_id}/snippets/${snippet.slug}/meta.json`,
-      )
+      await this.storageService.download('snippets', snippet.path)
 
     if (!metaFile || metaFileError) {
       return {
@@ -313,8 +314,10 @@ export class SnippetService {
     }
 
     const metaData = JSON.parse(await metaFile.text())
-    const version = metaData.versions.find(
-      (version: any) => version.id === versionId,
+    const version = metaData.versions.find((version: any) =>
+      versionId === 'latest'
+        ? version.v === metaData.latest
+        : version.v === Number(versionId),
     )
 
     if (!version) {
