@@ -5,8 +5,7 @@ import type { Database } from '~~/server/types/database.types'
 
 export default defineEventHandler(async (event) => {
   const { id } = await getRouterParams(event)
-  const { slug, workspaceId, snippets, collectionCode, language } =
-    await readBody(event)
+  const { slug, workspaceId, snippets, collectionCode } = await readBody(event)
   const user = await serverSupabaseUser(event)
   const supabase = await serverSupabaseClient<Database>(event)
   const collectionService = new CollectionService(supabase)
@@ -18,10 +17,10 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  if (!workspaceId || !collectionCode || !snippets || !language) {
+  if (!workspaceId || !collectionCode || !snippets) {
     throw createError({
       statusCode: 400,
-      message: 'Missing required fields',
+      statusMessage: 'Missing required fields',
     })
   }
 
@@ -30,7 +29,6 @@ export default defineEventHandler(async (event) => {
     id,
     slug,
     collectionCode,
-    language,
     snippets,
   })
 
