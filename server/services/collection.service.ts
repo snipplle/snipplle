@@ -228,7 +228,17 @@ export class CollectionService {
       }
     }
 
-    const metaData = this.prepareMetaData(latestVersion, file.path)
+    const { data: snippets, error: snippetError } =
+      await this.snippetService.getSnippetsForCollection(payload.snippets)
+
+    if (!snippets || snippetError) {
+      return {
+        data: snippets,
+        error: snippetError,
+      }
+    }
+
+    const metaData = this.prepareMetaData(latestVersion, file.path, snippets)
 
     const { data: metaFile, error: metaUploadError } = await this.uploadFile(
       `${payload.workspaceId}/collections/${collection.slug}/meta.json`,
@@ -248,8 +258,6 @@ export class CollectionService {
         error: metaUploadError,
       }
     }
-
-    await this.createSnippetForks(collection.id, payload.snippets.appends)
 
     const { data, error } = await this.updateCollection(collection.id, {
       path: file.path,
@@ -298,7 +306,22 @@ export class CollectionService {
       }
     }
 
-    const newMetaData = this.prepareMetaData(newVersion, file.path, metaData)
+    const { data: snippets, error: snippetError } =
+      await this.snippetService.getSnippetsForCollection(payload.snippets)
+
+    if (!snippets || snippetError) {
+      return {
+        data: snippets,
+        error: snippetError,
+      }
+    }
+
+    const newMetaData = this.prepareMetaData(
+      newVersion,
+      file.path,
+      snippets,
+      metaData,
+    )
 
     const { data: newMetaFile, error: metaUploadError } = await this.uploadFile(
       `${payload.workspaceId}/collections/${collection.slug}/meta.json`,
@@ -320,14 +343,6 @@ export class CollectionService {
       }
     }
 
-    if (payload.snippets.appends.length) {
-      await this.createSnippetForks(collection.id, payload.snippets.appends)
-    }
-
-    if (payload.snippets.removes.length) {
-      // await this.removeSnippetForks(collection.id, payload.snippets.removes)
-    }
-
     const { data, error } = await this.getCollection({
       workspaceId: payload.workspaceId,
       id: collection.id,
@@ -336,35 +351,6 @@ export class CollectionService {
     return {
       data,
       error,
-    }
-  }
-
-  private async createSnippetForks(
-    collectionId: string,
-    snippets: any,
-  ): Promise<any> {
-    for (const snippet of snippets) {
-      const { data, error } =
-        await this.snippetService.createSnippetFork(snippet)
-
-      if (!data || error) {
-        continue
-      }
-
-      const { data: collectionSnippet, error: collectionSnippetError } =
-        await this.supabase
-          .from('collection_snippets')
-          .select()
-          .eq('collection_id', collectionId)
-          .eq('snippet_fork_id', data.id)
-          .single()
-
-      if (!collectionSnippet || collectionSnippetError) {
-        await this.supabase.from('collection_snippets').insert({
-          collection_id: collectionId,
-          snippet_fork_id: data.id,
-        })
-      }
     }
   }
 
@@ -379,6 +365,7 @@ export class CollectionService {
   private prepareMetaData(
     version: number,
     path: string,
+    snippets: any,
     oldMetaData?: any,
   ): Blob {
     let metaData = {
@@ -388,6 +375,7 @@ export class CollectionService {
           id: createId(),
           v: version,
           path,
+          snippets: snippets,
           createdAt: new Date(),
         },
       ],
@@ -403,6 +391,7 @@ export class CollectionService {
             id: createId(),
             v: version,
             path,
+            snippets: snippets,
             createdAt: new Date(),
           },
         ],

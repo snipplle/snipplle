@@ -4,7 +4,6 @@ import slugify from 'slugify'
 
 import { StorageService } from './storage.service'
 
-import { and, desc, eq, inArray, tables, useDrizzle } from '../utils/database'
 import { orderByMap } from '../utils/order'
 import { beautifyCode } from '../utils/codeFormat'
 
@@ -21,44 +20,6 @@ export class SnippetService {
   async getSnippets(payload: any): Promise<DatabaseResponse<any[] | null>> {
     const from = (Number(payload.page) - 1) * Number(payload.itemsPerPage)
     const to = from + Number(payload.itemsPerPage) - 1
-
-    const snippets = await useDrizzle()
-      .select({
-        id: tables.snippet.id,
-        name: tables.snippet.name,
-        slug: tables.snippet.slug,
-        language: tables.snippet.language,
-        description: tables.snippet.description,
-        tags: sql`JSON_AGG(${tables.tag})`,
-        createdAt: tables.snippet.createdAt,
-        updatedAt: tables.snippet.updatedAt,
-      })
-      .from(tables.snippet)
-      .innerJoin(
-        tables.snippetTag,
-        eq(tables.snippetTag.snippetId, tables.snippet.id),
-      )
-      .innerJoin(tables.tag, eq(tables.tag.id, tables.snippetTag.tagId))
-      .where(
-        and(
-          inArray(
-            tables.snippet.workspaceId,
-            payload.workspaceIds.map(
-              (workspace: any) => workspace.workspace_id,
-            ),
-          ),
-          payload.lang
-            ? eq(tables.snippet.language, payload.lang as string)
-            : undefined,
-          payload.tag ? eq(tables.tag.name, payload.tag as string) : undefined,
-        ),
-      )
-      .groupBy(tables.snippet.id)
-      .orderBy(desc(tables.snippet['createdAt']))
-      .limit(Number(payload.itemsPerPage))
-      .offset(from)
-
-    console.log(snippets)
 
     const query = this.supabase
       .from('snippets')
@@ -100,6 +61,52 @@ export class SnippetService {
     return {
       data,
       count,
+      error,
+    }
+  }
+
+  async getSnippetsForCollection(
+    snippets: any[],
+  ): Promise<DatabaseResponse<any[] | null>> {
+    const { data, error } = await this.supabase
+      .from('snippets')
+      .select(
+        `*,
+      snippet_tags!inner(
+        tags!inner(*)
+      )`,
+      )
+      .in(
+        'id',
+        snippets.map((snippet) => snippet.id),
+      )
+
+    if (!data || error) {
+      return {
+        data,
+        error,
+      }
+    }
+
+    for (const snippet of data) {
+      const { data: metaFile } = await this.storageService.download(
+        'snippets',
+        `${snippet.workspace_id}/snippets/${snippet.slug}/meta.json`,
+      )
+
+      if (!metaFile) {
+        continue
+      }
+
+      const metaData = JSON.parse(await metaFile.text())
+
+      snippet.path = metaData?.versions.find(
+        (version: any) => version.v === metaData.latest,
+      )?.path
+    }
+
+    return {
+      data,
       error,
     }
   }
@@ -369,72 +376,6 @@ export class SnippetService {
       .delete()
       .eq('id', id)
       .eq('created_by', userId)
-      .select()
-      .single()
-
-    return {
-      data,
-      error,
-    }
-  }
-
-  async createSnippetFork(snippetData: any): Promise<any> {
-    const { data: snippetFork } = await this.supabase
-      .from('snippet_forks')
-      .select()
-      .eq('original_id', snippetData.id)
-      .eq('workspace_id', snippetData.workspace_id)
-      .single()
-
-    if (snippetFork) {
-      return {
-        data: snippetFork,
-        error: null,
-      }
-    }
-
-    const { data: snippet, error: snippetError } = await this.getSnippet({
-      workspaceId: snippetData.workspace_id,
-      id: snippetData.id,
-    })
-
-    if (snippetError) {
-      return {
-        data: snippet,
-        error: snippetError,
-      }
-    }
-
-    const { data: metaFile, error: metaFileError } =
-      await this.storageService.download(
-        'snippets',
-        `${snippet.workspace_id}/snippets/${snippet.slug}/meta.json`,
-      )
-
-    if (!metaFile || metaFileError) {
-      return {
-        data: metaFile,
-        error: metaFileError,
-      }
-    }
-
-    const metaData = JSON.parse(await metaFile.text())
-    const latestVersionPath = metaData.versions.find(
-      (version: any) => version.v === metaData.latest,
-    ).path
-
-    const { data, error } = await this.supabase
-      .from('snippet_forks')
-      .insert({
-        id: createId(),
-        original_id: snippet.id,
-        workspace_id: snippet.workspaceId,
-        name: snippet.name,
-        slug: snippet.slug,
-        description: snippet.description,
-        language: snippet.language,
-        path: latestVersionPath,
-      })
       .select()
       .single()
 
