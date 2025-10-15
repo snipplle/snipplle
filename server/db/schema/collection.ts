@@ -10,10 +10,8 @@ import { relations } from 'drizzle-orm'
 import { createId } from '@paralleldrive/cuid2'
 import { workspace } from './workspace'
 import { user } from './user'
-import { collectionVersion } from './collectionVersion'
 import { collectionTag } from './collectionTag'
 import { reaction } from './reaction'
-import { collectionSnippet } from './collectionSnippet'
 
 export const collection = pgTable(
   'collections',
@@ -49,8 +47,6 @@ export const collectionRelations = relations(collection, ({ one, many }) => ({
     fields: [collection.createdBy],
     references: [user.id],
   }),
-  versions: many(collectionVersion),
   collectionTags: many(collectionTag),
   reactions: many(reaction),
-  snippetForks: many(collectionSnippet),
 }))

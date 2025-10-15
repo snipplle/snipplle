@@ -10,7 +10,6 @@ import { relations } from 'drizzle-orm'
 import { createId } from '@paralleldrive/cuid2'
 import { user } from './user'
 import { workspace } from './workspace'
-import { snippetVersion } from './snippetVersion'
 import { snippetTag } from './snippetTag'
 import { reaction } from './reaction'
 
@@ -49,7 +48,6 @@ export const snippetRelations = relations(snippet, ({ one, many }) => ({
     fields: [snippet.createdBy],
     references: [user.id],
   }),
-  versions: many(snippetVersion),
   snippetTags: many(snippetTag),
   reactions: many(reaction),
 }))
