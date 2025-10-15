@@ -79,39 +79,6 @@ export type Database = {
           },
         ]
       }
-      collection_snippets: {
-        Row: {
-          collection_id: string
-          created_at: string
-          snippet_fork_id: string
-        }
-        Insert: {
-          collection_id: string
-          created_at?: string
-          snippet_fork_id: string
-        }
-        Update: {
-          collection_id?: string
-          created_at?: string
-          snippet_fork_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'collection_snippets_collection_id_collections_id_fk'
-            columns: ['collection_id']
-            isOneToOne: false
-            referencedRelation: 'collections'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'collection_snippets_snippet_fork_id_snippet_forks_id_fk'
-            columns: ['snippet_fork_id']
-            isOneToOne: false
-            referencedRelation: 'snippet_forks'
-            referencedColumns: ['id']
-          },
-        ]
-      }
       collection_tags: {
         Row: {
           collection_id: string
@@ -141,44 +108,6 @@ export type Database = {
             columns: ['tag_id']
             isOneToOne: false
             referencedRelation: 'tags'
-            referencedColumns: ['id']
-          },
-        ]
-      }
-      collection_versions: {
-        Row: {
-          collection_id: string
-          created_at: string
-          files: Json | null
-          id: string
-          is_latest: boolean
-          path: string
-          version: number
-        }
-        Insert: {
-          collection_id: string
-          created_at?: string
-          files?: Json | null
-          id: string
-          is_latest?: boolean
-          path: string
-          version: number
-        }
-        Update: {
-          collection_id?: string
-          created_at?: string
-          files?: Json | null
-          id?: string
-          is_latest?: boolean
-          path?: string
-          version?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'collection_versions_collection_id_collections_id_fk'
-            columns: ['collection_id']
-            isOneToOne: false
-            referencedRelation: 'collections'
             referencedColumns: ['id']
           },
         ]
@@ -292,45 +221,6 @@ export type Database = {
           },
         ]
       }
-      snippet_forks: {
-        Row: {
-          created_at: string
-          description: string | null
-          id: string
-          language: string
-          name: string
-          original_id: string
-          path: string
-          slug: string
-          updated_at: string
-          workspace_id: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          id: string
-          language: string
-          name: string
-          original_id: string
-          path: string
-          slug: string
-          updated_at?: string
-          workspace_id: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          language?: string
-          name?: string
-          original_id?: string
-          path?: string
-          slug?: string
-          updated_at?: string
-          workspace_id?: string
-        }
-        Relationships: []
-      }
       snippet_tags: {
         Row: {
           created_at: string
@@ -360,44 +250,6 @@ export type Database = {
             columns: ['tag_id']
             isOneToOne: false
             referencedRelation: 'tags'
-            referencedColumns: ['id']
-          },
-        ]
-      }
-      snippet_versions: {
-        Row: {
-          created_at: string
-          files: Json | null
-          id: string
-          is_latest: boolean
-          path: string
-          snippet_id: string
-          version: number
-        }
-        Insert: {
-          created_at?: string
-          files?: Json | null
-          id: string
-          is_latest?: boolean
-          path: string
-          snippet_id: string
-          version: number
-        }
-        Update: {
-          created_at?: string
-          files?: Json | null
-          id?: string
-          is_latest?: boolean
-          path?: string
-          snippet_id?: string
-          version?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'snippet_versions_snippet_id_snippets_id_fk'
-            columns: ['snippet_id']
-            isOneToOne: false
-            referencedRelation: 'snippets'
             referencedColumns: ['id']
           },
         ]
