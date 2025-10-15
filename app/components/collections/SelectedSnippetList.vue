@@ -19,7 +19,7 @@
                   size="sm"
                   color="neutral"
                   variant="link"
-                  @click="getSnippetPreview(snippet.snippet_url)"
+                  @click="getSnippetPreview(snippet)"
                 />
 
                 <template #content>
@@ -85,16 +85,21 @@
 
   const emits = defineEmits(['deselectSnippet'])
 
+  const globalStore = useGlobalStore()
   const { beautifyCode } = useCodeFormat()
 
   const previewCode = ref<string>('')
 
-  async function getSnippetPreview(url: string): Promise<void> {
-    if (!url) {
-      return
-    }
+  async function getSnippetPreview(snippet: any): Promise<void> {
+    const snippetData = await $fetch(`/api/snippet/version/latest`, {
+      method: 'get',
+      query: {
+        snippetId: snippet.id,
+        workspaceId: globalStore.activeWorkspace?.id,
+      },
+    })
 
-    const response = await fetch(url)
+    const response = await fetch(snippetData.snippet_file)
 
     const code = await response.text()
 
