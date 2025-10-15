@@ -64,7 +64,6 @@
       lang: collection?.value?.language,
       page: 1,
       itemsPerPage: 10,
-      withUrl: 'true',
     },
   })
 
@@ -75,14 +74,14 @@
         return
       }
 
-      selectedSnippets.value = newData.snippets
+      // selectedSnippets.value = newData.snippets
 
-      for (const snippet of selectedSnippets.value) {
-        resultCode.value = {
-          ...resultCode.value,
-          [snippet.id]: await getSnippetCode(snippet),
-        }
-      }
+      // for (const snippet of selectedSnippets.value) {
+      //   resultCode.value = {
+      //     ...resultCode.value,
+      //     [snippet.id]: await getSnippetCode(snippet),
+      //   }
+      // }
     },
     { immediate: true },
   )
@@ -96,6 +95,7 @@
 
       snippets.value = newData.snippets.filter(
         (item: any) =>
+          item.path &&
           !selectedSnippets.value.some((selected) => selected.id === item.id),
       )
     },
@@ -125,7 +125,15 @@
   }
 
   async function getSnippetCode(snippet: any): Promise<string> {
-    const response = await fetch(snippet.snippet_url)
+    const snippetData = await $fetch(`/api/snippet/version/latest`, {
+      method: 'get',
+      query: {
+        snippetId: snippet.id,
+        workspaceId: globalStore.activeWorkspace?.id,
+      },
+    })
+
+    const response = await fetch(snippetData.snippet_file)
 
     const snippetCode = await response.text()
 
@@ -148,7 +156,6 @@
           snippets: selectedSnippets.value.map((item) => ({
             id: item.id,
           })),
-          language: collection.value?.language,
         },
       })
 
