@@ -138,7 +138,7 @@ export class SnippetService {
       }
     }
 
-    if (!payload.withUrl) {
+    if (!payload.withUrl || !data.path) {
       return {
         data,
         error,
@@ -147,7 +147,7 @@ export class SnippetService {
 
     const { data: metaFile } = await this.storageService.download(
       'snippets',
-      `${payload.workspaceId}/snippets/${data.slug}/meta.json`,
+      data.path,
     )
 
     if (!metaFile) {
@@ -260,10 +260,7 @@ export class SnippetService {
     }
 
     const { data: metaFile, error: metaFileError } =
-      await this.storageService.download(
-        'snippets',
-        `${snippet.workspace_id}/snippets/${snippet.slug}/meta.json`,
-      )
+      await this.storageService.download('snippets', snippet.path)
 
     if (!metaFile || metaFileError) {
       return {
@@ -453,10 +450,7 @@ export class SnippetService {
     snippet: Tables<'snippets'>,
   ): Promise<any> {
     const { data: metaFile, error: metaFileError } =
-      await this.storageService.download(
-        'snippets',
-        `${payload.workspaceId}/snippets/${snippet.slug}/meta.json`,
-      )
+      await this.storageService.download('snippets', snippet.path!)
 
     if (!metaFile || metaFileError) {
       return {
@@ -491,7 +485,7 @@ export class SnippetService {
     const newMetaData = this.prepareMetaData(newVersion, file.path, metaData)
 
     const { data: newMetaFile, error: metaUploadError } = await this.uploadFile(
-      `${payload.workspaceId}/snippets/${snippet.slug}/meta.json`,
+      snippet.path!,
       newMetaData,
       {
         upsert: true,

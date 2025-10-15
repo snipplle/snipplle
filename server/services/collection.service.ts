@@ -69,7 +69,9 @@ export class CollectionService {
     }
   }
 
-  async getCollection(payload: any): Promise<DatabaseResponse<any | null>> {
+  async getCollection(
+    payload: any,
+  ): Promise<DatabaseResponse<Tables<'collections'> | null>> {
     const query = this.supabase
       .from('collections')
       .select()
@@ -163,7 +165,7 @@ export class CollectionService {
         id: payload.id,
       })
 
-    if (collectionError) {
+    if (!collection || collectionError) {
       return {
         data: collection,
         error: collectionError,
@@ -260,7 +262,7 @@ export class CollectionService {
     }
 
     const { data, error } = await this.updateCollection(collection.id, {
-      path: file.path,
+      path: metaFile.path,
     })
 
     return {
@@ -271,10 +273,7 @@ export class CollectionService {
 
   private async createNewVersion(payload: any, collection: any): Promise<any> {
     const { data: metaFile, error: metaFileError } =
-      await this.storageService.download(
-        'collections',
-        `${payload.workspaceId}/collections/${collection.slug}/meta.json`,
-      )
+      await this.storageService.download('collections', collection.path)
 
     if (!metaFile || metaFileError) {
       return {
@@ -324,7 +323,7 @@ export class CollectionService {
     )
 
     const { data: newMetaFile, error: metaUploadError } = await this.uploadFile(
-      `${payload.workspaceId}/collections/${collection.slug}/meta.json`,
+      collection.path,
       newMetaData,
       {
         upsert: true,
