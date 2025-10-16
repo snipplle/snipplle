@@ -5,6 +5,8 @@ import slugify from 'slugify'
 import { StorageService } from './storage.service'
 import { SnippetService } from './snippet.service'
 
+import { contentTypes } from '../utils/codeFormat'
+
 import type { Database, Tables } from '../types/database.types'
 import type { DatabaseResponse } from '../types/api.types'
 
@@ -209,17 +211,16 @@ export class CollectionService {
     payload: any,
     collection: any,
   ): Promise<DatabaseResponse<any | null>> {
-    const latestVersion = 1
     const codeFile = this.prepareCodeFile(
       payload.collectionCode,
-      `application/typescript`,
+      contentTypes[collection.language],
     )
 
     const { data: file, error: uploadError } = await this.uploadFile(
-      `${payload.workspaceId}/collections/${collection.slug}/${latestVersion}/index.${collection.language}`,
+      `${payload.workspaceId}/collections/${collection.slug}/index.${collection.language}`,
       codeFile,
       {
-        contentType: `application/typescript`,
+        contentType: contentTypes[collection.language],
       },
     )
 
@@ -240,19 +241,19 @@ export class CollectionService {
       }
     }
 
-    const metaData = this.prepareMetaData(latestVersion, file.path, snippets)
+    const metaData = this.prepareMetaData(file.path, snippets)
 
     const { data: metaFile, error: metaUploadError } = await this.uploadFile(
       `${payload.workspaceId}/collections/${collection.slug}/meta.json`,
       metaData,
       {
-        contentType: `application/json`,
+        contentType: contentTypes.json,
       },
     )
 
     if (!metaFile || metaUploadError) {
       await this.removeCollectionFiles([
-        `${payload.workspaceId}/collections/${collection.slug}/${latestVersion}`,
+        `${payload.workspaceId}/collections/${collection.slug}`,
       ])
 
       return {
@@ -283,18 +284,17 @@ export class CollectionService {
     }
 
     const metaData = JSON.parse(await metaFile.text())
-    const newVersion = metaData.latest + 1
 
     const codeFile = this.prepareCodeFile(
       payload.collectionCode,
-      `application/typescript`,
+      contentTypes[collection.language],
     )
 
     const { data: file, error: uploadError } = await this.uploadFile(
-      `${payload.workspaceId}/collections/${collection.slug}/${newVersion}/index.${collection.language}`,
+      metaData.path,
       codeFile,
       {
-        contentType: `application/typescript`,
+        contentType: contentTypes[collection.language],
       },
     )
 
@@ -315,25 +315,20 @@ export class CollectionService {
       }
     }
 
-    const newMetaData = this.prepareMetaData(
-      newVersion,
-      file.path,
-      snippets,
-      metaData,
-    )
+    const newMetaData = this.prepareMetaData(file.path, snippets, metaData)
 
     const { data: newMetaFile, error: metaUploadError } = await this.uploadFile(
       collection.path,
       newMetaData,
       {
         upsert: true,
-        contentType: `application/json`,
+        contentType: contentTypes.json,
       },
     )
 
     if (!newMetaFile || metaUploadError) {
       await this.removeCollectionFiles([
-        `${payload.workspaceId}/collections/${collection.slug}/${newVersion}`,
+        `${payload.workspaceId}/collections/${collection.slug}`,
       ])
 
       return {
@@ -362,43 +357,24 @@ export class CollectionService {
   }
 
   private prepareMetaData(
-    version: number,
     path: string,
     snippets: any,
     oldMetaData?: any,
   ): Blob {
     let metaData = {
-      latest: version,
-      versions: [
-        {
-          id: createId(),
-          v: version,
-          path,
-          snippets: snippets,
-          createdAt: new Date(),
-        },
-      ],
+      path,
+      snippets,
     }
 
     if (oldMetaData) {
       metaData = {
         ...oldMetaData,
-        latest: version,
-        versions: [
-          ...oldMetaData.versions,
-          {
-            id: createId(),
-            v: version,
-            path,
-            snippets: snippets,
-            createdAt: new Date(),
-          },
-        ],
+        snippets,
       }
     }
 
     return new Blob([JSON.stringify(metaData, null, 2)], {
-      type: 'application/json',
+      type: contentTypes.json,
     })
   }
 

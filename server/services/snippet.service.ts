@@ -5,7 +5,7 @@ import slugify from 'slugify'
 import { StorageService } from './storage.service'
 
 import { orderByMap } from '../utils/order'
-import { beautifyCode } from '../utils/codeFormat'
+import { beautifyCode, contentTypes } from '../utils/codeFormat'
 
 import type { Database, Tables } from '../types/database.types'
 import type { DatabaseResponse, StorageData } from '../types/api.types'
@@ -392,14 +392,14 @@ export class SnippetService {
     const latestVersion = 1
     const codeFile = this.prepareCodeFile(
       payload.snippetCode,
-      `application/typescript`,
+      contentTypes[snippet.language!],
     )
 
     const { data: file, error: uploadError } = await this.uploadFile(
       `${payload.workspaceId}/snippets/${snippet.slug}/${latestVersion}/index.${snippet.language}`,
       codeFile,
       {
-        contentType: `application/typescript`,
+        contentType: contentTypes[snippet.language!],
       },
     )
 
@@ -416,7 +416,7 @@ export class SnippetService {
       `${payload.workspaceId}/snippets/${snippet.slug}/meta.json`,
       metaData,
       {
-        contentType: `application/json`,
+        contentType: contentTypes.json,
       },
     )
 
@@ -464,14 +464,14 @@ export class SnippetService {
 
     const codeFile = this.prepareCodeFile(
       payload.snippetCode,
-      `application/typescript`,
+      contentTypes[snippet.language!],
     )
 
     const { data: file, error: uploadError } = await this.uploadFile(
       `${payload.workspaceId}/snippets/${snippet.slug}/${newVersion}/index.${snippet.language}`,
       codeFile,
       {
-        contentType: `application/typescript`,
+        contentType: contentTypes[snippet.language!],
       },
     )
 
@@ -489,7 +489,7 @@ export class SnippetService {
       newMetaData,
       {
         upsert: true,
-        contentType: `application/json`,
+        contentType: contentTypes.json,
       },
     )
 
@@ -559,7 +559,7 @@ export class SnippetService {
     }
 
     return new Blob([JSON.stringify(metaData, null, 2)], {
-      type: 'application/json',
+      type: contentTypes.json,
     })
   }
 
