@@ -95,6 +95,62 @@ export class CollectionService {
     }
   }
 
+  async getCollectionSnippets(id: string, workspaceId: string): Promise<any> {
+    const { data: collection, error: collectionError } =
+      await this.getCollection({
+        id,
+        workspaceId,
+      })
+
+    if (!collection || collectionError) {
+      return {
+        data: collection,
+        error: collectionError,
+      }
+    }
+
+    const { data: metaFile, error: metaError } =
+      await this.storageService.download(
+        'collections',
+        collection.path as string,
+      )
+
+    if (!metaFile || metaError) {
+      return {
+        data: metaFile,
+        error: metaError,
+      }
+    }
+
+    const metaData = JSON.parse(await metaFile.text())
+
+    const { data, error } = await this.snippetService.getSnippetsForCollection(
+      metaData.snippets,
+    )
+
+    if (!data || error) {
+      return {
+        data,
+        error,
+      }
+    }
+
+    const snippets = [...data]
+
+    metaData.snippets.forEach((snippet: any) => {
+      const exists = data.some((item: any) => item.id === snippet.id)
+
+      if (!exists) {
+        snippets.push(snippet)
+      }
+    })
+
+    return {
+      data: snippets,
+      error,
+    }
+  }
+
   async createCollection(
     payload: any,
     userId: string,

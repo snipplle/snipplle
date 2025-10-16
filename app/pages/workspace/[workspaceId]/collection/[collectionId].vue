@@ -53,10 +53,15 @@
     },
   )
 
-  const extensions = [
-    catppuccinMocha,
-    languages[collection?.value?.language || 'js'],
-  ]
+  const { data: collectionSnippets } = await useFetch<any>(
+    `/api/collection/${collection?.value?.id}/snippet`,
+    {
+      method: 'get',
+      query: {
+        workspaceId: globalStore.activeWorkspace?.id,
+      },
+    },
+  )
 
   const { data } = await useFetch<any>(`/api/snippet`, {
     method: 'get',
@@ -67,21 +72,26 @@
     },
   })
 
+  const extensions = [
+    catppuccinMocha,
+    languages[collection?.value?.language || 'js'],
+  ]
+
   watch(
-    () => collection.value,
+    () => collectionSnippets.value,
     async (newData) => {
       if (!newData) {
         return
       }
 
-      // selectedSnippets.value = newData.snippets
+      selectedSnippets.value = newData
 
-      // for (const snippet of selectedSnippets.value) {
-      //   resultCode.value = {
-      //     ...resultCode.value,
-      //     [snippet.id]: await getSnippetCode(snippet),
-      //   }
-      // }
+      for (const snippet of selectedSnippets.value) {
+        resultCode.value = {
+          ...resultCode.value,
+          [snippet.id]: await getSnippetCode(snippet),
+        }
+      }
     },
     { immediate: true },
   )
