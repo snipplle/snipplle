@@ -385,6 +385,51 @@ export class SnippetService {
     }
   }
 
+  async pullSnippet(path: string, versionTag: string): Promise<any> {
+    const { data: metaFile, error: metaFileError } =
+      await this.storageService.download('snippets', path)
+
+    if (!metaFile || metaFileError) {
+      return {
+        data: metaFile,
+        error: metaFileError,
+      }
+    }
+
+    const metaData = JSON.parse(await metaFile.text())
+    const versionData = metaData.versions.find((version: any) =>
+      versionTag === 'latest'
+        ? version.v === metaData.latest
+        : version.v === Number(versionTag),
+    )
+
+    if (!versionData) {
+      return {
+        data: null,
+        error: createError({
+          statusCode: 400,
+          message: 'Version not found',
+        }),
+      }
+    }
+
+    const { data, error } = await this.storageService.getSignedUrl(
+      versionData.path,
+    )
+
+    if (!data || error) {
+      return {
+        data,
+        error: error,
+      }
+    }
+
+    return {
+      data: data.signedUrl,
+      error: null,
+    }
+  }
+
   private async uploadFirstVersion(
     payload: any,
     snippet: Tables<'snippets'>,
