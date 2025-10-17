@@ -107,4 +107,19 @@ export class WorkspaceService {
       error,
     }
   }
+
+  async getWorkspaceBySlug(
+    slug: string,
+  ): Promise<DatabaseResponse<Tables<'workspaces'> | null>> {
+    const { data, error } = await this.supabase
+      .from('workspaces')
+      .select()
+      .eq('slug', slug)
+      .single()
+
+    return {
+      data,
+      error,
+    }
+  }
 }
