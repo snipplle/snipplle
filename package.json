@@ -43,6 +43,7 @@
     "eslint-plugin-prettier": "^5.5.4",
     "js-beautify": "^1.15.4",
     "js-string-escape": "^1.0.1",
+    "jsonwebtoken": "^9.0.2",
     "mitt": "^3.0.1",
     "nuxt": "^4.1.2",
     "nuxt-codemirror": "0.0.16",
@@ -62,6 +63,7 @@
     "@iconify-json/hugeicons": "^1.2.16",
     "@types/js-beautify": "^1.14.3",
     "@types/js-string-escape": "^1.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
     "drizzle-kit": "^0.31.4",
     "supabase": "^2.40.7"
   }
