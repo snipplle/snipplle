@@ -71,7 +71,7 @@
         {
           label: 'Settings',
           icon: 'i-hugeicons-settings-02',
-          to: `/settings`,
+          to: `/settings/profile`,
         },
       ],
       [
