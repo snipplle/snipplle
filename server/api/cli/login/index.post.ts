@@ -25,8 +25,10 @@ export default defineEventHandler(async (event) => {
 
   const authToken = jwt.sign(
     {
+      iss: `${runtimeConfig.SUPABASE_URL}/auth/v1`,
       sub: data.user_id,
       role: 'authenticated',
+      aud: 'authenticated',
       api_token_id: data.id,
     },
     runtimeConfig.SUPABASE_JWT_SECRET,
