@@ -263,6 +263,55 @@ export class CollectionService {
     }
   }
 
+  async pullCollection(
+    workspaceId: string,
+    collectionSlug: string,
+  ): Promise<any> {
+    const { data: collection, error: collectionError } =
+      await this.getCollection({
+        workspaceId,
+        slug: collectionSlug,
+      })
+
+    if (!collection || collectionError) {
+      return {
+        data: collection,
+        error: collectionError,
+      }
+    }
+
+    const { data: metaFile, error: metaFileError } =
+      await this.storageService.download(
+        'collections',
+        collection.path as string,
+      )
+
+    if (!metaFile || metaFileError) {
+      return {
+        data: metaFile,
+        error: metaFileError,
+      }
+    }
+
+    const metaData = JSON.parse(await metaFile.text())
+
+    const { data, error } = await this.storageService.getSignedUrl(
+      metaData.path,
+    )
+
+    if (!data || error) {
+      return {
+        data,
+        error,
+      }
+    }
+
+    return {
+      data: data.signedUrl,
+      error,
+    }
+  }
+
   private async createFirstVersion(
     payload: any,
     collection: any,

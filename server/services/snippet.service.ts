@@ -385,9 +385,25 @@ export class SnippetService {
     }
   }
 
-  async pullSnippet(path: string, versionTag: string): Promise<any> {
+  async pullSnippet(
+    workspaceId: string,
+    snippetSlug: string,
+    versionTag: string,
+  ): Promise<any> {
+    const { data: snippet, error: snippetError } = await this.getSnippet({
+      workspaceId,
+      slug: snippetSlug,
+    })
+
+    if (snippetError) {
+      throw createError({
+        statusCode: 400,
+        message: snippetError.message,
+      })
+    }
+
     const { data: metaFile, error: metaFileError } =
-      await this.storageService.download('snippets', path)
+      await this.storageService.download('snippets', snippet.path)
 
     if (!metaFile || metaFileError) {
       return {
