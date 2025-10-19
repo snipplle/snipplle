@@ -12,7 +12,7 @@
         variant="link"
         type="button"
         size="sm"
-        icon="i-heroicons-plus"
+        icon="i-hugeicons-plus-sign"
       >
         Add member
       </UButton>
@@ -91,7 +91,7 @@
         title: 'Success',
         description: 'Member added successfully',
         color: 'success',
-        icon: 'i-heroicons-check-circle',
+        icon: 'i-hugeicons-checkmark-circle-01',
         duration: 1500,
       })
 

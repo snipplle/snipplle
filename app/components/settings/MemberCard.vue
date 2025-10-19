@@ -13,7 +13,7 @@
         variant="link"
         type="button"
         size="sm"
-        icon="i-heroicons-x-mark"
+        icon="i-hugeicons-cancel-01"
         @click="removeMember(member.user_id)"
       />
     </div>
@@ -43,7 +43,7 @@
         title: 'Success',
         description: 'Member removed successfully',
         color: 'success',
-        icon: 'i-heroicons-check-circle',
+        icon: 'i-hugeicons-checkmark-circle-01',
         duration: 1500,
       })
     } catch (error: any) {
