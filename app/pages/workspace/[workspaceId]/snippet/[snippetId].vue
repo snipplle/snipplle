@@ -33,6 +33,7 @@
   const modal = overlay.create(LazyEditSnippet)
 
   let extensions = [catppuccinMocha]
+  const originalSnippetCode = ref('')
   const snippetCode = ref('')
 
   const { data: snippet, refresh } = await useFetch<any>(
@@ -69,6 +70,7 @@
       const response = await fetch(fileUrl)
       const code = await response.text()
 
+      originalSnippetCode.value = code
       snippetCode.value = beautifyCode(code)
       extensions = [...extensions, languages[snippet.value.language || 'js']]
     },
@@ -107,7 +109,20 @@
   }
 
   async function saveSnippet(): Promise<void> {
+    const escapedOriginal = minifyCode(originalSnippetCode.value)
     const escapedCode = minifyCode(snippetCode.value)
+
+    if (escapedOriginal === escapedCode) {
+      toast.add({
+        title: 'Oops',
+        description: 'Snippet code is not changed',
+        color: 'error',
+        icon: 'i-hugeicons-fire',
+        duration: 1500,
+      })
+
+      return
+    }
 
     if (!escapedCode.length) {
       toast.add({
