@@ -294,10 +294,10 @@ export class SnippetService {
     })
 
     if (snippetError) {
-      throw createError({
-        statusCode: 400,
-        message: snippetError.message,
-      })
+      return {
+        data: snippet,
+        error: snippetError,
+      }
     }
 
     const { data: metaFile, error: metaFileError } =
@@ -322,7 +322,7 @@ export class SnippetService {
         data: null,
         error: createError({
           statusCode: 400,
-          message: 'Version not found',
+          statusMessage: 'Version not found',
         }),
       }
     }

@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
   if (!token) {
     throw createError({
       statusCode: 401,
-      message: 'Missing authorization token',
+      statusMessage: 'Missing authorization token',
     })
   }
 
@@ -36,7 +36,7 @@ export default defineEventHandler(async (event) => {
   if (!auth?.user || authError) {
     throw createError({
       statusCode: 401,
-      message: 'Unauthorized',
+      statusMessage: 'Unauthorized',
     })
   }
 
@@ -50,7 +50,7 @@ export default defineEventHandler(async (event) => {
     if (!workspace || workspaceError) {
       throw createError({
         statusCode: 400,
-        message: workspaceError?.message,
+        statusMessage: workspaceError?.message,
       })
     }
 
@@ -63,7 +63,7 @@ export default defineEventHandler(async (event) => {
     if (error) {
       throw createError({
         statusCode: 400,
-        message: error.message,
+        statusMessage: error.message,
       })
     }
 
@@ -80,7 +80,7 @@ export default defineEventHandler(async (event) => {
   if (!workspace || workspaceError) {
     throw createError({
       statusCode: 400,
-      message: workspaceError?.message,
+      statusMessage: workspaceError?.message,
     })
   }
 
@@ -92,7 +92,7 @@ export default defineEventHandler(async (event) => {
   if (error) {
     throw createError({
       statusCode: 400,
-      message: error.message,
+      statusMessage: error.message,
     })
   }
 

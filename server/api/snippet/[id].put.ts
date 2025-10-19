@@ -13,14 +13,14 @@ export default defineEventHandler(async (event) => {
   if (!user) {
     throw createError({
       statusCode: 401,
-      message: 'Unauthorized',
+      statusMessage: 'Unauthorized',
     })
   }
 
   if (!workspaceId || !snippetCode || !language) {
     throw createError({
       statusCode: 400,
-      message: 'Missing required fields',
+      statusMessage: 'Missing required fields',
     })
   }
 
@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
   if (error) {
     throw createError({
       statusCode: 400,
-      message: error.message,
+      statusMessage: error.message,
     })
   }
 

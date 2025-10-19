@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
   if (!token) {
     throw createError({
       statusCode: 401,
-      message: 'Missing authorization token',
+      statusMessage: 'Missing authorization token',
     })
   }
 
@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
   if (!data?.user || error) {
     throw createError({
       statusCode: 401,
-      message: 'Unauthorized',
+      statusMessage: 'Unauthorized',
     })
   }
 
@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
   if (!mainWorkspace || mainWorkspaceError) {
     throw createError({
       statusCode: 400,
-      message: mainWorkspaceError?.message,
+      statusMessage: mainWorkspaceError?.message,
     })
   }
 

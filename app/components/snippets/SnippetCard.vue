@@ -179,7 +179,7 @@
     } catch (error: any) {
       toast.add({
         title: 'Oops',
-        description: error.message,
+        description: error.statusMessage,
         color: 'error',
         icon: 'i-hugeicons-fire',
         duration: 1500,

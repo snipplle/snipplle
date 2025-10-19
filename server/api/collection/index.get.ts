@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
   if (!user) {
     throw createError({
       statusCode: 401,
-      message: 'Unauthorized',
+      statusMessage: 'Unauthorized',
     })
   }
 
@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
   if (workspaceError) {
     throw createError({
       statusCode: 500,
-      message: workspaceError.message,
+      statusMessage: workspaceError.message,
     })
   }
 
@@ -41,7 +41,7 @@ export default defineEventHandler(async (event) => {
   if (error) {
     throw createError({
       statusCode: 500,
-      message: error.message,
+      statusMessage: error.message,
     })
   }
 
