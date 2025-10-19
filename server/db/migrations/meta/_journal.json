@@ -148,6 +148,20 @@
       "when": 1760554281360,
       "tag": "0020_RemovedForksField",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1760890016508,
+      "tag": "0021_AddedAdditionalFieldsToUser",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1760890452509,
+      "tag": "0022_AddedNewUserFunction",
+      "breakpoints": true
     }
   ]
 }

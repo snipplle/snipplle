@@ -7,6 +7,8 @@ import { apiToken } from './apiToken'
 
 export const user = pgTable('users', {
   id: text('id').primaryKey().notNull(),
+  name: text('name'),
+  email: text('email'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })
