@@ -156,6 +156,18 @@
     const joinedCode = Object.values(resultCode.value).join('\n')
     const escapedCode = minifyCode(joinedCode)
 
+    if (!escapedCode.length) {
+      toast.add({
+        title: 'Oops',
+        description: 'Collection code is empty',
+        color: 'error',
+        icon: 'i-hugeicons-fire',
+        duration: 1500,
+      })
+
+      return
+    }
+
     try {
       await $fetch(`/api/collection/${collection.value?.id}`, {
         method: 'PUT' as any,

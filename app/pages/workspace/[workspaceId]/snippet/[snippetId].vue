@@ -109,6 +109,18 @@
   async function saveSnippet(): Promise<void> {
     const escapedCode = minifyCode(snippetCode.value)
 
+    if (!escapedCode.length) {
+      toast.add({
+        title: 'Oops',
+        description: 'Snippet code is empty',
+        color: 'error',
+        icon: 'i-hugeicons-fire',
+        duration: 1500,
+      })
+
+      return
+    }
+
     try {
       await $fetch(`/api/snippet/${snippet.value?.id}`, {
         method: 'PUT' as any,
