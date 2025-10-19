@@ -1,5 +1,7 @@
 <template>
-  <div></div>
+  <ClientOnly>
+    <div></div>
+  </ClientOnly>
 </template>
 
 <script setup lang="ts">
