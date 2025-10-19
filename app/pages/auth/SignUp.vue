@@ -25,9 +25,9 @@
             >
               <template #description>
                 Already have an account?
-                <ULink to="/auth/signin" class="text-primary font-medium"
-                  >Sign in</ULink
-                >
+                <ULink to="/auth/sign-in" class="text-primary font-medium">
+                  Sign in
+                </ULink>
               </template>
 
               <template #footer>
@@ -35,23 +35,23 @@
                   <p class="w-80 text-center">
                     By proceeding you acknowledge that you have read, understood
                     and agree to our
-                    <ULink to="https://snipplle.com/privacy" external
-                      >Privacy Policy</ULink
-                    >
+                    <ULink to="https://snipplle.com/privacy" external>
+                      Privacy Policy
+                    </ULink>
                     and
-                    <ULink to="https://snipplle.com/terms" external
-                      >Terms and Conditions</ULink
-                    >.
+                    <ULink to="https://snipplle.com/terms" external>
+                      Terms and Conditions.
+                    </ULink>
                   </p>
 
                   <div class="flex space-x-6">
                     <p>© 2025 Snipplle</p>
-                    <ULink to="https://snipplle.com/privacy" external
-                      >Privacy Policy</ULink
-                    >
-                    <ULink to="https://snipplle.com/terms" external
-                      >Terms of Use</ULink
-                    >
+                    <ULink to="https://snipplle.com/privacy" external>
+                      Privacy Policy
+                    </ULink>
+                    <ULink to="https://snipplle.com/terms" external>
+                      Terms of Use
+                    </ULink>
                   </div>
                 </div>
               </template>
@@ -72,6 +72,7 @@
   import type { FormSubmitEvent } from '@nuxt/ui'
 
   definePageMeta({
+    path: '/auth/sign-up',
     middleware: 'logged-in',
   })
 

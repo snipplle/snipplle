@@ -25,21 +25,31 @@
             >
               <template #description>
                 Don't have an account?
-                <ULink to="/auth/signup" class="text-primary font-medium"
-                  >Sign up</ULink
+                <ULink to="/auth/sign-up" class="text-primary font-medium">
+                  Sign up
+                </ULink>
+              </template>
+
+              <template #password-hint>
+                <ULink
+                  to="/auth/forgot-password"
+                  class="text-primary font-medium"
+                  tabindex="-1"
                 >
+                  Forgot password?
+                </ULink>
               </template>
 
               <template #footer>
                 <div class="flex flex-col items-center text-xs space-y-4">
                   <div class="flex space-x-6">
                     <p>© 2025 Snipplle</p>
-                    <ULink to="https://snipplle.com/privacy" external
-                      >Privacy Policy</ULink
-                    >
-                    <ULink to="https://snipplle.com/terms" external
-                      >Terms of Use</ULink
-                    >
+                    <ULink to="https://snipplle.com/privacy" external>
+                      Privacy Policy
+                    </ULink>
+                    <ULink to="https://snipplle.com/terms" external>
+                      Terms of Use
+                    </ULink>
                   </div>
                 </div>
               </template>
@@ -60,6 +70,7 @@
   import type { FormSubmitEvent } from '@nuxt/ui'
 
   definePageMeta({
+    path: '/auth/sign-in',
     middleware: 'logged-in',
   })
 
