@@ -1,5 +1,5 @@
 <template>
-  <div />
+  <div></div>
 </template>
 
 <script setup lang="ts">
@@ -17,6 +17,10 @@
         const response = await $fetch('/api/workspace/default', {
           method: 'GET',
         })
+
+        if (!response) {
+          return navigateTo('/welcome')
+        }
 
         globalStore.setActiveWorkspace({
           id: response.id,
