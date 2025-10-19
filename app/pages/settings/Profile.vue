@@ -5,25 +5,25 @@
         <div>
           <h1 class="font-semibold">General</h1>
           <p class="text-sm text-neutral-400">
-            Update your basic profile information and preferences.
+            Your basic profile information and preferences.
           </p>
         </div>
 
         <div class="space-y-4">
           <UFormField label="Name">
             <UInput
-              v-model="userData.name"
               variant="subtle"
               class="w-full"
+              :default-value="user?.user_metadata?.display_name"
               disabled
             />
           </UFormField>
 
           <UFormField label="Email">
             <UInput
-              v-model="userData.email"
               variant="subtle"
               class="w-full"
+              :default-value="user?.email"
               disabled
             />
           </UFormField>
@@ -36,8 +36,7 @@
         <div>
           <h1 class="font-semibold">Security</h1>
           <p class="text-sm text-neutral-400">
-            Update your security settings, such as password and two-factor
-            authentication.
+            Update your security settings, such as password.
           </p>
         </div>
 
@@ -86,10 +85,6 @@
   const supabase = useSupabaseClient()
   const toast = useToast()
 
-  const userData = ref({
-    name: user.value?.user_metadata?.display_name || '',
-    email: user.value?.email || '',
-  })
   const state = ref({
     password: '',
     confirmPassword: '',
