@@ -24,6 +24,13 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  if (!collectionCode.length) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Collection code is empty',
+    })
+  }
+
   const { data, error } = await collectionService.uploadCollection({
     workspaceId,
     id,

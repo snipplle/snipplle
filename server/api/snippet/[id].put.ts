@@ -24,6 +24,13 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  if (!snippetCode.length) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Snippet code is empty',
+    })
+  }
+
   const { data, error } = await snippetService.uploadSnippet({
     workspaceId,
     id,
