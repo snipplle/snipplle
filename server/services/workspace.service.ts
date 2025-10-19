@@ -21,12 +21,11 @@ export class WorkspaceService {
 
   async getUserWorkspaces(
     userId: string,
-  ): Promise<
-    DatabaseResponse<Pick<Tables<'workspace_members'>, 'workspace_id'>[] | null>
-  > {
+    select = 'workspace_id',
+  ): Promise<DatabaseResponse<any[] | null>> {
     const { data, error } = await this.supabase
       .from('workspace_members')
-      .select('workspace_id')
+      .select(select)
       .eq('user_id', userId)
 
     return {
@@ -115,6 +114,68 @@ export class WorkspaceService {
       .from('workspaces')
       .select()
       .eq('slug', slug)
+      .single()
+
+    return {
+      data,
+      error,
+    }
+  }
+
+  async getMembers(workspaceId: string): Promise<
+    DatabaseResponse<
+      | (Tables<'workspace_members'> & {
+          user?: Tables<'users'> | null
+        })[]
+      | null
+    >
+  > {
+    const { data, error } = await this.supabase
+      .from('workspace_members')
+      .select()
+      .eq('workspace_id', workspaceId)
+
+    if (!data || error) {
+      return {
+        data,
+        error,
+      }
+    }
+
+    const { data: user, error: userError } = await this.supabase
+      .from('users')
+      .select()
+      .in(
+        'id',
+        data.map((item) => item.user_id),
+      )
+
+    if (!user || userError) {
+      return {
+        data,
+        error: userError,
+      }
+    }
+
+    return {
+      data: data.map((item) => ({
+        ...item,
+        user: user.find((userItem) => userItem.id === item.user_id),
+      })),
+      error,
+    }
+  }
+
+  async removeMember(
+    workspaceId: string,
+    userId: string,
+  ): Promise<DatabaseResponse<Tables<'workspace_members'> | null>> {
+    const { data, error } = await this.supabase
+      .from('workspace_members')
+      .delete()
+      .eq('workspace_id', workspaceId)
+      .eq('user_id', userId)
+      .select()
       .single()
 
     return {
