@@ -9,7 +9,7 @@
       </template>
 
       <template #body>
-        <slot />
+        <slot></slot>
       </template>
     </UDashboardPanel>
   </UDashboardGroup>
