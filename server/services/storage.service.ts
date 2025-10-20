@@ -14,7 +14,7 @@ export class StorageService {
     paths: string[],
   ): Promise<StorageResponse<StorageData[]>> {
     const { data, error } = await this.supabase.storage
-      .from('snippets')
+      .from('snipplle')
       .createSignedUrls(paths, 60)
 
     return {
@@ -25,7 +25,7 @@ export class StorageService {
 
   async getSignedUrl(path: string): Promise<StorageResponse<StorageData>> {
     const { data, error } = await this.supabase.storage
-      .from('snippets')
+      .from('snipplle')
       .createSignedUrl(path, 60)
 
     return {
@@ -34,9 +34,9 @@ export class StorageService {
     }
   }
 
-  async download(scope: string, path: string): Promise<StorageResponse<Blob>> {
+  async download(path: string): Promise<StorageResponse<Blob>> {
     const { data, error } = await this.supabase.storage
-      .from(scope)
+      .from('snipplle')
       .download(path)
 
     return {
@@ -46,13 +46,12 @@ export class StorageService {
   }
 
   async upload(
-    scope: string,
     path: string,
     file: Blob,
     options?: any,
   ): Promise<StorageResponse<UploadData>> {
     const { data, error } = await this.supabase.storage
-      .from(scope)
+      .from('snipplle')
       .upload(path, file, options)
 
     return {
@@ -61,9 +60,9 @@ export class StorageService {
     }
   }
 
-  async remove(scope: string, paths: string[]): Promise<StorageResponse<any>> {
+  async remove(paths: string[]): Promise<StorageResponse<any>> {
     const { data, error } = await this.supabase.storage
-      .from(scope)
+      .from('snipplle')
       .remove(paths)
 
     return {
