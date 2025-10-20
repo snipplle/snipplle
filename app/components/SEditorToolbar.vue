@@ -64,6 +64,10 @@
     versions.value.find((version) => version.is_latest),
   )
 
+  watch(versions, (newVersions) => {
+    selectedVersion.value = newVersions.find((version) => version.is_latest)
+  })
+
   watch(selectedVersion, (newVersion) => {
     call('toolbar:change-version', newVersion?.value)
   })

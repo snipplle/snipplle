@@ -46,16 +46,14 @@
     },
   )
 
-  const { data: snippetVersions } = await useFetch<any>(
-    `/api/snippet/version`,
-    {
+  const { data: snippetVersions, refresh: refreshVersions } =
+    await useFetch<any>(`/api/snippet/version`, {
       method: 'get',
       query: {
         workspaceId: globalStore.activeWorkspace?.id,
         snippetId: snippet.value?.id,
       },
-    },
-  )
+    })
 
   watch(
     () => snippet.value?.snippet_file,
@@ -154,6 +152,8 @@
         icon: 'i-hugeicons-checkmark-circle-01',
         duration: 1500,
       })
+
+      refreshVersions()
     } catch (error: any) {
       toast.add({
         title: 'Oops',
