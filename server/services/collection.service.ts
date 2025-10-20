@@ -220,7 +220,7 @@ export class CollectionService {
     }
   }
 
-  async uploadCollection(payload: any): Promise<DatabaseResponse<any | null>> {
+  async uploadCollection(payload: any): Promise<any> {
     const { data: collection, error: collectionError } =
       await this.getCollection({
         workspaceId: payload.workspaceId,
@@ -234,16 +234,80 @@ export class CollectionService {
       }
     }
 
-    if (!collection.path) {
-      const { data, error } = await this.createFirstVersion(payload, collection)
+    let metaData = null
 
+    if (collection.path) {
+      const { data: metaFile, error: metaFileError } =
+        await this.storageService.download(collection.path)
+
+      if (!metaFile || metaFileError) {
+        return {
+          data: metaFile,
+          error: metaFileError,
+        }
+      }
+
+      metaData = JSON.parse(await metaFile.text())
+    }
+
+    const codeFile = this.prepareCodeFile(
+      payload.collectionCode,
+      contentTypes[collection.language],
+    )
+
+    const { data: file, error: uploadError } = await this.uploadFile(
+      collection.path
+        ? collection.path
+        : `${payload.workspaceId}/collections/${collection.slug}/index.${collection.language}`,
+      codeFile,
+      {
+        contentType: contentTypes[collection.language],
+      },
+    )
+
+    if (!file || uploadError) {
       return {
-        data,
-        error,
+        data: file,
+        error: uploadError,
       }
     }
 
-    const { data, error } = await this.createNewVersion(payload, collection)
+    const { data: snippets, error: snippetError } =
+      await this.snippetService.getSnippetsForCollection(payload.snippets)
+
+    if (!snippets || snippetError) {
+      return {
+        data: snippets,
+        error: snippetError,
+      }
+    }
+
+    metaData = this.prepareMetaData(file.path, snippets, metaData)
+
+    const { data: metaFile, error: metaUploadError } = await this.uploadFile(
+      collection.path
+        ? collection.path
+        : `${payload.workspaceId}/collections/${collection.slug}/meta.json`,
+      metaData,
+      {
+        contentType: contentTypes.json,
+      },
+    )
+
+    if (!metaFile || metaUploadError) {
+      await this.removeCollectionFiles([
+        `${payload.workspaceId}/collections/${collection.slug}`,
+      ])
+
+      return {
+        data: metaFile,
+        error: metaUploadError,
+      }
+    }
+
+    const { data, error } = await this.updateCollection(collection.id, {
+      path: metaFile.path,
+    })
 
     return {
       data,
@@ -309,147 +373,6 @@ export class CollectionService {
 
     return {
       data: data.signedUrl,
-      error,
-    }
-  }
-
-  private async createFirstVersion(
-    payload: any,
-    collection: any,
-  ): Promise<DatabaseResponse<any | null>> {
-    const codeFile = this.prepareCodeFile(
-      payload.collectionCode,
-      contentTypes[collection.language],
-    )
-
-    const { data: file, error: uploadError } = await this.uploadFile(
-      `${payload.workspaceId}/collections/${collection.slug}/index.${collection.language}`,
-      codeFile,
-      {
-        contentType: contentTypes[collection.language],
-      },
-    )
-
-    if (!file || uploadError) {
-      return {
-        data: file,
-        error: uploadError,
-      }
-    }
-
-    const { data: snippets, error: snippetError } =
-      await this.snippetService.getSnippetsForCollection(payload.snippets)
-
-    if (!snippets || snippetError) {
-      return {
-        data: snippets,
-        error: snippetError,
-      }
-    }
-
-    const metaData = this.prepareMetaData(file.path, snippets)
-
-    const { data: metaFile, error: metaUploadError } = await this.uploadFile(
-      `${payload.workspaceId}/collections/${collection.slug}/meta.json`,
-      metaData,
-      {
-        contentType: contentTypes.json,
-      },
-    )
-
-    if (!metaFile || metaUploadError) {
-      await this.removeCollectionFiles([
-        `${payload.workspaceId}/collections/${collection.slug}`,
-      ])
-
-      return {
-        data: metaFile,
-        error: metaUploadError,
-      }
-    }
-
-    const { data, error } = await this.updateCollection(collection.id, {
-      path: metaFile.path,
-    })
-
-    return {
-      data,
-      error,
-    }
-  }
-
-  private async createNewVersion(payload: any, collection: any): Promise<any> {
-    const { data: metaFile, error: metaFileError } =
-      await this.storageService.download(collection.path)
-
-    if (!metaFile || metaFileError) {
-      return {
-        data: metaFile,
-        error: metaFileError,
-      }
-    }
-
-    const metaData = JSON.parse(await metaFile.text())
-
-    const codeFile = this.prepareCodeFile(
-      payload.collectionCode,
-      contentTypes[collection.language],
-    )
-
-    const { data: file, error: uploadError } = await this.uploadFile(
-      metaData.path,
-      codeFile,
-      {
-        contentType: contentTypes[collection.language],
-      },
-    )
-
-    if (!file || uploadError) {
-      return {
-        data: file,
-        error: uploadError,
-      }
-    }
-
-    const { data: snippets, error: snippetError } =
-      await this.snippetService.getSnippetsForCollection(payload.snippets)
-
-    if (!snippets || snippetError) {
-      return {
-        data: snippets,
-        error: snippetError,
-      }
-    }
-
-    const newMetaData = this.prepareMetaData(file.path, snippets, metaData)
-
-    const { data: newMetaFile, error: metaUploadError } = await this.uploadFile(
-      collection.path,
-      newMetaData,
-      {
-        upsert: true,
-        contentType: contentTypes.json,
-      },
-    )
-
-    if (!newMetaFile || metaUploadError) {
-      await this.removeCollectionFiles([
-        `${payload.workspaceId}/collections/${collection.slug}`,
-      ])
-
-      return {
-        data: newMetaFile,
-        error: metaUploadError,
-      }
-    }
-
-    const { data, error } = await this.getCollection({
-      workspaceId: payload.workspaceId,
-      id: collection.id,
-    })
-
-    return {
-      data,
       error,
     }
   }
