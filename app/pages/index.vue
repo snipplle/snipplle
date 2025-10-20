@@ -3,5 +3,5 @@
 </template>
 
 <script setup lang="ts">
-  await navigateTo('/auth/signin')
+  await navigateTo('/auth/sign-in')
 </script>

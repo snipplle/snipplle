@@ -30,11 +30,14 @@ export class SnippetService {
       )`,
         { count: 'exact' },
       )
-      .in(
+      .range(from, to)
+
+    if (payload.workspaceIds) {
+      query.in(
         'workspace_id',
         payload.workspaceIds.map((workspace: any) => workspace.workspace_id),
       )
-      .range(from, to)
+    }
 
     if (payload.orderBy) {
       const order = orderByMap[payload.orderBy as string]
@@ -54,6 +57,10 @@ export class SnippetService {
 
     if (payload.search) {
       query.ilike('name', `%${payload.search}%`)
+    }
+
+    if (payload.onlyPublic) {
+      query.eq('is_public', true)
     }
 
     const { data, count, error } = await query

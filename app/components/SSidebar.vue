@@ -59,6 +59,11 @@
     return [
       [
         {
+          label: 'Library',
+          icon: 'i-hugeicons-library',
+          to: `/library`,
+        },
+        {
           label: 'Snippets',
           icon: 'i-hugeicons-document-code',
           to: `/workspace/${activeWorkspace?.slug}/snippets`,
