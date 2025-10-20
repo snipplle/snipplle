@@ -94,7 +94,6 @@ export class SnippetService {
       }
 
       const { data: metaFile } = await this.storageService.download(
-        'snippets',
         snippet.path,
       )
 
@@ -145,10 +144,7 @@ export class SnippetService {
       }
     }
 
-    const { data: metaFile } = await this.storageService.download(
-      'snippets',
-      data.path,
-    )
+    const { data: metaFile } = await this.storageService.download(data.path)
 
     if (!metaFile) {
       return {
@@ -260,7 +256,7 @@ export class SnippetService {
     }
 
     const { data: metaFile, error: metaFileError } =
-      await this.storageService.download('snippets', snippet.path)
+      await this.storageService.download(snippet.path)
 
     if (!metaFile || metaFileError) {
       return {
@@ -301,7 +297,7 @@ export class SnippetService {
     }
 
     const { data: metaFile, error: metaFileError } =
-      await this.storageService.download('snippets', snippet.path)
+      await this.storageService.download(snippet.path)
 
     if (!metaFile || metaFileError) {
       return {
@@ -403,7 +399,7 @@ export class SnippetService {
     }
 
     const { data: metaFile, error: metaFileError } =
-      await this.storageService.download('snippets', snippet.path)
+      await this.storageService.download(snippet.path)
 
     if (!metaFile || metaFileError) {
       return {
@@ -511,7 +507,7 @@ export class SnippetService {
     snippet: Tables<'snippets'>,
   ): Promise<any> {
     const { data: metaFile, error: metaFileError } =
-      await this.storageService.download('snippets', snippet.path!)
+      await this.storageService.download(snippet.path!)
 
     if (!metaFile || metaFileError) {
       return {
@@ -630,7 +626,6 @@ export class SnippetService {
     options?: any,
   ): Promise<any> {
     const { data, error } = await this.storageService.upload(
-      'snippets',
       path,
       file,
       options,
@@ -643,6 +638,6 @@ export class SnippetService {
   }
 
   private async removeSnippetFiles(paths: string[]): Promise<void> {
-    await this.storageService.remove('snippets', [...paths])
+    await this.storageService.remove([...paths])
   }
 }

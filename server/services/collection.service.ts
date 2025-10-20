@@ -110,10 +110,7 @@ export class CollectionService {
     }
 
     const { data: metaFile, error: metaError } =
-      await this.storageService.download(
-        'collections',
-        collection.path as string,
-      )
+      await this.storageService.download(collection.path as string)
 
     if (!metaFile || metaError) {
       return {
@@ -281,10 +278,7 @@ export class CollectionService {
     }
 
     const { data: metaFile, error: metaFileError } =
-      await this.storageService.download(
-        'collections',
-        collection.path as string,
-      )
+      await this.storageService.download(collection.path as string)
 
     if (!metaFile || metaFileError) {
       return {
@@ -379,7 +373,7 @@ export class CollectionService {
 
   private async createNewVersion(payload: any, collection: any): Promise<any> {
     const { data: metaFile, error: metaFileError } =
-      await this.storageService.download('collections', collection.path)
+      await this.storageService.download(collection.path)
 
     if (!metaFile || metaFileError) {
       return {
@@ -489,7 +483,6 @@ export class CollectionService {
     options?: any,
   ): Promise<any> {
     const { data, error } = await this.storageService.upload(
-      'collections',
       path,
       file,
       options,
