@@ -154,6 +154,8 @@
   Promise<void | NavigationFailure | false> | false | void | RouteLocationRaw {
     const route = `/preview/${globalStore.activeWorkspace?.slug}/${props.is}/${props.data.slug}`
 
+    globalStore.setPreviewWorkspaceId(globalStore.activeWorkspace?.id || '')
+
     return navigateTo(route)
   }
 </script>
