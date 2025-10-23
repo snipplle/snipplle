@@ -1,14 +1,13 @@
 import { pgTable, text, timestamp, json, boolean } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 import { createId } from '@paralleldrive/cuid2'
-import { workspace } from './workspace'
+import { user } from './user'
 
 export const subscription = pgTable('subscriptions', {
   id: text('id').primaryKey().$defaultFn(createId),
-  workspaceId: text('workspace_id')
+  userId: text('user_id')
     .notNull()
-    .unique()
-    .references(() => workspace.id),
+    .references(() => user.id, { onDelete: 'cascade' }),
   plan: text('plan').notNull(),
   status: text('status').notNull(),
   customerId: text('customer_id'),
@@ -22,8 +21,8 @@ export const subscription = pgTable('subscriptions', {
 })
 
 export const subscriptionRelations = relations(subscription, ({ one }) => ({
-  workspace: one(workspace, {
-    fields: [subscription.workspaceId],
-    references: [workspace.id],
+  user: one(user, {
+    fields: [subscription.userId],
+    references: [user.id],
   }),
 }))

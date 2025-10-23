@@ -5,7 +5,6 @@ import { workspaceMember } from './workspaceMember'
 import { snippet } from './snippet'
 import { collection } from './collection'
 import { tag } from './tag'
-import { subscription } from './subscription'
 import { apiToken } from './apiToken'
 
 export const workspace = pgTable('workspaces', {
@@ -16,14 +15,10 @@ export const workspace = pgTable('workspaces', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })
 
-export const workspaceRelations = relations(workspace, ({ many, one }) => ({
+export const workspaceRelations = relations(workspace, ({ many }) => ({
   members: many(workspaceMember),
   snippets: many(snippet),
   collections: many(collection),
   tags: many(tag),
   apiTokens: many(apiToken),
-  subscription: one(subscription, {
-    fields: [workspace.id],
-    references: [subscription.workspaceId],
-  }),
 }))

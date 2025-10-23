@@ -162,6 +162,13 @@
       "when": 1760890452509,
       "tag": "0022_AddedNewUserFunction",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1761246635409,
+      "tag": "0023_UpdatedSubscriptionSchema",
+      "breakpoints": true
     }
   ]
 }

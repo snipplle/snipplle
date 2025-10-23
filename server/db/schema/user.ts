@@ -4,6 +4,7 @@ import { workspaceMember } from './workspaceMember'
 import { snippet } from './snippet'
 import { collection } from './collection'
 import { apiToken } from './apiToken'
+import { subscription } from './subscription'
 
 export const user = pgTable('users', {
   id: text('id').primaryKey().notNull(),
@@ -13,9 +14,13 @@ export const user = pgTable('users', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })
 
-export const userRelations = relations(user, ({ many }) => ({
+export const userRelations = relations(user, ({ many, one }) => ({
   workspaceMembers: many(workspaceMember),
   snippets: many(snippet),
   collections: many(collection),
   apiTokens: many(apiToken),
+  subscription: one(subscription, {
+    fields: [user.id],
+    references: [subscription.userId],
+  }),
 }))
