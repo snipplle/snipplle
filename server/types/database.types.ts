@@ -330,7 +330,7 @@ export type Database = {
           status: string
           subscription_id: string | null
           updated_at: string
-          workspace_id: string
+          user_id: string
         }
         Insert: {
           created_at?: string
@@ -344,7 +344,7 @@ export type Database = {
           status: string
           subscription_id?: string | null
           updated_at?: string
-          workspace_id: string
+          user_id: string
         }
         Update: {
           created_at?: string
@@ -358,14 +358,14 @@ export type Database = {
           status?: string
           subscription_id?: string | null
           updated_at?: string
-          workspace_id?: string
+          user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: 'subscriptions_workspace_id_workspaces_id_fk'
-            columns: ['workspace_id']
-            isOneToOne: true
-            referencedRelation: 'workspaces'
+            foreignKeyName: 'subscriptions_user_id_users_id_fk'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'users'
             referencedColumns: ['id']
           },
         ]
