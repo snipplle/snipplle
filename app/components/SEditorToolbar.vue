@@ -25,6 +25,7 @@
             Edit
           </UButton>
           <UButton
+            v-if="hasAccess"
             icon="i-hugeicons-floppy-disk"
             color="primary"
             variant="subtle"
@@ -40,9 +41,15 @@
 </template>
 
 <script setup lang="ts">
-  const props = defineProps<{
-    versions: any[]
-  }>()
+  const props = withDefaults(
+    defineProps<{
+      versions: any[]
+      hasAccess?: boolean
+    }>(),
+    {
+      hasAccess: true,
+    },
+  )
 
   const { call } = useToolbarEvent()
 

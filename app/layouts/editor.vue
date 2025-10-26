@@ -5,7 +5,7 @@
     <UDashboardPanel>
       <template #header>
         <SNavbar :title="title" />
-        <SEditorToolbar :versions="versions" />
+        <SEditorToolbar :versions="versions" :has-access="hasAccess" />
       </template>
 
       <template #body>
@@ -19,5 +19,6 @@
   defineProps<{
     versions: any[]
     title?: string
+    hasAccess?: boolean
   }>()
 </script>

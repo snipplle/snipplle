@@ -4,7 +4,7 @@
 
     <UDashboardPanel>
       <template #header>
-        <SNavbar />
+        <SNavbar :has-access="hasAccess" />
         <SLibraryToolbar />
       </template>
 
@@ -14,3 +14,9 @@
     </UDashboardPanel>
   </UDashboardGroup>
 </template>
+
+<script setup lang="ts">
+  defineProps<{
+    hasAccess?: boolean
+  }>()
+</script>

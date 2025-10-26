@@ -1,6 +1,11 @@
 <template>
   <ClientOnly>
-    <NuxtLayout name="editor" :title="snippet.name" :versions="snippetVersions">
+    <NuxtLayout
+      name="editor"
+      :title="snippet.name"
+      :versions="snippetVersions"
+      :has-access="hasAccess"
+    >
       <div class="h-full">
         <Codemirror
           v-model="snippetCode"
@@ -29,6 +34,7 @@
   const { beautifyCode, minifyCode } = useCodeFormat()
   const { listen } = useToolbarEvent()
   const toast = useToast()
+  const { hasAccess } = await usePermission('snippet_versions')
 
   const modal = overlay.create(LazyEditSnippet)
 

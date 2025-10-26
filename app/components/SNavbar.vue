@@ -14,7 +14,7 @@
       <template #right>
         <component
           :is="resolveActionButtonComponent"
-          v-if="isGeneralPath && hasActionButton"
+          v-if="isGeneralPath && hasActionButton && hasAccess"
         />
       </template>
     </UDashboardNavbar>
@@ -24,9 +24,16 @@
 <script setup lang="ts">
   import { capitalize } from 'vue'
 
-  const props = defineProps<{
-    title?: string
-  }>()
+  const props = withDefaults(
+    defineProps<{
+      title?: string
+      hasAccess?: boolean
+    }>(),
+    {
+      title: '',
+      hasAccess: true,
+    },
+  )
 
   const route = useRoute()
   const router = useRouter()

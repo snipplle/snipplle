@@ -1,59 +1,58 @@
 <template>
   <ClientOnly>
-    <div class="h-full space-y-4">
-      <div
-        v-if="snippets?.length"
-        class="w-full h-full flex flex-col justify-between"
-      >
-        <div class="grid grid-cols-4 gap-4">
-          <SnippetCard
-            v-for="snippet in snippets"
-            :key="snippet.id"
-            :snippet="snippet"
-          />
-        </div>
-
-        <div class="flex justify-center">
-          <UPagination
-            v-model:page="queryFields.page"
-            :items-per-page="queryFields.itemsPerPage"
-            :total="total"
-            color="neutral"
-            variant="subtle"
-            active-variant="subtle"
-            size="sm"
-            @update:page="(page) => (queryFields.page = page)"
-          />
-        </div>
-      </div>
-
-      <div
-        v-else
-        class="h-full flex flex-col items-center justify-center space-y-2"
-      >
-        <img src="assets/images/Dev.svg" />
-
-        <div class="flex flex-col items-center space-y-4">
-          <div class="flex flex-col items-center">
-            <h1 class="font-semibold">No snippets found</h1>
-            <p class="text-sm text-neutral-400">
-              Create a new snippet to get started.
-            </p>
+    <NuxtLayout name="library" :has-access="hasAccess">
+      <div class="h-full space-y-4">
+        <div
+          v-if="snippets?.length"
+          class="w-full h-full flex flex-col justify-between"
+        >
+          <div class="grid grid-cols-4 gap-4">
+            <SnippetCard
+              v-for="snippet in snippets"
+              :key="snippet.id"
+              :snippet="snippet"
+            />
           </div>
 
-          <CreateSnippet variant="subtle" />
+          <div class="flex justify-center">
+            <UPagination
+              v-model:page="queryFields.page"
+              :items-per-page="queryFields.itemsPerPage"
+              :total="total"
+              color="neutral"
+              variant="subtle"
+              active-variant="subtle"
+              size="sm"
+              @update:page="(page) => (queryFields.page = page)"
+            />
+          </div>
+        </div>
+
+        <div
+          v-else
+          class="h-full flex flex-col items-center justify-center space-y-2"
+        >
+          <img src="assets/images/Dev.svg" />
+
+          <div class="flex flex-col items-center space-y-4">
+            <div class="flex flex-col items-center">
+              <h1 class="font-semibold">No snippets found</h1>
+              <p class="text-sm text-neutral-400">
+                Create a new snippet to get started.
+              </p>
+            </div>
+
+            <CreateSnippet v-if="hasAccess" variant="subtle" />
+          </div>
         </div>
       </div>
-    </div>
+    </NuxtLayout>
   </ClientOnly>
 </template>
 
 <script setup lang="ts">
-  definePageMeta({
-    layout: 'library',
-  })
-
   const { listen } = useToolbarEvent()
+  const { hasAccess } = await usePermission('snippets')
 
   const queryFields = ref({
     orderBy: 'date',
