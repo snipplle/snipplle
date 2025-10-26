@@ -443,6 +443,13 @@ export class SnippetService {
       }
     }
 
+    await this.supabase
+      .from('snippets')
+      .update({
+        downloads: snippet.downloads + 1,
+      })
+      .eq('id', snippet.id)
+
     return {
       data: data.signedUrl,
       error: null,

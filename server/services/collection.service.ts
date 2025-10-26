@@ -371,6 +371,13 @@ export class CollectionService {
       }
     }
 
+    await this.supabase
+      .from('collections')
+      .update({
+        downloads: collection.downloads + 1,
+      })
+      .eq('id', collection.id)
+
     return {
       data: data.signedUrl,
       error,
