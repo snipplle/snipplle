@@ -391,6 +391,53 @@ export type Database = {
         }
         Relationships: []
       }
+      usages: {
+        Row: {
+          ai_requests: number
+          ai_tokens: number
+          collections: number
+          created_at: string
+          id: string
+          snippet_versions: number
+          snippets: number
+          team_members: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          ai_requests?: number
+          ai_tokens?: number
+          collections?: number
+          created_at?: string
+          id: string
+          snippet_versions?: number
+          snippets?: number
+          team_members?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          ai_requests?: number
+          ai_tokens?: number
+          collections?: number
+          created_at?: string
+          id?: string
+          snippet_versions?: number
+          snippets?: number
+          team_members?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'usages_user_id_users_id_fk'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       users: {
         Row: {
           created_at: string
