@@ -183,6 +183,13 @@
       "when": 1761412408321,
       "tag": "0025_AddedUsageSchema",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1761489426122,
+      "tag": "0026_AddedSnippetVersionsField",
+      "breakpoints": true
     }
   ]
 }
