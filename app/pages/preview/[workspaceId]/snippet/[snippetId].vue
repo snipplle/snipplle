@@ -3,16 +3,6 @@
     <NuxtLayout name="preview" :title="data.name">
       <div class="h-full">
         <CodeViewer :content="snippetCode" :extensions="extensions" />
-        <!-- <Codemirror
-          v-model="snippetCode"
-          class="editor"
-          :style="{
-            height: '100%',
-            padding: '12px',
-            border: '1px solid #24273a',
-          }"
-          :extensions="extensions"
-        /> -->
       </div>
     </NuxtLayout>
   </ClientOnly>
