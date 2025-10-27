@@ -1,6 +1,6 @@
 <template>
   <ClientOnly>
-    <NuxtLayout name="editor" :title="collection?.name">
+    <NuxtLayout name="editor" :title="collection?.name" :has-access="true">
       <div class="flex h-full space-x-2">
         <div class="flex flex-col w-full space-y-2">
           <AvailableSnippetList
