@@ -2,11 +2,7 @@
   <ClientOnly>
     <UDashboardSidebar collapsed>
       <template #header>
-        <!-- <Logo v-if="!collapsed" class="h-5 w-auto shrink-0" /> -->
-        <UIcon
-          name="i-hugeicons-document-code"
-          class="size-5 text-primary mx-auto"
-        />
+        <SLogo class="w-12 mx-auto" />
       </template>
 
       <template #default>

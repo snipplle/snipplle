@@ -11,7 +11,6 @@
             <UAuthForm
               :schema="schema"
               title="Reset Password"
-              icon="i-hugeicons-note"
               :fields="fields"
               :submit="{
                 label: 'Reset Password',
@@ -22,6 +21,13 @@
               }"
               @submit="onSubmit"
             >
+              <template #leading>
+                <div class="flex items-center justify-center">
+                  <SLogo class="w-10" />
+                  <h1 class="text-xl font-semibold text-primary">Snipplle</h1>
+                </div>
+              </template>
+
               <template #footer>
                 <div class="flex flex-col items-center text-xs space-y-4">
                   <div class="flex space-x-6">

@@ -11,7 +11,6 @@
             <UAuthForm
               :schema="schema"
               title="Forgot Password"
-              icon="i-hugeicons-note"
               :fields="fields"
               :submit="{
                 label: 'Send Reset Link',
@@ -22,6 +21,13 @@
               }"
               @submit="onSubmit"
             >
+              <template #leading>
+                <div class="flex items-center justify-center">
+                  <SLogo class="w-10" />
+                  <h1 class="text-xl font-semibold text-primary">Snipplle</h1>
+                </div>
+              </template>
+
               <template #description>
                 Are you remember your password?
                 <ULink to="/auth/sign-in" class="text-primary font-medium">

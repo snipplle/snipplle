@@ -11,7 +11,6 @@
             <UAuthForm
               :schema="schema"
               title="Welcome back!"
-              icon="i-hugeicons-note"
               :fields="fields"
               :providers="providers"
               :submit="{
@@ -23,6 +22,13 @@
               }"
               @submit="onSubmit"
             >
+              <template #leading>
+                <div class="flex items-center justify-center">
+                  <SLogo class="w-10" />
+                  <h1 class="text-xl font-semibold text-primary">Snipplle</h1>
+                </div>
+              </template>
+
               <template #description>
                 Don't have an account?
                 <ULink to="/auth/sign-up" class="text-primary font-medium">
