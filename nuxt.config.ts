@@ -16,7 +16,7 @@ export default defineNuxtConfig({
       },
       titleTemplate: '%s - %siteName',
       templateParams: {
-        siteName: 'Snippgarden',
+        siteName: 'Snipplle',
       },
     },
   },
