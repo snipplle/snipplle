@@ -3,9 +3,13 @@ import { createId } from '@paralleldrive/cuid2'
 import { randomBytes } from 'crypto'
 
 import type { Database } from '~~/server/types/database.types'
+import { createApiKeySchema } from '~~/server/utils/validationSchema'
 
 export default defineEventHandler(async (event) => {
-  const { workspaceId, name } = await readBody(event)
+  const { workspaceId, name } = await readValidatedBody(
+    event,
+    createApiKeySchema.parse,
+  )
   const user = await serverSupabaseUser(event)
   const supabase = await serverSupabaseClient<Database>(event)
 

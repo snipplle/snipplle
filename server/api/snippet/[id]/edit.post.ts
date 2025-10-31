@@ -2,10 +2,14 @@ import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
 import { SnippetService } from '~~/server/services/snippet.service'
 
 import type { Database } from '~~/server/types/database.types'
+import { updateSnippetSchema } from '~~/server/utils/validationSchema'
 
 export default defineEventHandler(async (event) => {
   const { id } = await getRouterParams(event)
-  const { name, description, isPublic, language } = await readBody(event)
+  const { name, description, isPublic } = await readValidatedBody(
+    event,
+    updateSnippetSchema.parse,
+  )
   const user = await serverSupabaseUser(event)
   const supabase = await serverSupabaseClient<Database>(event)
   const snippetService = new SnippetService(supabase)
@@ -21,7 +25,6 @@ export default defineEventHandler(async (event) => {
     name,
     description,
     is_public: isPublic,
-    language,
   })
 
   if (error) {

@@ -3,10 +3,11 @@ import { CollectionService } from '~~/server/services/collection.service'
 import { TagService } from '~~/server/services/tag.service'
 
 import type { Database } from '~~/server/types/database.types'
+import { createCollectionSchema } from '~~/server/utils/validationSchema'
 
 export default defineEventHandler(async (event) => {
   const { name, language, description, tags, isPublic, workspaceId } =
-    await readBody(event)
+    await readValidatedBody(event, createCollectionSchema.parse)
   const user = await serverSupabaseUser(event)
   const supabase = await serverSupabaseClient<Database>(event)
   const tagService = new TagService(supabase)
@@ -21,7 +22,7 @@ export default defineEventHandler(async (event) => {
 
   const tagIds: string[] = []
 
-  for (const tag of tags) {
+  for (const tag of tags || []) {
     const { data: existTag } = await tagService.getTag(tag.name, 'id')
 
     if (existTag) {

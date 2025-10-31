@@ -2,9 +2,10 @@ import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server'
 import { WorkspaceService } from '~~/server/services/workspace.service'
 
 import type { Database } from '~~/server/types/database.types'
+import { createWorkspaceSchema } from '~~/server/utils/validationSchema'
 
 export default defineEventHandler(async (event) => {
-  const { name } = await readBody(event)
+  const { name } = await readValidatedBody(event, createWorkspaceSchema.parse)
   const supabase = await serverSupabaseClient<Database>(event)
   const user = await serverSupabaseUser(event)
   const workspaceService = new WorkspaceService(supabase)

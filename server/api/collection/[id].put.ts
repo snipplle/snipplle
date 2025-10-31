@@ -2,10 +2,12 @@ import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
 import { CollectionService } from '~~/server/services/collection.service'
 
 import type { Database } from '~~/server/types/database.types'
+import { updateCollectionSchema } from '~~/server/utils/validationSchema'
 
 export default defineEventHandler(async (event) => {
   const { id } = await getRouterParams(event)
-  const { slug, workspaceId, snippets, collectionCode } = await readBody(event)
+  const { slug, workspaceId, snippets, collectionCode } =
+    await readValidatedBody(event, updateCollectionSchema.parse)
   const user = await serverSupabaseUser(event)
   const supabase = await serverSupabaseClient<Database>(event)
   const collectionService = new CollectionService(supabase)
