@@ -3,11 +3,11 @@
     <UModal>
       <template #content>
         <EditContent
-          scope="snippet"
-          :data="props.snippet"
+          scope="collection"
+          :data="props.collection"
           :state="state"
           :schema="schema"
-          :update-callback="updateSnippet"
+          :update-callback="updateCollection"
         />
       </template>
     </UModal>
@@ -19,7 +19,7 @@
   import type { FormSubmitEvent } from '@nuxt/ui'
 
   const props = defineProps<{
-    snippet: any
+    collection: any
     refreshCallback: () => void
   }>()
 
@@ -34,12 +34,12 @@
   })
 
   watch(
-    () => props.snippet,
-    (snippet) => {
+    () => props.collection,
+    (collection) => {
       state.value = {
-        name: snippet.name,
-        description: snippet.description,
-        isPublic: snippet.is_public,
+        name: collection.name,
+        description: collection.description,
+        isPublic: collection.is_public,
       }
     },
     {
@@ -49,17 +49,19 @@
 
   const schema = z.object({
     name: z
-      .string('Snippet name is required')
-      .min(1, 'Snippet name must be at least 1 character long')
-      .max(100, 'Snippet name must be at most 100 characters long'),
+      .string('Collection name is required')
+      .min(1, 'Collection name must be at least 1 character long')
+      .max(100, 'Collection name must be at most 100 characters long'),
     description: z.string().optional(),
   })
 
   type Schema = z.output<typeof schema>
 
-  async function updateSnippet(event: FormSubmitEvent<Schema>): Promise<void> {
+  async function updateCollection(
+    event: FormSubmitEvent<Schema>,
+  ): Promise<void> {
     try {
-      await $fetch(`/api/snippet/${props.snippet.id}/edit`, {
+      await $fetch(`/api/collection/${props.collection.id}/edit`, {
         method: 'post',
         body: {
           ...event.data,
@@ -69,7 +71,7 @@
 
       toast.add({
         title: 'Success',
-        description: 'Snippet updated successfully',
+        description: 'Collection updated successfully',
         color: 'success',
         icon: 'i-hugeicons-checkmark-circle-01',
         duration: 1500,

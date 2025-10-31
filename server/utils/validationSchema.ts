@@ -40,7 +40,6 @@ export const updateSnippetSchema = z.object({
     .min(1, 'Snippet name should be at least 1 character long'),
   description: z.string().optional(),
   isPublic: z.boolean('Snippet visibility is required'),
-  workspaceId: z.string('Workspace ID is required'),
 })
 
 export const uploadSnippetSchema = z.object({
@@ -67,6 +66,14 @@ export const createCollectionSchema = z.object({
 })
 
 export const updateCollectionSchema = z.object({
+  name: z
+    .string('Collection name is required')
+    .min(1, 'Collection name should be at least 1 character long'),
+  description: z.string().optional(),
+  isPublic: z.boolean('Collection visibility is required'),
+})
+
+export const uploadCollectionSchema = z.object({
   slug: z.string('Collection slug is required'),
   snippets: z.array(
     z.object({

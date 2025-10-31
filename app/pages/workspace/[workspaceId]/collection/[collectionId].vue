@@ -33,17 +33,22 @@
 <script setup lang="ts">
   import { catppuccinMocha } from '@catppuccin/codemirror'
 
+  import { LazyEditCollection } from '#components'
+
   const { params } = useRoute()
+  const overlay = useOverlay()
   const globalStore = useGlobalStore()
   const { listen } = useToolbarEvent()
   const { beautifyCode, minifyCode } = useCodeFormat()
   const toast = useToast()
 
+  const modal = overlay.create(LazyEditCollection)
+
   const snippets = ref<any[]>([])
   const selectedSnippets = ref<any[]>([])
   const resultCode = ref()
 
-  const { data: collection } = await useFetch<any>(
+  const { data: collection, refresh } = await useFetch<any>(
     `/api/collection/${params.collectionId}`,
     {
       method: 'get',
@@ -150,7 +155,15 @@
     return beautifyCode(snippetCode)
   }
 
+  listen('toolbar:edit', openEditModal)
   listen('toolbar:save', saveCollection)
+
+  function openEditModal(): void {
+    modal.open({
+      collection: collection.value,
+      refreshCallback: refresh,
+    })
+  }
 
   async function saveCollection(): Promise<void> {
     const joinedCode = Object.values(resultCode.value).join('\n')
