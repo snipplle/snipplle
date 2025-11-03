@@ -4,7 +4,7 @@ import { CollectionService } from '~~/server/services/collection.service'
 import type { Database } from '~~/server/types/database.types'
 
 export default defineEventHandler(async (event) => {
-  const { id } = getRouterParams(event)
+  const { id } = await getRouterParams(event)
   const user = await serverSupabaseUser(event)
   const supabase = await serverSupabaseClient<Database>(event)
   const collectionService = new CollectionService(supabase)

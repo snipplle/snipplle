@@ -117,8 +117,8 @@
 
   async function deleteCollection(): Promise<void> {
     try {
-      await $fetch(`/api/collection/:id`, {
-        method: 'DELETE',
+      await $fetch(`/api/collection/${props.collection.id}`, {
+        method: 'DELETE' as any,
       })
 
       toast.add({

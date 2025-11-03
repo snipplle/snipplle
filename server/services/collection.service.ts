@@ -30,9 +30,13 @@ export class CollectionService {
       .select(
         `
       *,
-      collection_tags!inner(
-        tags!inner(name, color)
-      )
+      ${
+        payload.tag
+          ? `collection_tags!inner(tags!inner(name, color))`
+          : `collection_tags(
+        tags(name, color)
+      )`
+      }
     `,
         { count: 'exact' },
       )
@@ -324,6 +328,20 @@ export class CollectionService {
       .delete()
       .eq('id', id)
       .eq('created_by', userId)
+      .select()
+      .single()
+
+    if (error) {
+      return {
+        data,
+        error,
+      }
+    }
+
+    await this.removeCollectionFiles([
+      `${data.workspace_id}/collections/${data.slug}/meta.json`,
+      `${data.workspace_id}/collections/${data.slug}/index.${data.language}`,
+    ])
 
     return {
       data,
@@ -432,6 +450,6 @@ export class CollectionService {
   }
 
   private async removeCollectionFiles(paths: string[]): Promise<void> {
-    await this.supabase.storage.from('collections').remove(paths)
+    await this.storageService.remove(paths)
   }
 }

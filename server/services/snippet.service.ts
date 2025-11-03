@@ -25,9 +25,13 @@ export class SnippetService {
       .from('snippets')
       .select(
         `*,
-      snippet_tags!inner(
-        tags!inner(name, color)
-      )`,
+      ${
+        payload.tag
+          ? `snippet_tags!inner(tags!inner(name, color))`
+          : `snippet_tags(
+        tags(name, color)
+      )`
+      }`,
         { count: 'exact' },
       )
       .range(from, to)
