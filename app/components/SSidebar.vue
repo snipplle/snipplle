@@ -5,7 +5,7 @@
         <SLogo class="w-12 mx-auto" />
       </template>
 
-      <template #default>
+      <template #default="{ collapsed }">
         <UNavigationMenu
           :items="items[0]"
           orientation="vertical"
@@ -13,7 +13,7 @@
           :ui="{
             list: 'space-y-1.5',
           }"
-          collapsed
+          :collapsed="collapsed"
           tooltip
         />
 
@@ -25,16 +25,17 @@
           :ui="{
             list: 'space-y-1.5',
           }"
-          collapsed
+          :collapsed="collapsed"
           tooltip
         />
       </template>
 
-      <template #footer>
+      <template #footer="{ collapsed }">
         <UButton
           type="button"
           color="neutral"
           variant="ghost"
+          :label="!collapsed ? 'Logout' : ''"
           icon="i-hugeicons-logout-02"
           @click="logout"
         />
