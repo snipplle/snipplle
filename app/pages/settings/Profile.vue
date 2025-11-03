@@ -65,7 +65,7 @@
           </UFormField>
 
           <div class="flex justify-end">
-            <UButton type="submit">Change Password</UButton>
+            <UButton type="submit" size="sm">Change Password</UButton>
           </div>
         </UForm>
       </div>

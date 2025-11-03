@@ -66,7 +66,9 @@
           />
 
           <div class="flex justify-end">
-            <UButton type="submit">Update {{ capitalize(scope) }}</UButton>
+            <UButton type="submit" size="sm">
+              Update {{ capitalize(scope) }}
+            </UButton>
           </div>
         </UForm>
       </div>

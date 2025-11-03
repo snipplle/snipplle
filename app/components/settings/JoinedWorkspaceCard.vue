@@ -5,7 +5,7 @@
     >
       <h1 class="ml-2 font-medium">{{ workspace.workspaces.name }}</h1>
 
-      <UButton variant="link" type="button">Leave</UButton>
+      <UButton variant="link" type="button" size="sm">Leave</UButton>
     </div>
   </ClientOnly>
 </template>

@@ -34,7 +34,7 @@
                     icon="i-hugeicons-logout-02"
                     @click="logout"
                   />
-                  <UButton type="submit">Create workspace</UButton>
+                  <UButton type="submit" size="sm">Create workspace</UButton>
                 </div>
               </UForm>
             </div>

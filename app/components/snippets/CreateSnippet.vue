@@ -7,7 +7,7 @@
         body: 'sm:pt-0 pb-6',
       }"
     >
-      <UButton :variant="variant">Create {{ pageTitle }}</UButton>
+      <UButton :variant="variant" size="sm">Create {{ pageTitle }}</UButton>
 
       <template #header>
         <div class="flex items-center text-white space-x-2">
@@ -95,7 +95,7 @@
             <UButton color="neutral" variant="subtle" size="sm" @click="close">
               Close
             </UButton>
-            <UButton type="submit">Create snippet</UButton>
+            <UButton type="submit" size="sm">Create snippet</UButton>
           </div>
         </UForm>
       </template>
