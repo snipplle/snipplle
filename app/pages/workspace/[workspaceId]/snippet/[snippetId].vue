@@ -10,11 +10,6 @@
         <Codemirror
           v-model="snippetCode"
           class="editor"
-          :style="{
-            height: '100%',
-            padding: '12px',
-            border: '1px solid #24273a',
-          }"
           :extensions="extensions"
         />
       </div>
@@ -174,7 +169,7 @@
 
 <style>
   .editor .cm-editor {
-    border: 1px solid #24273a;
+    border: 1px solid var(--color-light-gray-800);
   }
 
   .editor .cm-editor,

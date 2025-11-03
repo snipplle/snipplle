@@ -1,8 +1,12 @@
 <template>
   <ClientOnly>
     <NuxtLayout name="editor" :title="collection?.name" :has-access="true">
-      <div class="flex h-full space-x-2">
-        <div class="flex flex-col w-full space-y-2">
+      <div
+        class="flex flex-col sm:flex-row h-full space-x-2 space-y-2 sm:space-y-0"
+      >
+        <div
+          class="flex flex-row sm:flex-col w-full space-y-2 space-x-2 sm:space-x-0"
+        >
           <AvailableSnippetList
             :snippets="snippets"
             :extensions="extensions"
@@ -22,6 +26,8 @@
             height: '100%',
             fontSize: '12px',
             overflow: 'auto',
+            border: '1px solid var(--color-light-gray-800)',
+            borderRadius: '8px',
           }"
           class="w-full"
         />

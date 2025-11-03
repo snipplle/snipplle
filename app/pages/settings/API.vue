@@ -1,7 +1,7 @@
 <template>
   <ClientOnly>
     <NuxtLayout name="setting" title="API">
-      <div class="min-w-xl max-w-xl mx-auto space-y-10">
+      <div class="w-full sm:min-w-xl max-w-xl mx-auto space-y-10">
         <div class="space-y-6">
           <div class="flex justify-between items-center">
             <div class="w-4/5">

@@ -37,6 +37,7 @@
               </UPopover>
 
               <UButton
+                v-if="hasAction"
                 icon="i-hugeicons-minus-sign"
                 size="sm"
                 color="neutral"
@@ -66,7 +67,7 @@
       >
         <img src="assets/images/Dev.svg" />
 
-        <div class="flex flex-col items-center">
+        <div class="flex flex-col items-center text-center">
           <h1 class="font-semibold">No added snippets</h1>
           <p class="text-sm text-neutral-400">
             Add snippets to this collection.
@@ -78,10 +79,16 @@
 </template>
 
 <script setup lang="ts">
-  defineProps<{
-    selectedSnippets: any[]
-    extensions: any[]
-  }>()
+  withDefaults(
+    defineProps<{
+      selectedSnippets: any[]
+      extensions: any[]
+      hasAction?: boolean
+    }>(),
+    {
+      hasAction: true,
+    },
+  )
 
   const emits = defineEmits(['deselectSnippet'])
 

@@ -18,7 +18,7 @@
       <div class="w-full h-full flex flex-col justify-between">
         <div
           v-if="selectedCategory === 'snippets' && snippets?.length"
-          class="grid grid-cols-4 gap-4"
+          class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
         >
           <LibraryCard
             is="snippet"
@@ -30,7 +30,7 @@
 
         <div
           v-else-if="selectedCategory === 'collections' && collections?.length"
-          class="grid grid-cols-4 gap-4"
+          class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
         >
           <LibraryCard
             is="collection"
@@ -38,6 +38,27 @@
             :key="collection.id"
             :data="collection"
           />
+        </div>
+
+        <div
+          v-else
+          class="h-full flex flex-col items-center justify-center space-y-2"
+        >
+          <img
+            v-if="selectedCategory === 'snippets'"
+            src="assets/images/Dev.svg"
+          />
+
+          <img
+            v-else-if="selectedCategory === 'collections'"
+            src="assets/images/Pack.svg"
+          />
+
+          <div class="flex flex-col items-center space-y-4">
+            <div class="flex flex-col items-center">
+              <h1 class="font-semibold">No {{ selectedCategory }} found</h1>
+            </div>
+          </div>
         </div>
 
         <div class="flex justify-center">
@@ -63,6 +84,8 @@
   definePageMeta({
     layout: 'library',
   })
+
+  const { listen } = useToolbarEvent()
 
   const category = ref([
     {
@@ -101,4 +124,20 @@
     () => (collectionsData.value?.collections as any) || [],
   )
   const collectionsTotal = computed(() => collectionsData.value?.count || 0)
+
+  listen('toolbar:order-by', (orderBy: Record<string, string>) => {
+    queryFields.value.orderBy = orderBy[0] as string
+  })
+
+  listen('toolbar:filter-language', (language: Record<string, string>) => {
+    queryFields.value.lang = language[0] as string
+  })
+
+  listen('toolbar:filter-tag', (tag: Record<string, string>) => {
+    queryFields.value.tag = tag[0] as string
+  })
+
+  listen('toolbar:search', (search: Record<string, string>) => {
+    queryFields.value.search = search[0] as string
+  })
 </script>

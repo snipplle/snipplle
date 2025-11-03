@@ -4,7 +4,7 @@
       <div class="w-full flex items-center justify-between">
         <div class="flex items-center space-x-1">
           <UPopover
-            class="min-w-32"
+            class="min-w-fit sm:min-w-32"
             :content="{
               side: 'bottom',
               align: 'start',
@@ -16,7 +16,7 @@
               variant="subtle"
               size="sm"
             >
-              Filter
+              {{ !isMobile ? 'Filter' : '' }}
             </UButton>
 
             <template #content>
@@ -54,12 +54,13 @@
             :items="orderBy"
             size="sm"
             variant="subtle"
-            class="min-w-36"
+            class="min-w-26 sm:min-w-36"
             trailing-icon="i-hugeicons-unfold-more"
           />
         </div>
 
         <UInput
+          v-if="!isMobile"
           v-model="searchQuery"
           icon="i-hugeicons-search-01"
           variant="subtle"
@@ -80,6 +81,49 @@
             />
           </template>
         </UInput>
+
+        <UModal
+          title="Search"
+          :ui="{
+            content: 'divide-y-0',
+            body: 'sm:pt-0 pb-6',
+          }"
+        >
+          <UButton
+            v-if="isMobile"
+            icon="i-hugeicons-search-01"
+            color="neutral"
+            variant="subtle"
+            size="sm"
+          >
+            Search
+          </UButton>
+
+          <template #body>
+            <UInput
+              v-model="searchQuery"
+              icon="i-hugeicons-search-01"
+              variant="subtle"
+              size="lg"
+              placeholder="Search..."
+              :ui="{
+                trailing: 'pe-1',
+              }"
+              class="w-full"
+              @input="call('toolbar:search', $event.target.value)"
+            >
+              <template v-if="searchQuery.length" #trailing>
+                <UButton
+                  icon="i-hugeicons-cancel-01"
+                  color="neutral"
+                  variant="link"
+                  size="xs"
+                  @click="resetSearch"
+                />
+              </template>
+            </UInput>
+          </template>
+        </UModal>
       </div>
     </UDashboardToolbar>
   </ClientOnly>
@@ -87,6 +131,7 @@
 
 <script setup lang="ts">
   const { call } = useToolbarEvent()
+  const isMobile = useMediaQuery('(max-width: 640px)')
 
   const { data: tags } = await useFetch('/api/snippet/tag')
 

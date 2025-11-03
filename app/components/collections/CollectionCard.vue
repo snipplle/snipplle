@@ -2,7 +2,7 @@
   <ClientOnly>
     <UCard
       :ui="{
-        body: 'sm:p-0',
+        body: 'p-0 sm:p-0',
       }"
       class="group cursor-pointer"
       @click="openCollection"

@@ -6,7 +6,9 @@
           v-if="collections?.length"
           class="w-full h-full flex flex-col justify-between"
         >
-          <div class="grid grid-cols-4 gap-4">
+          <div
+            class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+          >
             <CollectionCard
               v-for="collection in collections"
               :key="collection.id"

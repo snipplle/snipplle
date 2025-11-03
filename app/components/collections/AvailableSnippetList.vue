@@ -66,7 +66,7 @@
       >
         <img src="assets/images/Dev.svg" />
 
-        <div class="flex flex-col items-center">
+        <div class="flex flex-col items-center text-center">
           <h1 class="font-semibold">No available snippets</h1>
           <p class="text-sm text-neutral-400">
             No snippets found for this collection.

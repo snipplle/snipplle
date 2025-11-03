@@ -1,11 +1,14 @@
 <template>
   <ClientOnly>
     <NuxtLayout name="preview" :title="collection?.name">
-      <div class="flex h-full space-x-2">
-        <div class="flex flex-col w-full space-y-2">
+      <div
+        class="flex flex-col sm:flex-row h-full space-x-2 space-y-2 sm:space-y-0"
+      >
+        <div class="flex flex-col w-full min-h-1/2 sm:min-h-full space-y-2">
           <SelectedSnippetList
             :selected-snippets="selectedSnippets"
             :extensions="extensions"
+            :has-action="false"
           />
         </div>
 
@@ -16,6 +19,8 @@
             height: '100%',
             fontSize: '12px',
             overflow: 'auto',
+            border: '1px solid var(--color-light-gray-800)',
+            borderRadius: '8px',
           }"
           class="w-full"
         />
