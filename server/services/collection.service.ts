@@ -299,13 +299,32 @@ export class CollectionService {
     )
 
     if (!metaFile || metaUploadError) {
-      await this.removeCollectionFiles([
-        `${payload.workspaceId}/collections/${collection.slug}`,
-      ])
+      await this.removeCollectionFiles(payload.workspaceId, collection)
 
       return {
         data: metaFile,
         error: metaUploadError,
+      }
+    }
+
+    const { data: collectionSnippets, error: collectionSnippetError } =
+      await this.supabase
+        .from('collection_snippets')
+        .insert(
+          snippets.map((item: Tables<'snippets'>) => ({
+            collection_id: collection.id,
+            snippet_id: item.id,
+          })),
+        )
+        .select()
+        .single()
+
+    if (!collectionSnippets || collectionSnippetError) {
+      await this.removeCollectionFiles(payload.workspaceId, collection)
+
+      return {
+        data: collectionSnippets,
+        error: collectionSnippetError,
       }
     }
 
@@ -338,10 +357,7 @@ export class CollectionService {
       }
     }
 
-    await this.removeCollectionFiles([
-      `${data.workspace_id}/collections/${data.slug}/meta.json`,
-      `${data.workspace_id}/collections/${data.slug}/index.${data.language}`,
-    ])
+    await this.removeCollectionFiles(data.workspace_id, data)
 
     return {
       data,
@@ -449,7 +465,13 @@ export class CollectionService {
     }
   }
 
-  private async removeCollectionFiles(paths: string[]): Promise<void> {
-    await this.storageService.remove(paths)
+  private async removeCollectionFiles(
+    workspaceId: string,
+    collection: Tables<'collections'>,
+  ): Promise<void> {
+    await this.storageService.remove([
+      `${workspaceId}/collections/${collection.slug}/index.${collection.language}`,
+      `${workspaceId}/collections/${collection.slug}/meta.json`,
+    ])
   }
 }
