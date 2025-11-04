@@ -2,7 +2,7 @@ import { pgTable, primaryKey, text, timestamp } from 'drizzle-orm/pg-core'
 import { collection } from './collection'
 import { relations } from 'drizzle-orm'
 
-export const collectionTag = pgTable(
+export const collectionSnippet = pgTable(
   'collection_snippets',
   {
     collectionId: text('collection_id')
@@ -14,9 +14,12 @@ export const collectionTag = pgTable(
   (table) => [primaryKey({ columns: [table.collectionId] })],
 )
 
-export const collectionTagRelations = relations(collectionTag, ({ one }) => ({
-  collection: one(collection, {
-    fields: [collectionTag.collectionId],
-    references: [collection.id],
+export const collectionSnippetRelations = relations(
+  collectionSnippet,
+  ({ one }) => ({
+    collection: one(collection, {
+      fields: [collectionSnippet.collectionId],
+      references: [collection.id],
+    }),
   }),
-}))
+)
