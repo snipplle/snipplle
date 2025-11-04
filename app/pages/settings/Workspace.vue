@@ -42,7 +42,7 @@
             />
           </div>
 
-          <AddMember :workspace-id="data?.id" />
+          <AddMember v-if="hasAccess" :workspace-id="data?.id" />
         </div>
       </div>
 
@@ -87,6 +87,7 @@
   })
 
   const user = useSupabaseUser()
+  const { hasAccess } = await usePermission('team_members')
 
   const { data } = await useFetch('/api/workspace/default', {
     method: 'GET',
