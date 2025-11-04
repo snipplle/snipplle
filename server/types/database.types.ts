@@ -247,6 +247,27 @@ export type Database = {
           },
         ]
       }
+      snippet_garbage: {
+        Row: {
+          created_at: string
+          id: string
+          path: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          path: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          path?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       snippet_tags: {
         Row: {
           created_at: string
