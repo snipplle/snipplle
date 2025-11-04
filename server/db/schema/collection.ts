@@ -33,9 +33,10 @@ export const collection = pgTable(
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
-  (table) => ({
-    uniqueWorkspaceCollection: unique().on(table.workspaceId, table.name),
-  }),
+  (table) => [
+    unique().on(table.workspaceId, table.name),
+    unique().on(table.workspaceId, table.slug),
+  ],
 )
 
 export const collectionRelations = relations(collection, ({ one, many }) => ({

@@ -19,11 +19,7 @@ export const workspaceMember = pgTable(
     role: ROLE('role').default('member').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
-  (table) => {
-    return {
-      uniqueUserWorkspace: unique().on(table.userId, table.workspaceId),
-    }
-  },
+  (table) => [unique().on(table.userId, table.workspaceId)],
 )
 
 export const workspaceMemberRelations = relations(

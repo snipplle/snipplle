@@ -14,11 +14,7 @@ export const snippetTag = pgTable(
       .references(() => tag.id, { onDelete: 'cascade' }),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
-  (table) => {
-    return {
-      pk: primaryKey({ columns: [table.snippetId, table.tagId] }),
-    }
-  },
+  (table) => [primaryKey({ columns: [table.snippetId, table.tagId] })],
 )
 
 export const snippetTagRelations = relations(snippetTag, ({ one }) => ({

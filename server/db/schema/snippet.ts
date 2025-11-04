@@ -34,9 +34,10 @@ export const snippet = pgTable(
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
-  (table) => ({
-    uniqueWorkspaceSnippet: unique().on(table.workspaceId, table.name),
-  }),
+  (table) => [
+    unique().on(table.workspaceId, table.name),
+    unique().on(table.workspaceId, table.slug),
+  ],
 )
 
 export const snippetRelations = relations(snippet, ({ one, many }) => ({

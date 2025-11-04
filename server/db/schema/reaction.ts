@@ -21,13 +21,7 @@ export const reaction = pgTable(
     type: text('type').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
-  (table) => ({
-    uniqueUserTarget: unique().on(
-      table.userId,
-      table.snippetId,
-      table.collectionId,
-    ),
-  }),
+  (table) => [unique().on(table.userId, table.snippetId, table.collectionId)],
 )
 
 export const reactionRelations = relations(reaction, ({ one }) => ({
