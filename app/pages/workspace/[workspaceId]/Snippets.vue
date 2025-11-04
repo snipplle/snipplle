@@ -13,6 +13,7 @@
               v-for="snippet in snippets"
               :key="snippet.id"
               :snippet="snippet"
+              :on-delete-refresh="refresh"
             />
           </div>
 
@@ -65,7 +66,7 @@
     itemsPerPage: 8,
   })
 
-  const { data } = await useFetch('/api/snippet', {
+  const { data, refresh } = await useFetch('/api/snippet', {
     method: 'get',
     query: queryFields.value,
   })

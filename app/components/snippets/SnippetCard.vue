@@ -96,6 +96,7 @@
 
   const props = defineProps<{
     snippet: any
+    onDeleteRefresh: () => void
   }>()
 
   const globalStore = useGlobalStore()
@@ -165,8 +166,8 @@
 
   async function deleteSnippet(): Promise<void> {
     try {
-      await $fetch(`/api/snippet/:id`, {
-        method: 'DELETE',
+      await $fetch(`/api/snippet/${props.snippet.id}`, {
+        method: 'DELETE' as any,
       })
 
       toast.add({
@@ -176,6 +177,8 @@
         icon: 'i-hugeicons-checkmark-circle-01',
         duration: 1500,
       })
+
+      props.onDeleteRefresh()
     } catch (error: any) {
       toast.add({
         title: 'Oops',

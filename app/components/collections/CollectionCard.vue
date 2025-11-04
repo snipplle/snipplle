@@ -83,6 +83,7 @@
 
   const props = defineProps<{
     collection: any
+    onDeleteRefresh: () => void
   }>()
 
   const globalStore = useGlobalStore()
@@ -128,6 +129,8 @@
         icon: 'i-hugeicons-checkmark-circle-01',
         duration: 1500,
       })
+
+      props.onDeleteRefresh()
     } catch (error: any) {
       toast.add({
         title: 'Oops',

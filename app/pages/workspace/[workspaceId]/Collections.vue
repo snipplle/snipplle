@@ -13,6 +13,7 @@
               v-for="collection in collections"
               :key="collection.id"
               :collection="collection"
+              :on-delete-refresh="refresh"
             />
           </div>
 
@@ -65,7 +66,7 @@
     itemsPerPage: 8,
   })
 
-  const { data } = await useFetch('/api/collection', {
+  const { data, refresh } = await useFetch('/api/collection', {
     method: 'get',
     query: queryFields.value,
   })
