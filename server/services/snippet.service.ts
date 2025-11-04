@@ -266,6 +266,13 @@ export class SnippetService {
       }
     }
 
+    if (!snippet.path) {
+      return {
+        data: [],
+        error: null,
+      }
+    }
+
     const { data: metaFile, error: metaFileError } =
       await this.storageService.download(snippet.path)
 
@@ -374,10 +381,7 @@ export class SnippetService {
     }
   }
 
-  async deleteSnippet(
-    id: string,
-    userId: string,
-  ): Promise<DatabaseResponse<any | null>> {
+  async deleteSnippet(id: string, userId: string): Promise<any> {
     const { data, error } = await this.supabase
       .from('snippets')
       .delete()
@@ -385,6 +389,55 @@ export class SnippetService {
       .eq('created_by', userId)
       .select()
       .single()
+
+    if (!data || error) {
+      return {
+        data,
+        error,
+      }
+    }
+
+    if (!data.path) {
+      return {
+        data,
+        error,
+      }
+    }
+
+    const { data: collectionSnippets } = await this.supabase
+      .from('collection_snippets')
+      .select()
+      .eq('snippet_id', id)
+      .single()
+
+    if (!collectionSnippets) {
+      const { data: metaFile, error: metaFileError } =
+        await this.storageService.download(data.path)
+
+      if (!metaFile || metaFileError) {
+        return {
+          data: metaFile,
+          error: metaFileError,
+        }
+      }
+
+      const metaData = JSON.parse(await metaFile.text())
+
+      const versionPaths = metaData.versions.map((version: any) => version.path)
+
+      await this.storageService.remove([...versionPaths, data.path])
+
+      return {
+        data,
+        error: null,
+      }
+    }
+
+    await this.supabase.from('snippet_garbage').insert({
+      id: createId(),
+      workspace_id: data.workspace_id,
+      path: data.path,
+    })
 
     return {
       data,
@@ -496,9 +549,7 @@ export class SnippetService {
     )
 
     if (!metaFile || metaUploadError) {
-      await this.removeSnippetFiles([
-        `${payload.workspaceId}/snippets/${snippet.slug}/${latestVersion}`,
-      ])
+      await this.removeSnippetFiles(payload.workspaceId, snippet, latestVersion)
 
       return {
         data: metaFile,
@@ -569,9 +620,7 @@ export class SnippetService {
     )
 
     if (!newMetaFile || metaUploadError) {
-      await this.removeSnippetFiles([
-        `${payload.workspaceId}/snippets/${snippet.slug}/${newVersion}`,
-      ])
+      await this.removeSnippetFiles(payload.workspaceId, snippet, newVersion)
 
       return {
         data: newMetaFile,
@@ -655,7 +704,13 @@ export class SnippetService {
     }
   }
 
-  private async removeSnippetFiles(paths: string[]): Promise<void> {
-    await this.storageService.remove([...paths])
+  private async removeSnippetFiles(
+    workspaceId: string,
+    snippet: Tables<'snippets'>,
+    version: number,
+  ): Promise<void> {
+    await this.storageService.remove([
+      `${workspaceId}/snippets/${snippet.slug}/${version}/index.${snippet.language}`,
+    ])
   }
 }
