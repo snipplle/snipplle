@@ -4,20 +4,18 @@
       <div class="flex flex-col space-y-2">
         <p class="text-xs font-semibold">Snippet URL (CLI)</p>
 
-        <div class="bg-neutral-700 w-full p-1 rounded-lg">
-          <div
-            class="bg-neutral-800 w-full p-1.5 flex items-center justify-between rounded-md"
-          >
-            <p class="text-sm">{{ workspace }}/{{ snippet?.slug }}@latest</p>
+        <div
+          class="bg-neutral-800 border border-neutral-700 flex items-center justify-between w-full px-4 py-2 rounded-lg"
+        >
+          <p class="text-sm">{{ workspace }}/{{ snippet?.slug }}@latest</p>
 
-            <UButton
-              icon="i-hugeicons-copy-01"
-              color="neutral"
-              variant="link"
-              size="sm"
-              @click="copySnippetURL('latest')"
-            />
-          </div>
+          <UButton
+            icon="i-hugeicons-copy-01"
+            color="neutral"
+            variant="link"
+            size="sm"
+            @click="copySnippetURL('latest')"
+          />
         </div>
       </div>
 
@@ -27,23 +25,19 @@
         <div
           v-for="version in versions"
           :key="version.id"
-          class="bg-neutral-700 w-full p-1 rounded-lg"
+          class="bg-neutral-800 border border-neutral-700 flex items-center justify-between w-full px-4 py-2 rounded-lg"
         >
-          <div
-            class="bg-neutral-800 w-full px-2 flex items-center justify-between rounded-md"
-          >
-            <p class="text-xs">
-              {{ workspace }}/{{ snippet?.slug }}@{{ version.version }}
-            </p>
+          <p class="text-xs">
+            {{ workspace }}/{{ snippet?.slug }}@{{ version.version }}
+          </p>
 
-            <UButton
-              icon="i-hugeicons-copy-01"
-              color="neutral"
-              variant="link"
-              size="sm"
-              @click="copySnippetURL(version.version)"
-            />
-          </div>
+          <UButton
+            icon="i-hugeicons-copy-01"
+            color="neutral"
+            variant="link"
+            size="sm"
+            @click="copySnippetURL(version.version)"
+          />
         </div>
       </div>
     </div>
