@@ -7,7 +7,7 @@
       class="group cursor-pointer"
       @click="openSnippet"
     >
-      <div class="w-full p-0 rounded-md">
+      <div class="w-full p-1">
         <CodeViewer
           v-if="data.preview && is === 'snippet'"
           :content="code"

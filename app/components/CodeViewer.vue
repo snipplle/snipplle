@@ -82,6 +82,7 @@
                 maxHeight: '160px',
                 fontSize: '8px',
                 overflow: 'hidden',
+                borderRadius: '8px',
               }
             : {
                 height: '100%',
@@ -107,13 +108,13 @@
 <style>
   .card-preview .cm-editor,
   .card-preview .cm-gutter {
-    background-color: #1f1f27;
+    background-color: var(--color-light-gray-800);
     min-height: 160px;
   }
 
   .public-view .cm-editor,
   .public-view .cm-gutter {
-    background-color: #1f1f27;
+    background-color: var(--color-light-gray-800);
     height: 100%;
   }
 
@@ -139,7 +140,7 @@
   .public-view .cm-editor,
   .public-view .cm-gutter {
     padding: 4px;
-    background-color: #181923;
+    background-color: var(--ui-bg-light-dark);
   }
 
   .public-view .cm-activeLineGutter {
