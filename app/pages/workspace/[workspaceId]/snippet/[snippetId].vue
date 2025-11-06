@@ -26,7 +26,7 @@
   const { params } = useRoute()
   const overlay = useOverlay()
   const globalStore = useGlobalStore()
-  const { beautifyCode, minifyCode } = useCodeFormat()
+  const { minifyCode } = useCodeFormat()
   const { listen } = useToolbarEvent()
   const toast = useToast()
   const { hasAccess } = await usePermission('snippet_versions')
@@ -70,7 +70,7 @@
       const code = await response.text()
 
       originalSnippetCode.value = code
-      snippetCode.value = beautifyCode(code)
+      snippetCode.value = code
       extensions = [...extensions, languages[snippet.value.language || 'js']]
     },
     {
@@ -86,6 +86,10 @@
   async function changeVersion(versionId: string): Promise<void> {
     const version = await $fetch(`/api/snippet/version/${versionId[0]}`, {
       method: 'get',
+      query: {
+        snippetId: snippet.value?.id,
+        workspaceId: globalStore.activeWorkspace?.id,
+      },
     })
 
     if (!version?.snippet_file) {
@@ -97,7 +101,7 @@
     const response = await fetch(version?.snippet_file)
     const code = await response.text()
 
-    snippetCode.value = beautifyCode(code)
+    snippetCode.value = code
   }
 
   function openEditModal(): void {
@@ -141,7 +145,7 @@
         body: {
           slug: params.snippetId,
           workspaceId: globalStore.activeWorkspace?.id,
-          snippetCode: escapedCode,
+          snippetCode: snippetCode.value,
           language: snippet.value?.language,
         },
       })

@@ -2,7 +2,16 @@
   <ClientOnly>
     <NuxtLayout name="preview" :title="data.name">
       <div class="h-full">
-        <CodeViewer :content="snippetCode" :extensions="extensions" />
+        <CodeViewer
+          :content="snippetCode"
+          :extensions="extensions"
+          view="public-view"
+          :styles="{
+            height: '100%',
+            border: '1px solid var(--color-light-gray-800)',
+            borderRadius: '8px',
+          }"
+        />
       </div>
     </NuxtLayout>
   </ClientOnly>
@@ -13,7 +22,6 @@
 
   const { params } = useRoute()
   const globalStore = useGlobalStore()
-  const { beautifyCode } = useCodeFormat()
 
   const { data } = await useFetch(`/api/snippet/${params.snippetId}`, {
     method: 'GET',
@@ -38,7 +46,7 @@
       const response = await fetch(fileUrl)
       const code = await response.text()
 
-      snippetCode.value = beautifyCode(code)
+      snippetCode.value = code
       extensions = [...extensions, languages[data.value.language || 'js']]
     },
     {

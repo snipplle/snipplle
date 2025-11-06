@@ -31,14 +31,14 @@
 
   const props = withDefaults(
     defineProps<{
-      isPreview?: boolean
+      view?: string
       content: string
       styles?: Record<string, string>
       extensions: any[]
       hasCopy?: boolean
     }>(),
     {
-      isPreview: false,
+      view: 'preview',
       hasCopy: false,
       styles: undefined,
     },
@@ -69,22 +69,23 @@
   )
 
   watch(
-    () => props.isPreview,
-    (newIsPreview) => {
-      type.value = newIsPreview ? 'preview' : 'editor-style'
+    () => props.view,
+    (newView) => {
+      type.value = newView
 
       if (props.styles) {
         style.value = props.styles
       } else {
-        style.value = newIsPreview
-          ? {
-              maxHeight: '160px',
-              fontSize: '8px',
-              overflow: 'hidden',
-            }
-          : {
-              height: '100%',
-            }
+        style.value =
+          newView === 'preview'
+            ? {
+                maxHeight: '160px',
+                fontSize: '8px',
+                overflow: 'hidden',
+              }
+            : {
+                height: '100%',
+              }
       }
     },
     { immediate: true },
@@ -104,56 +105,53 @@
 </script>
 
 <style>
-  .editor-style .cm-scroller {
-    overflow: hidden;
-  }
-
   .preview .cm-editor,
   .preview .cm-gutter {
     background-color: #1f1f27;
     min-height: 160px;
   }
 
-  .editor-style .cm-activeLineGutter {
-    display: none;
+  .public-view .cm-editor,
+  .public-view .cm-gutter {
+    background-color: #1f1f27;
+    height: 100%;
   }
 
-  .editor-style .cm-activeLine,
-  .preview .cm-activeLine {
+  .preview .cm-activeLine,
+  .public-view .cm-activeLine {
     background-color: transparent;
   }
 
-  .editor-style .cm-gutters,
   .preview .cm-gutters {
     display: none;
   }
 
-  .editor-style .cm-editor {
+  .preview .cm-editor {
     user-select: none;
     pointer-events: none;
   }
 
-  .editor-style .cm-editor,
-  .editor-style .cm-gutter {
-    background-color: #181923;
+  .preview .cm-editor,
+  .preview .cm-gutter {
     padding: 4px;
-    height: 100%;
   }
 
-  .editor-style .cm-activeLineGutter {
+  .public-view .cm-editor,
+  .public-view .cm-gutter {
+    padding: 4px;
+    background-color: #181923;
+  }
+
+  .public-view .cm-activeLineGutter {
     background-color: transparent !important;
   }
 
-  .editor-style .cm-activeLine {
-    border-radius: 4px !important;
-  }
-
-  .editor-style .cm-editor,
-  .editor-style .cm-scroller {
+  .public-view .cm-editor,
+  .public-view .cm-scroller {
     border-radius: 8px;
   }
 
-  .editor-style.cm-lineNumbers {
+  .public-view.cm-lineNumbers {
     font-size: 12px !important;
   }
 </style>

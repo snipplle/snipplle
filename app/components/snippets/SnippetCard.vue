@@ -12,7 +12,7 @@
           v-if="snippet.preview"
           :content="code"
           :extensions="extensions"
-          :is-preview="true"
+          view="preview"
         />
 
         <div
@@ -100,7 +100,6 @@
   }>()
 
   const globalStore = useGlobalStore()
-  const { beautifyCode } = useCodeFormat()
   const overlay = useOverlay()
   const toast = useToast()
 
@@ -140,7 +139,7 @@
         return
       }
 
-      code.value = beautifyCode(newValue)
+      code.value = newValue
     },
     {
       immediate: true,

@@ -12,7 +12,6 @@
           v-if="data.preview && is === 'snippet'"
           :content="code"
           :extensions="extensions"
-          :is-preview="true"
         />
 
         <div
@@ -100,7 +99,6 @@
   }>()
 
   const globalStore = useGlobalStore()
-  const { beautifyCode } = useCodeFormat()
   const overlay = useOverlay()
 
   const modal = overlay.create(LazySnippetPreview)
@@ -133,7 +131,7 @@
         return
       }
 
-      code.value = beautifyCode(newValue)
+      code.value = newValue
     },
     {
       immediate: true,
