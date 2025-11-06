@@ -5,7 +5,7 @@ import slugify from 'slugify'
 import { StorageService } from './storage.service'
 
 import { orderByMap } from '../utils/order'
-import { beautifyCode, contentTypes } from '../utils/codeFormat'
+import { contentTypes } from '../utils/codeFormat'
 
 import type { Database, Tables } from '../types/database.types'
 import type { DatabaseResponse, StorageData } from '../types/api.types'
@@ -328,7 +328,7 @@ export class SnippetService {
     const version = metaData.versions.find((version: any) =>
       versionId === 'latest'
         ? version.v === metaData.latest
-        : version.v === Number(versionId),
+        : version.id === versionId,
     )
 
     if (!version) {
@@ -558,10 +558,7 @@ export class SnippetService {
     }
 
     const { data, error } = await this.updateSnippet(payload.id, {
-      preview: beautifyCode(payload.snippetCode)
-        .split('\n')
-        .slice(0, 15)
-        .join('\n'),
+      preview: payload.snippetCode,
       path: metaFile.path,
     })
 
@@ -629,10 +626,7 @@ export class SnippetService {
     }
 
     const { data, error } = await this.updateSnippet(payload.id, {
-      preview: beautifyCode(payload.snippetCode)
-        .split('\n')
-        .slice(0, 15)
-        .join('\n'),
+      preview: payload.snippetCode,
     })
 
     return {
@@ -642,9 +636,7 @@ export class SnippetService {
   }
 
   private prepareCodeFile(code: string, contentType: string): Blob {
-    const beautifiedCode = beautifyCode(code)
-
-    return new Blob([beautifiedCode], {
+    return new Blob([code], {
       type: contentType,
     })
   }
