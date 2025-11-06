@@ -17,7 +17,7 @@
         v-if="hasCopy"
         icon="i-hugeicons-copy-01"
         color="neutral"
-        variant="link"
+        variant="subtle"
         size="sm"
         class="absolute top-2 right-2"
         @click="copyCode"
@@ -38,7 +38,7 @@
       hasCopy?: boolean
     }>(),
     {
-      view: 'preview',
+      view: 'card-preview',
       hasCopy: false,
       styles: undefined,
     },
@@ -77,7 +77,7 @@
         style.value = props.styles
       } else {
         style.value =
-          newView === 'preview'
+          newView === 'card-preview'
             ? {
                 maxHeight: '160px',
                 fontSize: '8px',
@@ -105,8 +105,8 @@
 </script>
 
 <style>
-  .preview .cm-editor,
-  .preview .cm-gutter {
+  .card-preview .cm-editor,
+  .card-preview .cm-gutter {
     background-color: #1f1f27;
     min-height: 160px;
   }
@@ -117,22 +117,22 @@
     height: 100%;
   }
 
-  .preview .cm-activeLine,
+  .card-preview .cm-activeLine,
   .public-view .cm-activeLine {
     background-color: transparent;
   }
 
-  .preview .cm-gutters {
+  .card-preview .cm-gutters {
     display: none;
   }
 
-  .preview .cm-editor {
+  .card-preview .cm-editor {
     user-select: none;
     pointer-events: none;
   }
 
-  .preview .cm-editor,
-  .preview .cm-gutter {
+  .card-preview .cm-editor,
+  .card-preview .cm-gutter {
     padding: 4px;
   }
 

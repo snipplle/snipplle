@@ -6,6 +6,7 @@
           :content="snippetCode"
           :extensions="extensions"
           view="public-view"
+          has-copy
           :styles="{
             height: '100%',
             border: '1px solid var(--color-light-gray-800)',

@@ -12,7 +12,6 @@
           v-if="snippet.preview"
           :content="code"
           :extensions="extensions"
-          view="preview"
         />
 
         <div
@@ -113,13 +112,12 @@
 
   const options = ref([
     {
-      label: 'Preview',
-      value: 'preview',
-      icon: 'i-hugeicons-view',
+      label: 'Download',
+      value: 'download',
+      icon: 'i-hugeicons-download-01',
       onClick: (): void => {
         modal.open({
           snippet: props.snippet,
-          code: props.snippet.preview,
         })
       },
     },

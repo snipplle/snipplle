@@ -110,13 +110,12 @@
     return props.is === 'snippet'
       ? [
           {
-            label: 'Preview',
-            value: 'preview',
-            icon: 'i-hugeicons-view',
+            label: 'Download',
+            value: 'download',
+            icon: 'i-hugeicons-download-01',
             onClick: (): void => {
               modal.open({
                 snippet: props.data,
-                code: props.data.preview,
               })
             },
           },
