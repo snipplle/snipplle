@@ -35,7 +35,7 @@
           type="button"
           color="neutral"
           variant="ghost"
-          :label="!collapsed ? 'Logout' : ''"
+          :label="!collapsed ? 'Logout' : undefined"
           icon="i-hugeicons-logout-02"
           @click="logout"
         />
