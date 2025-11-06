@@ -9,6 +9,8 @@ import { yaml } from '@codemirror/lang-yaml'
 import { xml } from '@codemirror/lang-xml'
 import { go } from '@codemirror/lang-go'
 import { php } from '@codemirror/lang-php'
+import { html } from '@codemirror/lang-html'
+import { css } from '@codemirror/lang-css'
 
 export const languages: Record<string, any> = {
   js: javascript(),
@@ -23,4 +25,6 @@ export const languages: Record<string, any> = {
   xml: xml(),
   go: go(),
   php: php(),
+  html: html(),
+  css: css(),
 }
