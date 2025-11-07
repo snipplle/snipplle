@@ -2,12 +2,7 @@
   <ClientOnly>
     <UDashboardToolbar>
       <div class="w-full flex items-center justify-between">
-        <UNavigationMenu
-          highlight
-          :items="pages"
-          variant="link"
-          class="data-[orientation=horizontal]:border-b border-default data-[orientation=horizontal]:w-full data-[orientation=vertical]:w-48"
-        />
+        <UNavigationMenu highlight :items="pages" variant="link" />
       </div>
     </UDashboardToolbar>
   </ClientOnly>
