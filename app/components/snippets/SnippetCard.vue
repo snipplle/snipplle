@@ -16,11 +16,11 @@
 
         <div
           v-else
-          class="min-h-40 bg-[#1f1f27] flex items-center justify-center"
+          class="p-[3px] min-h-40 bg-neutral-800 flex items-center justify-center rounded-[10px]"
         >
           <UIcon
             name="i-hugeicons-document-code"
-            class="text-[54px] text-neutral-600"
+            class="text-7xl text-neutral-600"
           />
         </div>
       </div>
