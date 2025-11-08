@@ -1,16 +1,14 @@
 <template>
   <ClientOnly>
     <NuxtLayout name="preview" :title="collection?.name">
-      <div
-        class="flex flex-col sm:flex-row h-full space-x-2 space-y-2 sm:space-y-0"
-      >
-        <div class="flex flex-col w-full min-h-1/2 sm:min-h-full space-y-2">
-          <SelectedSnippetList
-            :selected-snippets="selectedSnippets"
-            :extensions="extensions"
-            :has-action="false"
-          />
-        </div>
+      <div class="flex flex-col sm:flex-row h-full">
+        <SelectedSnippetList
+          :selected-snippets="selectedSnippets"
+          :extensions="extensions"
+          :has-action="false"
+        />
+
+        <USeparator :orientation="isMobile ? 'horizontal' : 'vertical'" />
 
         <CodeViewer
           :content="resultCode ? Object.values(resultCode).join('\n') : ''"
@@ -19,9 +17,8 @@
             height: '100%',
             fontSize: '12px',
             overflow: 'auto',
-            border: '1px solid var(--color-neutral-800)',
-            borderRadius: '8px',
           }"
+          view="public-view"
           class="w-full"
         />
       </div>
@@ -35,6 +32,7 @@
   const { params } = useRoute()
   const globalStore = useGlobalStore()
   const { beautifyCode } = useCodeFormat()
+  const isMobile = useMediaQuery('(max-width: 640px)')
 
   const selectedSnippets = ref<any[]>([])
   const resultCode = ref()

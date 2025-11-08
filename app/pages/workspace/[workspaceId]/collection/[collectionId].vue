@@ -1,23 +1,24 @@
 <template>
   <ClientOnly>
     <NuxtLayout name="editor" :title="collection?.name" :has-access="true">
-      <div
-        class="flex flex-col sm:flex-row h-full space-x-2 space-y-2 sm:space-y-0"
-      >
-        <div
-          class="flex flex-row sm:flex-col w-full space-y-2 space-x-2 sm:space-x-0"
-        >
+      <div class="flex flex-col sm:flex-row h-full">
+        <div class="flex flex-row sm:flex-col w-full">
           <AvailableSnippetList
             :snippets="snippets"
             :extensions="extensions"
             @select-snippet="selectSnippet"
           />
+
+          <USeparator :orientation="isMobile ? 'vertical' : 'horizontal'" />
+
           <SelectedSnippetList
             :selected-snippets="selectedSnippets"
             :extensions="extensions"
             @deselect-snippet="deselectSnippet"
           />
         </div>
+
+        <USeparator :orientation="isMobile ? 'horizontal' : 'vertical'" />
 
         <CodeViewer
           :content="resultCode ? Object.values(resultCode).join('\n') : ''"
@@ -26,9 +27,8 @@
             height: '100%',
             fontSize: '12px',
             overflow: 'auto',
-            border: '1px solid var(--color-neutral-800)',
-            borderRadius: '8px',
           }"
+          view="public-view"
           class="w-full"
         />
       </div>
@@ -47,6 +47,7 @@
   const { listen } = useToolbarEvent()
   const { beautifyCode, minifyCode } = useCodeFormat()
   const toast = useToast()
+  const isMobile = useMediaQuery('(max-width: 640px)')
 
   const modal = overlay.create(LazyEditCollection)
 
