@@ -2,7 +2,11 @@
   <UDashboardGroup>
     <SSidebar />
 
-    <UDashboardPanel>
+    <UDashboardPanel
+      :ui="{
+        body: 'p-0 sm:p-0',
+      }"
+    >
       <template #header>
         <SNavbar :title="title" />
         <SEditorToolbar :versions="versions" :has-access="hasAccess" />

@@ -1,13 +1,13 @@
 <template>
   <ClientOnly>
     <div
-      class="bg-default border border-light-gray-800 w-full h-full p-2 rounded-lg space-y-2"
+      class="bg-default border border-neutral-700 w-full h-full p-2 rounded-lg space-y-2"
     >
       <div v-if="snippets?.length" class="space-y-2">
         <div
           v-for="snippet in snippets"
           :key="snippet.id"
-          class="bg-light-gray-800 border border-light-gray-700 p-3 rounded-md space-y-2"
+          class="bg-neutral-800 border border-neutral-700 p-3 rounded-md space-y-2"
         >
           <div class="flex items-center justify-between">
             <h1 class="text-sm font-semibold">{{ snippet.name }}</h1>

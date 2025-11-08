@@ -4,9 +4,9 @@
       :items="commands"
       variant="link"
       :ui="{
-        root: 'bg-default ring ring-neutral-700 gap-0 rounded-md',
+        root: 'bg-default ring ring-neutral-700 gap-0 rounded-lg',
         list: 'border-b border-neutral-700',
-        content: 'bg-neutral-800 p-4 rounded-b-md',
+        content: 'bg-neutral-800 p-4 rounded-b-lg',
       }"
     >
       <template #content="{ item }">

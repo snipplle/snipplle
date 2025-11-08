@@ -172,13 +172,9 @@
 </script>
 
 <style>
-  .editor .cm-editor {
-    border: 1px solid var(--color-light-gray-800);
-  }
-
   .editor .cm-editor,
   .editor .cm-gutter {
-    background-color: #181923;
+    background-color: var(--ui-bg-light-dark);
     padding: 4px;
     height: 100%;
   }
@@ -189,11 +185,6 @@
 
   .editor .cm-activeLine {
     border-radius: 4px !important;
-  }
-
-  .editor .cm-editor,
-  .editor .cm-scroller {
-    border-radius: 8px;
   }
 
   .editor.cm-lineNumbers {

@@ -1,7 +1,7 @@
 export default defineAppConfig({
   ui: {
     colors: {
-      neutral: 'light-gray',
+      neutral: 'zinc',
       red: 'red',
       orange: 'orange',
       amber: 'amber',
@@ -23,7 +23,26 @@ export default defineAppConfig({
 
     button: {
       slots: {
-        base: 'cursor-pointer',
+        base: 'rounded-lg cursor-pointer',
+      },
+    },
+
+    input: {
+      slots: {
+        base: 'rounded-lg',
+      },
+    },
+
+    textarea: {
+      slots: {
+        base: 'rounded-lg',
+      },
+    },
+
+    select: {
+      slots: {
+        base: 'rounded-lg',
+        content: 'rounded-lg',
       },
     },
 
@@ -37,6 +56,19 @@ export default defineAppConfig({
     navigationMenu: {
       slots: {
         link: 'cursor-pointer',
+      },
+    },
+
+    card: {
+      slots: {
+        root: 'rounded-xl',
+      },
+    },
+
+    modal: {
+      slots: {
+        overlay: 'bg-[var(--ui-bg-light-dark)]/30 backdrop-blur-xs',
+        content: 'rounded-xl!',
       },
     },
   },

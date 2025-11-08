@@ -69,7 +69,6 @@ export default defineNuxtConfig({
         'success',
         'warning',
         'error',
-        'light-gray',
 
         // tag colors
         'red',

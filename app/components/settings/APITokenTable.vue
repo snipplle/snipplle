@@ -1,14 +1,15 @@
 <template>
   <ClientOnly>
-    <div class="border border-neutral-700 rounded-md">
+    <div class="border border-neutral-700 rounded-lg">
       <UTable
         :data="data"
         :columns="columns"
         :ui="{
+          root: 'rounded-lg',
           thead: 'bg-default',
-          th: 'first:rounded-tl-md last:rounded-tr-md',
+          th: 'first:rounded-tl-lg last:rounded-tr-lg',
           tbody: 'bg-neutral-800',
-          td: 'first:rounded-bl-md last:rounded-br-md',
+          td: 'first:rounded-bl-lg last:rounded-br-lg',
         }"
       >
         <template #empty>

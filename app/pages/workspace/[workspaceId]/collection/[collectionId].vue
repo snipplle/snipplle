@@ -26,7 +26,7 @@
             height: '100%',
             fontSize: '12px',
             overflow: 'auto',
-            border: '1px solid var(--color-light-gray-800)',
+            border: '1px solid var(--color-neutral-800)',
             borderRadius: '8px',
           }"
           class="w-full"

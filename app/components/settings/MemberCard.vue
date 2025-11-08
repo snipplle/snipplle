@@ -1,7 +1,7 @@
 <template>
   <ClientOnly>
     <div
-      class="bg-neutral-800 border border-neutral-700 p-2 rounded-md flex items-center justify-between"
+      class="bg-neutral-800 border border-neutral-700 p-2 rounded-lg flex items-center justify-between"
     >
       <div>
         <h1 class="text-sm font-semibold">{{ member.user?.name }}</h1>

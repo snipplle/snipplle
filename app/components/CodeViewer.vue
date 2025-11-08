@@ -82,7 +82,7 @@
                 maxHeight: '160px',
                 fontSize: '8px',
                 overflow: 'hidden',
-                borderRadius: '8px',
+                borderRadius: '10px',
               }
             : {
                 height: '100%',
@@ -108,13 +108,14 @@
 <style>
   .card-preview .cm-editor,
   .card-preview .cm-gutter {
-    background-color: var(--color-light-gray-800);
+    background-color: var(--color-neutral-800);
     min-height: 160px;
   }
 
   .public-view .cm-editor,
   .public-view .cm-gutter {
-    background-color: var(--color-light-gray-800);
+    background-color: var(--ui-bg-light-dark);
+    padding: 4px;
     height: 100%;
   }
 
@@ -137,19 +138,8 @@
     padding: 4px;
   }
 
-  .public-view .cm-editor,
-  .public-view .cm-gutter {
-    padding: 4px;
-    background-color: var(--ui-bg-light-dark);
-  }
-
   .public-view .cm-activeLineGutter {
     background-color: transparent !important;
-  }
-
-  .public-view .cm-editor,
-  .public-view .cm-scroller {
-    border-radius: 8px;
   }
 
   .public-view.cm-lineNumbers {
