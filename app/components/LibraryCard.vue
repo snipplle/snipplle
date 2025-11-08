@@ -7,7 +7,7 @@
       class="group cursor-pointer"
       @click="openSnippet"
     >
-      <div class="w-full p-1">
+      <div class="w-full p-[3px]">
         <CodeViewer
           v-if="data.preview && is === 'snippet'"
           :content="code"
@@ -16,11 +16,15 @@
 
         <div
           v-else
-          class="min-h-40 bg-[#1f1f27] flex items-center justify-center"
+          class="p-[3px] min-h-40 bg-neutral-800 flex items-center justify-center rounded-[10px]"
         >
           <UIcon
-            name="i-hugeicons-document-code"
-            class="text-[54px] text-neutral-600"
+            :name="
+              is === 'snippet'
+                ? 'i-hugeicons-document-code'
+                : 'i-hugeicons-code-folder'
+            "
+            class="text-7xl text-neutral-600"
           />
         </div>
       </div>
