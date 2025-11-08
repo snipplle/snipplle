@@ -49,7 +49,7 @@
               <template #footer>
                 <div class="flex flex-col items-center text-xs space-y-4">
                   <div class="flex space-x-6">
-                    <p>© 2025 Snipplle</p>
+                    <p>© {{ new Date().getFullYear() }} Snipplle</p>
                     <ULink to="https://snipplle.com/privacy" external>
                       Privacy Policy
                     </ULink>
