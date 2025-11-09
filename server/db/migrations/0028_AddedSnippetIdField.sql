@@ -1,0 +1,1 @@
+ALTER TABLE "snippet_garbage" ADD COLUMN "snippet_id" text NOT NULL;
