@@ -5,6 +5,18 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
 
+  nitro: {
+    experimental: {
+      tasks:
+        process.env.GARBAGE_CLEANER_CRON && process.env.GARBAGE_CLEANER_FUNCTION
+          ? true
+          : false,
+    },
+    scheduledTasks: {
+      [process.env.GARBAGE_CLEANER_CRON!]: ['garbage-cleaner'],
+    },
+  },
+
   vite: {
     plugins: [tailwindcss()],
   },
@@ -28,6 +40,7 @@ export default defineNuxtConfig({
     SUPABASE_KEY: process.env.SUPABASE_KEY || '',
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
     SUPABASE_JWT_SECRET: process.env.SUPABASE_JWT_SECRET || '',
+    GARBAGE_CLEANER_FUNCTION: process.env.GARBAGE_CLEANER_FUNCTION || '',
 
     public: {
       SELF_HOSTED: process.env.SELF_HOSTED,
