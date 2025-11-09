@@ -80,7 +80,12 @@ export const uploadCollectionSchema = z.object({
       id: z.string('Snippet ID is required'),
     }),
   ),
-  collectionCode: z.string('Collection code is required'),
+  collectionCode: z.array(
+    z.object({
+      slug: z.string('Snippet slug is required'),
+      content: z.string('Snippet code is required'),
+    }),
+  ),
   workspaceId: z.string('Workspace ID is required'),
 })
 
