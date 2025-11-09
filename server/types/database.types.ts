@@ -252,18 +252,21 @@ export type Database = {
           created_at: string
           id: string
           path: string
+          snippet_id: string
           workspace_id: string
         }
         Insert: {
           created_at?: string
           id: string
           path: string
+          snippet_id: string
           workspace_id: string
         }
         Update: {
           created_at?: string
           id?: string
           path?: string
+          snippet_id?: string
           workspace_id?: string
         }
         Relationships: []
