@@ -11,7 +11,11 @@
             <p class="text-sm font-semibold">{{ snippet.name }}</p>
 
             <div class="space-x-1">
-              <UPopover>
+              <UPopover
+                :ui="{
+                  content: 'rounded-xl',
+                }"
+              >
                 <UButton
                   icon="i-hugeicons-file-01"
                   size="sm"
@@ -21,14 +25,14 @@
                 />
 
                 <template #content>
-                  <div class="p-2">
+                  <div class="p-1">
                     <CodeViewer
                       :content="previewCode"
-                      :is-preview="true"
                       :extensions="extensions"
                       :styles="{
-                        fontSize: '14px',
+                        fontSize: '12px',
                       }"
+                      view="card-preview"
                     />
                   </div>
                 </template>

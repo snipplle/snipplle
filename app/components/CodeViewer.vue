@@ -131,6 +131,7 @@
   .card-preview .cm-editor {
     user-select: none;
     pointer-events: none;
+    border-radius: 10px;
   }
 
   .card-preview .cm-editor,
