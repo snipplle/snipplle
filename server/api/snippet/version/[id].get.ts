@@ -5,7 +5,7 @@ import type { Database } from '~~/server/types/database.types'
 
 export default defineEventHandler(async (event) => {
   const { id } = await getRouterParams(event)
-  const { snippetId, workspaceId } = getQuery(event)
+  const { snippetId, workspaceId, path } = getQuery(event)
   const user = await serverSupabaseUser(event)
   const supabase = await serverSupabaseClient<Database>(event)
   const snippetService = new SnippetService(supabase)
@@ -21,6 +21,7 @@ export default defineEventHandler(async (event) => {
     workspaceId as string,
     snippetId as string,
     id,
+    path as string,
   )
 
   if (error) {

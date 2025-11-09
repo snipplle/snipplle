@@ -296,16 +296,21 @@ export class SnippetService {
     workspaceId: string,
     snippetId: string,
     versionId: string,
+    path?: string,
   ): Promise<any> {
-    const { data: snippet, error: snippetError } = await this.getSnippet({
+    const { data: snippet } = await this.getSnippet({
       workspaceId,
       id: snippetId,
     })
 
-    if (snippetError) {
+    if (!snippet && path) {
+      const { data: file } = await this.storageService.getSignedUrl(path)
+
       return {
-        data: snippet,
-        error: snippetError,
+        data: {
+          snippet_file: (file as StorageData)?.signedUrl,
+        },
+        error: null,
       }
     }
 
