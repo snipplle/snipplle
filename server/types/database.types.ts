@@ -99,7 +99,7 @@ export type Database = {
           {
             foreignKeyName: 'collection_snippets_collection_id_collections_id_fk'
             columns: ['collection_id']
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: 'collections'
             referencedColumns: ['id']
           },
