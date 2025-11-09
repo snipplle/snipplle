@@ -1,0 +1,1 @@
+ALTER TABLE "collection_snippets" DROP CONSTRAINT "collection_snippets_collection_id_pk";

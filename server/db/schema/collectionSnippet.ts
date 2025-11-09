@@ -11,7 +11,7 @@ export const collectionSnippet = pgTable(
     snippetId: text('snippet_id').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
-  (table) => [primaryKey({ columns: [table.collectionId] })],
+  (table) => [primaryKey({ columns: [table.collectionId, table.snippetId] })],
 )
 
 export const collectionSnippetRelations = relations(

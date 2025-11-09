@@ -1,0 +1,1 @@
+ALTER TABLE "collection_snippets" ADD CONSTRAINT "collection_snippets_collection_id_snippet_id_pk" PRIMARY KEY("collection_id","snippet_id");
