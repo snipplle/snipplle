@@ -81,12 +81,7 @@ export class SnippetService {
   ): Promise<DatabaseResponse<any[] | null>> {
     const { data, error } = await this.supabase
       .from('snippets')
-      .select(
-        `id, name, slug, language, path, workspace_id,
-      snippet_tags!inner(
-        tags!inner(name, color)
-      )`,
-      )
+      .select()
       .in(
         'id',
         snippets.map((snippet) => snippet.id),

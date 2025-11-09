@@ -286,10 +286,12 @@ export class CollectionService {
     const { data: snippets, error: snippetError } =
       await this.snippetService.getSnippetsForCollection(payload.snippets)
 
-    if (!snippets || snippetError) {
+    if (!snippets?.length || snippetError) {
+      await this.removeCollectionFiles(payload.workspaceId, collection)
+
       return {
         data: snippets,
-        error: snippetError,
+        error: snippetError || { message: 'No snippets found' },
       }
     }
 
