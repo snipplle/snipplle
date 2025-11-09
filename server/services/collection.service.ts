@@ -150,15 +150,13 @@ export class CollectionService {
       }
     }
 
-    const snippets = [...data]
-
-    metaData.snippets.forEach((snippet: any) => {
-      const exists = data.some((item: any) => item.id === snippet.id)
-
-      if (!exists) {
-        snippets.push(snippet)
-      }
-    })
+    const snippets = [
+      ...data,
+      ...metaData.snippets.filter(
+        (metaSnippet: any) =>
+          !data.some((dbSnippet: any) => dbSnippet.id === metaSnippet.id),
+      ),
+    ]
 
     return {
       data: snippets,
@@ -261,26 +259,32 @@ export class CollectionService {
       metaData = JSON.parse(await metaFile.text())
     }
 
-    const codeFile = this.prepareCodeFile(
-      payload.collectionCode,
-      contentTypes[collection.language],
-    )
+    const filePaths = []
 
-    const { data: file, error: uploadError } = await this.uploadFile(
-      collection.path
-        ? collection.path
-        : `${payload.workspaceId}/collections/${collection.slug}/index.${collection.language}`,
-      codeFile,
-      {
-        contentType: contentTypes[collection.language],
-      },
-    )
+    for (const code of payload.collectionCode) {
+      const codeFile = this.prepareCodeFile(
+        code.content,
+        contentTypes[collection.language],
+      )
 
-    if (!file || uploadError) {
-      return {
-        data: file,
-        error: uploadError,
+      const { data: file, error: uploadError } = await this.uploadFile(
+        collection.path
+          ? collection.path
+          : `${payload.workspaceId}/collections/${collection.slug}/${code.slug}.${collection.language}`,
+        codeFile,
+        {
+          contentType: contentTypes[collection.language],
+        },
+      )
+
+      if (!file || uploadError) {
+        return {
+          data: file,
+          error: uploadError,
+        }
       }
+
+      filePaths.push(file.path)
     }
 
     const { data: snippets, error: snippetError } =
@@ -295,7 +299,7 @@ export class CollectionService {
       }
     }
 
-    metaData = this.prepareMetaData(file.path, snippets, metaData)
+    metaData = this.prepareMetaData(filePaths, snippets, metaData)
 
     const { data: metaFile, error: metaUploadError } = await this.uploadFile(
       collection.path
@@ -326,9 +330,8 @@ export class CollectionService {
           })),
         )
         .select()
-        .single()
 
-    if (!collectionSnippets || collectionSnippetError) {
+    if (!collectionSnippets?.length || collectionSnippetError) {
       await this.removeCollectionFiles(payload.workspaceId, collection)
 
       return {
@@ -427,6 +430,44 @@ export class CollectionService {
     }
   }
 
+  // async getSnippetForCollection(
+  //   collectionId: string,
+  //   workspaceId: string,
+  // ): Promise<any> {
+  //   const { data, error } = await this.supabase
+  //     .from('collections')
+  //     .select()
+  //     .eq('collection_id', collectionId)
+  //     .eq('workspace_id', workspaceId)
+  //     .single()
+
+  //   if (!data || error) {
+  //     return {
+  //       data,
+  //       error,
+  //     }
+  //   }
+
+  //   const { data: metaFile, error: metaFileError } =
+  //     await this.storageService.download(data.path as string)
+
+  //   if (!metaFile || metaFileError) {
+  //     return {
+  //       data: metaFile,
+  //       error: metaFileError,
+  //     }
+  //   }
+
+  //   const metaData = JSON.parse(await metaFile.text())
+
+  //   console.log(metaData)
+
+  //   return {
+  //     data,
+  //     error,
+  //   }
+  // }
+
   private prepareCodeFile(code: string, contentType: string): Blob {
     const beautifiedCode = beautifyCode(code)
 
@@ -436,12 +477,12 @@ export class CollectionService {
   }
 
   private prepareMetaData(
-    path: string,
+    paths: string[],
     snippets: any,
     oldMetaData?: any,
   ): Blob {
     let metaData = {
-      path,
+      paths,
       snippets,
     }
 

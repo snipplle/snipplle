@@ -1,6 +1,6 @@
 <template>
   <ClientOnly>
-    <NuxtLayout name="editor" :title="collection?.name" :has-access="true">
+    <NuxtLayout name="editor" :title="data?.name" :has-access="true">
       <div class="flex flex-col sm:flex-row h-full">
         <div class="flex flex-row sm:flex-col w-full">
           <AvailableSnippetList
@@ -20,17 +20,34 @@
 
         <USeparator :orientation="isMobile ? 'horizontal' : 'vertical'" />
 
-        <CodeViewer
-          :content="resultCode ? Object.values(resultCode).join('\n') : ''"
-          :extensions="extensions"
-          :styles="{
-            height: '100%',
-            fontSize: '12px',
-            overflow: 'auto',
-          }"
-          view="public-view"
-          class="w-full"
-        />
+        <div
+          v-if="collectionCode.length"
+          class="flex flex-col w-full overflow-auto"
+        >
+          <div
+            v-for="code in collectionCode"
+            :key="code.id"
+            class="flex flex-col h-full last:border-b-0 border-b border-neutral-800"
+          >
+            <div class="bg-neutral-900 border-b border-neutral-800 p-2">
+              <h1 class="text-sm font-bold">{{ code.name }}</h1>
+            </div>
+
+            <CodeViewer
+              :content="code.content"
+              :extensions="extensions"
+              :styles="{
+                height: '100%',
+                fontSize: '12px',
+                overflow: 'auto',
+              }"
+              view="public-view"
+              class="w-full"
+            />
+          </div>
+        </div>
+
+        <div v-else class="w-full bg-default"></div>
       </div>
     </NuxtLayout>
   </ClientOnly>
@@ -45,7 +62,6 @@
   const overlay = useOverlay()
   const globalStore = useGlobalStore()
   const { listen } = useToolbarEvent()
-  const { beautifyCode, minifyCode } = useCodeFormat()
   const toast = useToast()
   const isMobile = useMediaQuery('(max-width: 640px)')
 
@@ -53,9 +69,9 @@
 
   const snippets = ref<any[]>([])
   const selectedSnippets = ref<any[]>([])
-  const resultCode = ref()
+  const collectionCode = ref<any[]>([])
 
-  const { data: collection, refresh } = await useFetch<any>(
+  const { data, refresh } = await useFetch<any>(
     `/api/collection/${params.collectionId}`,
     {
       method: 'get',
@@ -65,51 +81,40 @@
     },
   )
 
-  const { data: collectionSnippets } = await useFetch<any>(
-    `/api/collection/${collection?.value?.id}/snippet`,
-    {
-      method: 'get',
-      query: {
-        workspaceId: globalStore.activeWorkspace?.id,
-      },
-    },
-  )
-
-  const { data } = await useFetch<any>(`/api/snippet`, {
+  const { data: snippetsData } = await useFetch<any>(`/api/snippet`, {
     method: 'get',
     query: {
-      lang: collection?.value?.language,
+      lang: data?.value?.language,
       page: 1,
       itemsPerPage: 10,
     },
   })
 
-  const extensions = [
-    catppuccinMocha,
-    languages[collection?.value?.language || 'js'],
-  ]
+  const extensions = [catppuccinMocha, languages[data?.value?.language || 'js']]
 
   watch(
-    () => collectionSnippets.value,
+    () => data.value,
     async (newData) => {
       if (!newData) {
         return
       }
 
-      selectedSnippets.value = newData
+      selectedSnippets.value = newData.snippets
 
-      for (const snippet of selectedSnippets.value) {
-        resultCode.value = {
-          ...resultCode.value,
-          [snippet.id]: await getSnippetCode(snippet),
-        }
-      }
+      collectionCode.value = await Promise.all(
+        newData.snippets.map(async (item: any) => ({
+          id: item.id,
+          name: item.name,
+          slug: item.slug,
+          content: await getSnippetCode(item),
+        })),
+      )
     },
     { immediate: true },
   )
 
   watch(
-    () => data.value,
+    () => snippetsData.value,
     (newData) => {
       if (!newData) {
         return
@@ -130,9 +135,12 @@
       (item) => item.id !== selectedSnippet.id,
     )
 
-    resultCode.value = {
-      [selectedSnippet.id]: await getSnippetCode(selectedSnippet),
-    }
+    collectionCode.value.push({
+      id: selectedSnippet.id,
+      name: selectedSnippet.name,
+      slug: selectedSnippet.slug,
+      content: await getSnippetCode(selectedSnippet),
+    })
   }
 
   async function deselectSnippet(snippet: any): Promise<void> {
@@ -141,8 +149,8 @@
     )
     snippets.value.push(snippet)
 
-    resultCode.value = Object.fromEntries(
-      Object.entries(resultCode.value).filter(([key]) => key !== snippet.id),
+    collectionCode.value = collectionCode.value.filter(
+      (item) => item.id !== snippet.id,
     )
   }
 
@@ -152,6 +160,7 @@
       query: {
         snippetId: snippet.id,
         workspaceId: globalStore.activeWorkspace?.id,
+        path: snippet.path,
       },
     })
 
@@ -159,7 +168,7 @@
 
     const snippetCode = await response.text()
 
-    return beautifyCode(snippetCode)
+    return snippetCode
   }
 
   listen('toolbar:edit', openEditModal)
@@ -167,34 +176,37 @@
 
   function openEditModal(): void {
     modal.open({
-      collection: collection.value,
+      collection: data.value,
       refreshCallback: refresh,
     })
   }
 
   async function saveCollection(): Promise<void> {
-    const joinedCode = Object.values(resultCode.value).join('\n')
-    const escapedCode = minifyCode(joinedCode)
+    // const joinedCode = Object.values(resultCode.value).join('\n')
+    // const escapedCode = minifyCode(joinedCode)
 
-    if (!escapedCode.length) {
-      toast.add({
-        title: 'Oops',
-        description: 'Collection code is empty',
-        color: 'error',
-        icon: 'i-hugeicons-fire',
-        duration: 1500,
-      })
+    // if (!escapedCode.length) {
+    //   toast.add({
+    //     title: 'Oops',
+    //     description: 'Collection code is empty',
+    //     color: 'error',
+    //     icon: 'i-hugeicons-fire',
+    //     duration: 1500,
+    //   })
 
-      return
-    }
+    //   return
+    // }
 
     try {
-      await $fetch(`/api/collection/${collection.value?.id}`, {
+      await $fetch(`/api/collection/${data.value?.id}`, {
         method: 'PUT' as any,
         body: {
           slug: params.collectionId,
           workspaceId: globalStore.activeWorkspace?.id,
-          collectionCode: escapedCode,
+          collectionCode: collectionCode.value.map((item) => ({
+            slug: item.slug,
+            content: item.content,
+          })),
           snippets: selectedSnippets.value.map((item) => ({
             id: item.id,
           })),

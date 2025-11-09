@@ -22,12 +22,21 @@ export default defineEventHandler(async (event) => {
     slug,
   })
 
-  if (error) {
+  if (!data || error) {
     throw createError({
       statusCode: 400,
-      statusMessage: error.message,
+      statusMessage: error?.message,
     })
   }
 
-  return data
+  const { data: collectionSnippets } =
+    await collectionService.getCollectionSnippets(
+      data.id,
+      workspaceId as string,
+    )
+
+  return {
+    ...data,
+    snippets: collectionSnippets,
+  }
 })
