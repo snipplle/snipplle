@@ -390,14 +390,7 @@ export class SnippetService {
       .select()
       .single()
 
-    if (!data || error) {
-      return {
-        data,
-        error,
-      }
-    }
-
-    if (!data.path) {
+    if (!data || !data.path || error) {
       return {
         data,
         error,
@@ -435,6 +428,7 @@ export class SnippetService {
 
     await this.supabase.from('snippet_garbage').insert({
       id: createId(),
+      snippet_id: id,
       workspace_id: data.workspace_id,
       path: data.path,
     })
