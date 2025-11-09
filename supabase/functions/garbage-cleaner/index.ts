@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
-  Deno.env.get('SUPABASE_ANON_KEY')!,
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
 )
 
 interface Version {
@@ -35,19 +35,18 @@ Deno.serve(async () => {
   const { data, error } = await supabase.from('snippet_garbage').select()
 
   if (error) {
-    return new Response(error.message, { status: 500 })
+    return new Response(
+      JSON.stringify({ success: false, error: error.message }),
+      { status: 500 },
+    )
   }
 
   for (const item of data) {
-    const { data: isUsed, error: usageError } = await supabase
+    const { data: isUsed } = await supabase
       .from('collection_snippets')
       .select()
       .eq('snippet_id', item.snippetId)
       .single()
-
-    if (usageError) {
-      continue
-    }
 
     if (isUsed) {
       continue
@@ -62,5 +61,5 @@ Deno.serve(async () => {
     await supabase.from('snippet_garbage').delete().eq('id', item.id)
   }
 
-  return new Response(undefined, { status: 200 })
+  return new Response(JSON.stringify({ success: true }), { status: 200 })
 })
