@@ -259,18 +259,27 @@ export class CollectionService {
       metaData = JSON.parse(await metaFile.text())
     }
 
-    const filePaths = []
+    const filePaths = {
+      add: [] as string[],
+      remove: [] as string[],
+    }
 
-    for (const code of payload.collectionCode) {
+    for (const added of payload.snippets.add) {
+      const code = payload.collectionCode.find(
+        (item: any) => item.id === added.id,
+      )
+
+      if (!code) {
+        continue
+      }
+
       const codeFile = this.prepareCodeFile(
         code.content,
         contentTypes[collection.language],
       )
 
       const { data: file, error: uploadError } = await this.uploadFile(
-        collection.path
-          ? collection.path
-          : `${payload.workspaceId}/collections/${collection.slug}/${code.slug}.${collection.language}`,
+        `${payload.workspaceId}/collections/${collection.slug}/${code.slug}.${collection.language}`,
         codeFile,
         {
           contentType: contentTypes[collection.language],
@@ -284,13 +293,31 @@ export class CollectionService {
         }
       }
 
-      filePaths.push(file.path)
+      filePaths.add.push(file.path)
+    }
+
+    for (const removed of payload.snippets.remove) {
+      const code = payload.removedCode.find(
+        (item: any) => item.id === removed.id,
+      )
+
+      if (!code) {
+        continue
+      }
+
+      await this.storageService.remove([
+        `${payload.workspaceId}/collections/${collection.slug}/${code.slug}.${collection.language}`,
+      ])
+
+      filePaths.remove.push(
+        `${payload.workspaceId}/collections/${collection.slug}/${code.slug}.${collection.language}`,
+      )
     }
 
     const { data: snippets, error: snippetError } =
-      await this.snippetService.getSnippetsForCollection(payload.snippets)
+      await this.snippetService.getSnippetsForCollection(payload.snippets.add)
 
-    if (!snippets?.length || snippetError) {
+    if ((filePaths.add.length && !snippets?.length) || snippetError) {
       await this.removeCollectionFiles(payload.workspaceId, collection)
 
       return {
@@ -299,7 +326,12 @@ export class CollectionService {
       }
     }
 
-    metaData = this.prepareMetaData(filePaths, snippets, metaData)
+    metaData = this.prepareMetaData(
+      filePaths,
+      snippets,
+      payload.snippets.remove,
+      metaData,
+    )
 
     const { data: metaFile, error: metaUploadError } = await this.uploadFile(
       collection.path
@@ -308,6 +340,7 @@ export class CollectionService {
       metaData,
       {
         contentType: contentTypes.json,
+        upsert: true,
       },
     )
 
@@ -320,24 +353,37 @@ export class CollectionService {
       }
     }
 
-    const { data: collectionSnippets, error: collectionSnippetError } =
+    if (filePaths.add.length && snippets?.length) {
+      const { data: collectionSnippets, error: collectionSnippetError } =
+        await this.supabase
+          .from('collection_snippets')
+          .insert(
+            snippets.map((item: Tables<'snippets'>) => ({
+              collection_id: collection.id,
+              snippet_id: item.id,
+            })),
+          )
+          .select()
+
+      if (!collectionSnippets?.length || collectionSnippetError) {
+        await this.removeCollectionFiles(payload.workspaceId, collection)
+
+        return {
+          data: collectionSnippets,
+          error: collectionSnippetError || { message: 'No snippets found' },
+        }
+      }
+    }
+
+    if (payload.snippets.remove.length) {
       await this.supabase
         .from('collection_snippets')
-        .insert(
-          snippets.map((item: Tables<'snippets'>) => ({
-            collection_id: collection.id,
-            snippet_id: item.id,
-          })),
+        .delete()
+        .eq('collection_id', collection.id)
+        .in(
+          'snippet_id',
+          payload.snippets.remove.map((item: any) => item.id),
         )
-        .select()
-
-    if (!collectionSnippets?.length || collectionSnippetError) {
-      await this.removeCollectionFiles(payload.workspaceId, collection)
-
-      return {
-        data: collectionSnippets,
-        error: collectionSnippetError,
-      }
     }
 
     const { data, error } = await this.updateCollection(collection.id, {
@@ -430,44 +476,6 @@ export class CollectionService {
     }
   }
 
-  // async getSnippetForCollection(
-  //   collectionId: string,
-  //   workspaceId: string,
-  // ): Promise<any> {
-  //   const { data, error } = await this.supabase
-  //     .from('collections')
-  //     .select()
-  //     .eq('collection_id', collectionId)
-  //     .eq('workspace_id', workspaceId)
-  //     .single()
-
-  //   if (!data || error) {
-  //     return {
-  //       data,
-  //       error,
-  //     }
-  //   }
-
-  //   const { data: metaFile, error: metaFileError } =
-  //     await this.storageService.download(data.path as string)
-
-  //   if (!metaFile || metaFileError) {
-  //     return {
-  //       data: metaFile,
-  //       error: metaFileError,
-  //     }
-  //   }
-
-  //   const metaData = JSON.parse(await metaFile.text())
-
-  //   console.log(metaData)
-
-  //   return {
-  //     data,
-  //     error,
-  //   }
-  // }
-
   private prepareCodeFile(code: string, contentType: string): Blob {
     const beautifiedCode = beautifyCode(code)
 
@@ -477,19 +485,31 @@ export class CollectionService {
   }
 
   private prepareMetaData(
-    paths: string[],
+    paths: { add: string[]; remove: string[] },
     snippets: any,
+    removedSnippets?: any[],
     oldMetaData?: any,
   ): Blob {
     let metaData = {
-      paths,
+      paths: paths.add,
       snippets,
     }
 
     if (oldMetaData) {
       metaData = {
-        ...oldMetaData,
-        snippets,
+        paths: [
+          ...oldMetaData.paths.filter(
+            (item: string) => !paths.remove.includes(item),
+          ),
+          ...paths.add,
+        ],
+        snippets: [
+          ...oldMetaData.snippets.filter(
+            (item: any) =>
+              !removedSnippets?.some((removed) => removed.id === item.id),
+          ),
+          ...snippets,
+        ],
       }
     }
 

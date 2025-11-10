@@ -70,7 +70,12 @@
   const snippets = ref<any[]>([])
   const originalSnippets = ref<any[]>([])
   const selectedSnippets = ref<any[]>([])
+  const listByAction = ref({
+    add: [] as any[],
+    remove: [] as any[],
+  })
   const collectionCode = ref<any[]>([])
+  const removedCode = ref<any[]>([])
 
   const { data, refresh } = await useFetch<any>(
     `/api/collection/${params.collectionId}`,
@@ -100,17 +105,23 @@
         return
       }
 
-      originalSnippets.value = newData.snippets
-      selectedSnippets.value = newData.snippets
-
-      collectionCode.value = await Promise.all(
-        newData.snippets.map(async (item: any) => ({
-          id: item.id,
-          name: item.name,
-          slug: item.slug,
-          content: await getSnippetCode(item),
-        })),
+      originalSnippets.value = JSON.parse(
+        JSON.stringify(newData.snippets || []),
       )
+      selectedSnippets.value = JSON.parse(
+        JSON.stringify(newData.snippets || []),
+      )
+
+      collectionCode.value = newData.snippets
+        ? await Promise.all(
+            newData.snippets.map(async (item: any) => ({
+              id: item.id,
+              name: item.name,
+              slug: item.slug,
+              content: await getSnippetCode(item),
+            })),
+          )
+        : []
     },
     { immediate: true },
   )
@@ -137,12 +148,29 @@
       (item) => item.id !== selectedSnippet.id,
     )
 
+    if (
+      !originalSnippets.value.some((item) => item.id === selectedSnippet.id)
+    ) {
+      listByAction.value.add.push(selectedSnippet)
+    }
+
+    if (
+      listByAction.value.remove.some((item) => item.id === selectedSnippet.id)
+    ) {
+      listByAction.value.remove = listByAction.value.remove.filter(
+        (item) => item.id !== selectedSnippet.id,
+      )
+    }
+
     collectionCode.value.push({
       id: selectedSnippet.id,
       name: selectedSnippet.name,
       slug: selectedSnippet.slug,
       content: await getSnippetCode(selectedSnippet),
     })
+    removedCode.value = removedCode.value.filter(
+      (item) => item.id !== selectedSnippet.id,
+    )
   }
 
   async function deselectSnippet(snippet: any): Promise<void> {
@@ -150,10 +178,12 @@
       (item) => item.id !== snippet.id,
     )
     snippets.value.push(snippet)
+    listByAction.value.remove.push(snippet)
 
     collectionCode.value = collectionCode.value.filter(
       (item) => item.id !== snippet.id,
     )
+    removedCode.value.push(snippet)
   }
 
   async function getSnippetCode(snippet: any): Promise<string> {
@@ -217,12 +247,22 @@
           slug: params.collectionId,
           workspaceId: globalStore.activeWorkspace?.id,
           collectionCode: collectionCode.value.map((item) => ({
+            id: item.id,
             slug: item.slug,
             content: item.content,
           })),
-          snippets: selectedSnippets.value.map((item) => ({
+          removedCode: removedCode.value.map((item) => ({
             id: item.id,
+            slug: item.slug,
           })),
+          snippets: {
+            add: listByAction.value.add.map((item) => ({
+              id: item.id,
+            })),
+            remove: listByAction.value.remove.map((item) => ({
+              id: item.id,
+            })),
+          },
         },
       })
 
@@ -233,6 +273,10 @@
         icon: 'i-hugeicons-checkmark-circle-01',
         duration: 1500,
       })
+
+      removedCode.value = []
+      listByAction.value.add = []
+      listByAction.value.remove = []
     } catch (error: any) {
       toast.add({
         title: 'Oops',

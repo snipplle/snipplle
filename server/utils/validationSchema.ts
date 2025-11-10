@@ -75,15 +75,29 @@ export const updateCollectionSchema = z.object({
 
 export const uploadCollectionSchema = z.object({
   slug: z.string('Collection slug is required'),
-  snippets: z.array(
-    z.object({
-      id: z.string('Snippet ID is required'),
-    }),
-  ),
+  snippets: z.object({
+    add: z.array(
+      z.object({
+        id: z.string('Snippet ID is required'),
+      }),
+    ),
+    remove: z.array(
+      z.object({
+        id: z.string('Snippet ID is required'),
+      }),
+    ),
+  }),
   collectionCode: z.array(
     z.object({
+      id: z.string('Snippet ID is required'),
       slug: z.string('Snippet slug is required'),
       content: z.string('Snippet code is required'),
+    }),
+  ),
+  removedCode: z.array(
+    z.object({
+      id: z.string('Snippet ID is required'),
+      slug: z.string('Snippet slug is required'),
     }),
   ),
   workspaceId: z.string('Workspace ID is required'),

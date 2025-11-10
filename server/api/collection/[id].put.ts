@@ -6,7 +6,7 @@ import { uploadCollectionSchema } from '~~/server/utils/validationSchema'
 
 export default defineEventHandler(async (event) => {
   const { id } = await getRouterParams(event)
-  const { slug, workspaceId, snippets, collectionCode } =
+  const { slug, workspaceId, snippets, collectionCode, removedCode } =
     await readValidatedBody(event, uploadCollectionSchema.parse)
   const user = await serverSupabaseUser(event)
   const supabase = await serverSupabaseClient<Database>(event)
@@ -38,6 +38,7 @@ export default defineEventHandler(async (event) => {
     id,
     slug,
     collectionCode,
+    removedCode,
     snippets,
   })
 
