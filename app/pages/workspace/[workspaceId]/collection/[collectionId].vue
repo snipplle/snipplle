@@ -68,6 +68,7 @@
   const modal = overlay.create(LazyEditCollection)
 
   const snippets = ref<any[]>([])
+  const originalSnippets = ref<any[]>([])
   const selectedSnippets = ref<any[]>([])
   const collectionCode = ref<any[]>([])
 
@@ -99,6 +100,7 @@
         return
       }
 
+      originalSnippets.value = newData.snippets
       selectedSnippets.value = newData.snippets
 
       collectionCode.value = await Promise.all(
@@ -182,20 +184,31 @@
   }
 
   async function saveCollection(): Promise<void> {
-    // const joinedCode = Object.values(resultCode.value).join('\n')
-    // const escapedCode = minifyCode(joinedCode)
+    const isSame = (): boolean => {
+      if (selectedSnippets.value.length !== originalSnippets.value.length) {
+        return false
+      }
 
-    // if (!escapedCode.length) {
-    //   toast.add({
-    //     title: 'Oops',
-    //     description: 'Collection code is empty',
-    //     color: 'error',
-    //     icon: 'i-hugeicons-fire',
-    //     duration: 1500,
-    //   })
+      const selSnippetIds = new Set(selectedSnippets.value.map((i) => i.id))
+      const origSnippetIds = new Set(originalSnippets.value.map((i) => i.id))
 
-    //   return
-    // }
+      return (
+        selSnippetIds.size === origSnippetIds.size &&
+        [...selSnippetIds].every((id) => origSnippetIds.has(id))
+      )
+    }
+
+    if (selectedSnippets.value.length === 0 || isSame()) {
+      toast.add({
+        title: 'Oops',
+        description: 'Collection code is empty or not changed',
+        color: 'error',
+        icon: 'i-hugeicons-fire',
+        duration: 1500,
+      })
+
+      return
+    }
 
     try {
       await $fetch(`/api/collection/${data.value?.id}`, {
