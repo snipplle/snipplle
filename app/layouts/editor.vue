@@ -21,7 +21,7 @@
 
 <script setup lang="ts">
   defineProps<{
-    versions: any[]
+    versions?: any[]
     title?: string
     hasAccess?: boolean
   }>()

@@ -43,10 +43,11 @@
 <script setup lang="ts">
   const props = withDefaults(
     defineProps<{
-      versions: any[]
+      versions?: any[]
       hasAccess?: boolean
     }>(),
     {
+      versions: undefined,
       hasAccess: true,
     },
   )
