@@ -1,6 +1,6 @@
 <template>
   <ClientOnly>
-    <NuxtLayout name="preview" :title="collection?.name">
+    <NuxtLayout name="preview" :title="data?.name">
       <div class="flex flex-col sm:flex-row h-full">
         <SelectedSnippetList
           :selected-snippets="selectedSnippets"
@@ -10,17 +10,34 @@
 
         <USeparator :orientation="isMobile ? 'horizontal' : 'vertical'" />
 
-        <CodeViewer
-          :content="resultCode ? Object.values(resultCode).join('\n') : ''"
-          :extensions="extensions"
-          :styles="{
-            height: '100%',
-            fontSize: '12px',
-            overflow: 'auto',
-          }"
-          view="public-view"
-          class="w-full"
-        />
+        <div
+          v-if="collectionCode.length"
+          class="flex flex-col w-full overflow-auto"
+        >
+          <div
+            v-for="code in collectionCode"
+            :key="code.id"
+            class="flex flex-col h-full last:border-b-0 border-b border-neutral-800"
+          >
+            <div class="bg-neutral-900 border-b border-neutral-800 p-2">
+              <h1 class="text-sm font-bold">{{ code.name }}</h1>
+            </div>
+
+            <CodeViewer
+              :content="code.content"
+              :extensions="extensions"
+              :styles="{
+                height: '100%',
+                fontSize: '12px',
+                overflow: 'auto',
+              }"
+              view="public-view"
+              class="w-full"
+            />
+          </div>
+        </div>
+
+        <div v-else class="w-full bg-default"></div>
       </div>
     </NuxtLayout>
   </ClientOnly>
@@ -31,13 +48,12 @@
 
   const { params } = useRoute()
   const globalStore = useGlobalStore()
-  const { beautifyCode } = useCodeFormat()
   const isMobile = useMediaQuery('(max-width: 640px)')
 
   const selectedSnippets = ref<any[]>([])
-  const resultCode = ref()
+  const collectionCode = ref<any[]>([])
 
-  const { data: collection } = await useFetch<any>(
+  const { data } = await useFetch<any>(
     `/api/collection/${params.collectionId}`,
     {
       method: 'get',
@@ -47,36 +63,25 @@
     },
   )
 
-  const { data: collectionSnippets } = await useFetch<any>(
-    `/api/collection/${collection?.value?.id}/snippet`,
-    {
-      method: 'get',
-      query: {
-        workspaceId: globalStore.activeWorkspace?.id,
-      },
-    },
-  )
-
-  const extensions = [
-    catppuccinMocha,
-    languages[collection?.value?.language || 'js'],
-  ]
+  const extensions = [catppuccinMocha, languages[data?.value?.language || 'js']]
 
   watch(
-    () => collectionSnippets.value,
+    () => data.value,
     async (newData) => {
       if (!newData) {
         return
       }
 
-      selectedSnippets.value = newData
+      selectedSnippets.value = newData.snippets
 
-      for (const snippet of selectedSnippets.value) {
-        resultCode.value = {
-          ...resultCode.value,
-          [snippet.id]: await getSnippetCode(snippet),
-        }
-      }
+      collectionCode.value = await Promise.all(
+        newData.snippets.map(async (item: any) => ({
+          id: item.id,
+          name: item.name,
+          slug: item.slug,
+          content: await getSnippetCode(item),
+        })),
+      )
     },
     { immediate: true },
   )
@@ -87,6 +92,7 @@
       query: {
         snippetId: snippet.id,
         workspaceId: globalStore.activeWorkspace?.id,
+        path: snippet.path,
       },
     })
 
@@ -94,6 +100,6 @@
 
     const snippetCode = await response.text()
 
-    return beautifyCode(snippetCode)
+    return snippetCode
   }
 </script>
