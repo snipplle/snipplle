@@ -318,8 +318,6 @@ export class CollectionService {
       await this.snippetService.getSnippetsForCollection(payload.snippets.add)
 
     if ((filePaths.add.length && !snippets?.length) || snippetError) {
-      await this.removeCollectionFiles(payload.workspaceId, collection)
-
       return {
         data: snippets,
         error: snippetError || { message: 'No snippets found' },
@@ -345,8 +343,6 @@ export class CollectionService {
     )
 
     if (!metaFile || metaUploadError) {
-      await this.removeCollectionFiles(payload.workspaceId, collection)
-
       return {
         data: metaFile,
         error: metaUploadError,
@@ -366,8 +362,6 @@ export class CollectionService {
           .select()
 
       if (!collectionSnippets?.length || collectionSnippetError) {
-        await this.removeCollectionFiles(payload.workspaceId, collection)
-
         return {
           data: collectionSnippets,
           error: collectionSnippetError || { message: 'No snippets found' },
@@ -396,10 +390,7 @@ export class CollectionService {
     }
   }
 
-  async deleteCollection(
-    id: string,
-    userId: string,
-  ): Promise<DatabaseResponse<Tables<'collections'> | null>> {
+  async deleteCollection(id: string, userId: string): Promise<any> {
     const { data, error } = await this.supabase
       .from('collections')
       .delete()
@@ -408,14 +399,28 @@ export class CollectionService {
       .select()
       .single()
 
-    if (error) {
+    if (!data || error) {
       return {
         data,
         error,
       }
     }
 
-    await this.removeCollectionFiles(data.workspace_id, data)
+    if (data.path) {
+      const { data: metaFile, error: metaFileError } =
+        await this.storageService.download(data.path)
+
+      if (!metaFile || metaFileError) {
+        return {
+          data: metaFile,
+          error: metaFileError,
+        }
+      }
+
+      const metaData = JSON.parse(await metaFile.text())
+
+      await this.removeCollectionFiles([data.path, ...metaData.paths])
+    }
 
     return {
       data,
@@ -535,13 +540,7 @@ export class CollectionService {
     }
   }
 
-  private async removeCollectionFiles(
-    workspaceId: string,
-    collection: Tables<'collections'>,
-  ): Promise<void> {
-    await this.storageService.remove([
-      `${workspaceId}/collections/${collection.slug}/index.${collection.language}`,
-      `${workspaceId}/collections/${collection.slug}/meta.json`,
-    ])
+  private async removeCollectionFiles(paths: string[]): Promise<void> {
+    await this.storageService.remove(paths)
   }
 }
