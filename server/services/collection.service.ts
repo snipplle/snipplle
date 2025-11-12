@@ -244,6 +244,7 @@ export class CollectionService {
     }
 
     let metaData = null
+    const paths = []
 
     if (collection.path) {
       const { data: metaFile, error: metaFileError } =
@@ -257,11 +258,6 @@ export class CollectionService {
       }
 
       metaData = JSON.parse(await metaFile.text())
-    }
-
-    const filePaths = {
-      add: [] as string[],
-      remove: [] as string[],
     }
 
     for (const added of payload.snippets.add) {
@@ -278,22 +274,11 @@ export class CollectionService {
         contentTypes[collection.language],
       )
 
-      const { data: file, error: uploadError } = await this.uploadFile(
-        `${payload.workspaceId}/collections/${collection.slug}/${code.slug}.${collection.language}`,
-        codeFile,
-        {
-          contentType: contentTypes[collection.language],
-        },
-      )
-
-      if (!file || uploadError) {
-        return {
-          data: file,
-          error: uploadError,
-        }
-      }
-
-      filePaths.add.push(file.path)
+      paths.push({
+        action: 'add',
+        path: `${payload.workspaceId}/collections/${collection.slug}/${code.slug}.${collection.language}`,
+        file: codeFile,
+      })
     }
 
     for (const removed of payload.snippets.remove) {
@@ -305,19 +290,17 @@ export class CollectionService {
         continue
       }
 
-      await this.storageService.remove([
-        `${payload.workspaceId}/collections/${collection.slug}/${code.slug}.${collection.language}`,
-      ])
-
-      filePaths.remove.push(
-        `${payload.workspaceId}/collections/${collection.slug}/${code.slug}.${collection.language}`,
-      )
+      paths.push({
+        action: 'remove',
+        path: `${payload.workspaceId}/collections/${collection.slug}/${code.slug}.${collection.language}`,
+      })
     }
 
     const { data: snippets, error: snippetError } =
       await this.snippetService.getSnippetsForCollection(payload.snippets.add)
+    const addedExist = paths.filter((item) => item.action === 'add').length
 
-    if ((filePaths.add.length && !snippets?.length) || snippetError) {
+    if (addedExist && !snippets?.length) {
       return {
         data: snippets,
         error: snippetError || { message: 'No snippets found' },
@@ -325,31 +308,21 @@ export class CollectionService {
     }
 
     metaData = this.prepareMetaData(
-      filePaths,
+      paths.map((item) => ({
+        action: item.action,
+        path: item.path,
+      })),
       snippets,
       payload.snippets.remove,
       metaData,
     )
+    paths.push({
+      action: 'add',
+      path: `${payload.workspaceId}/collections/${collection.slug}/meta.json`,
+      file: metaData,
+    })
 
-    const { data: metaFile, error: metaUploadError } = await this.uploadFile(
-      collection.path
-        ? collection.path
-        : `${payload.workspaceId}/collections/${collection.slug}/meta.json`,
-      metaData,
-      {
-        contentType: contentTypes.json,
-        upsert: true,
-      },
-    )
-
-    if (!metaFile || metaUploadError) {
-      return {
-        data: metaFile,
-        error: metaUploadError,
-      }
-    }
-
-    if (filePaths.add.length && snippets?.length) {
+    if (addedExist && snippets?.length) {
       const { data: collectionSnippets, error: collectionSnippetError } =
         await this.supabase
           .from('collection_snippets')
@@ -381,8 +354,22 @@ export class CollectionService {
     }
 
     const { data, error } = await this.updateCollection(collection.id, {
-      path: metaFile.path,
+      path: `${payload.workspaceId}/collections/${collection.slug}/meta.json`,
     })
+
+    for (const path of paths.filter((item) => item.action === 'add')) {
+      const { data: file, error: uploadError } = await this.uploadFile(
+        path.path,
+        path.file as Blob,
+        {
+          contentType: contentTypes[collection.language],
+        },
+      )
+    }
+
+    const { data: file, error: uploadError } = await this.storageService.remove(
+      paths.filter((item) => item.action === 'remove').map((item) => item.path),
+    )
 
     return {
       data,
@@ -490,13 +477,16 @@ export class CollectionService {
   }
 
   private prepareMetaData(
-    paths: { add: string[]; remove: string[] },
+    paths: { action: string; path: string }[],
     snippets: any,
     removedSnippets?: any[],
     oldMetaData?: any,
   ): Blob {
+    const addedPaths = paths.filter((item) => item.action === 'add')
+    const removedPaths = paths.filter((item) => item.action === 'remove')
+
     let metaData = {
-      paths: paths.add,
+      paths: addedPaths.map((item) => item.path),
       snippets,
     }
 
@@ -504,9 +494,10 @@ export class CollectionService {
       metaData = {
         paths: [
           ...oldMetaData.paths.filter(
-            (item: string) => !paths.remove.includes(item),
+            (item: string) =>
+              !removedPaths.map((item) => item.path).includes(item),
           ),
-          ...paths.add,
+          ...addedPaths.map((item) => item.path),
         ],
         snippets: [
           ...oldMetaData.snippets.filter(
