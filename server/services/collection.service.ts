@@ -318,6 +318,7 @@ export class CollectionService {
     )
     paths.push({
       action: 'add',
+      type: 'meta',
       path: `${payload.workspaceId}/collections/${collection.slug}/meta.json`,
       file: metaData,
     })
@@ -363,13 +364,33 @@ export class CollectionService {
         path.file as Blob,
         {
           contentType: contentTypes[collection.language],
+          upsert: path.type === 'meta' ? true : false,
         },
       )
+
+      if (!file || uploadError) {
+        return {
+          data: file,
+          error: uploadError,
+        }
+      }
     }
 
-    const { data: file, error: uploadError } = await this.storageService.remove(
-      paths.filter((item) => item.action === 'remove').map((item) => item.path),
-    )
+    if (paths.filter((item) => item.action === 'remove').length) {
+      const { data: file, error: uploadError } =
+        await this.storageService.remove(
+          paths
+            .filter((item) => item.action === 'remove')
+            .map((item) => item.path),
+        )
+
+      if (!file || uploadError) {
+        return {
+          data: file,
+          error: uploadError,
+        }
+      }
+    }
 
     return {
       data,
