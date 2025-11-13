@@ -277,6 +277,7 @@
       removedCode.value = []
       listByAction.value.add = []
       listByAction.value.remove = []
+      originalSnippets.value = [...selectedSnippets.value]
     } catch (error: any) {
       toast.add({
         title: 'Oops',
