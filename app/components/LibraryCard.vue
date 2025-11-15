@@ -5,7 +5,7 @@
         body: 'p-0 sm:p-0',
       }"
       class="group cursor-pointer"
-      @click="openSnippet"
+      @click="openPreview"
     >
       <div class="w-full p-[3px]">
         <CodeViewer
@@ -151,11 +151,11 @@
     return tagList
   })
 
-  function openSnippet(): // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+  function openPreview(): // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
   Promise<void | NavigationFailure | false> | false | void | RouteLocationRaw {
-    const route = `/preview/${globalStore.activeWorkspace?.slug}/${props.is}/${props.data.slug}`
+    const route = `/preview/${props.data.workspaces.slug}/${props.is}/${props.data.slug}`
 
-    globalStore.setPreviewWorkspaceId(globalStore.activeWorkspace?.id || '')
+    globalStore.setPreviewWorkspaceId(props.data.workspace_id || '')
 
     return navigateTo(route)
   }
