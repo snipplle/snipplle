@@ -42,7 +42,11 @@
             />
           </div>
 
-          <AddMember v-if="hasAccess" :workspace-id="data?.id" />
+          <AddMember
+            v-if="hasAccess"
+            :workspace-id="data?.id"
+            @on-member-added="refresh"
+          />
         </div>
       </div>
 
@@ -93,7 +97,7 @@
     method: 'GET',
   })
 
-  const { data: members } = await useFetch('/api/workspace/member', {
+  const { data: members, refresh } = await useFetch('/api/workspace/member', {
     method: 'GET',
     params: {
       workspaceId: data.value?.id,

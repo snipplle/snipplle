@@ -64,6 +64,8 @@
     workspaceId: string | undefined
   }>()
 
+  const emits = defineEmits(['onMemberAdded'])
+
   const toast = useToast()
 
   const isOpen = ref(false)
@@ -97,6 +99,8 @@
 
       state.value.email = ''
       isOpen.value = false
+
+      emits('onMemberAdded')
     } catch (error: any) {
       toast.add({
         title: 'Oops',
