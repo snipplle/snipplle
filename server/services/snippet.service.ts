@@ -25,6 +25,7 @@ export class SnippetService {
       .from('snippets')
       .select(
         `*,
+        workspaces(slug),
       ${
         payload.tag
           ? `snippet_tags!inner(tags!inner(name, color))`

@@ -30,6 +30,7 @@ export class CollectionService {
       .select(
         `
       *,
+      workspaces(slug),
       ${
         payload.tag
           ? `collection_tags!inner(tags!inner(name, color))`
