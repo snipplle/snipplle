@@ -218,6 +218,13 @@
       "when": 1762718725244,
       "tag": "0030_FixedUniqueConstraint",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1763240480282,
+      "tag": "0031_UpdatedAuthFunctionParameters",
+      "breakpoints": true
     }
   ]
 }
