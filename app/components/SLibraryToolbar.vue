@@ -9,6 +9,9 @@
               side: 'bottom',
               align: 'start',
             }"
+            :ui="{
+              content: 'rounded-xl',
+            }"
           >
             <UButton
               icon="i-hugeicons-filter"
@@ -20,7 +23,7 @@
             </UButton>
 
             <template #content>
-              <div class="flex items-center p-2 space-x-1">
+              <div class="flex items-center p-1 space-x-1">
                 <USelectMenu
                   v-model="selectedLanguage"
                   :items="languages"

@@ -46,6 +46,13 @@ export default defineAppConfig({
       },
     },
 
+    selectMenu: {
+      slots: {
+        base: 'rounded-lg',
+        content: 'rounded-lg',
+      },
+    },
+
     checkbox: {
       slots: {
         base: 'cursor-pointer',
