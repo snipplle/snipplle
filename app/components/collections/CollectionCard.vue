@@ -113,6 +113,22 @@
 
   function openCollection(): // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
   Promise<void | NavigationFailure | false> | false | void | RouteLocationRaw {
+    globalStore.setSelectedJoinedWorkspace(undefined)
+
+    const activeWorkspace = globalStore.activeWorkspace
+    const collectionWorkspace = props.collection.workspace_id
+
+    if (activeWorkspace?.id !== collectionWorkspace) {
+      globalStore.setSelectedJoinedWorkspace({
+        id: collectionWorkspace,
+        slug: props.collection.workspaces.slug,
+      })
+
+      return navigateTo(
+        `/workspace/${props.collection.workspaces.slug}/collection/${props.collection.slug}`,
+      )
+    }
+
     return navigateTo(
       `/workspace/${globalStore.activeWorkspace?.slug}/collection/${props.collection.slug}`,
     )

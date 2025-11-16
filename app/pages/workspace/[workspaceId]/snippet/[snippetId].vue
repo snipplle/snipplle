@@ -42,7 +42,9 @@
     {
       method: 'get',
       query: {
-        workspaceId: globalStore.activeWorkspace?.id,
+        workspaceId: globalStore.selectedJoinedWorkspace
+          ? globalStore.selectedJoinedWorkspace.id
+          : globalStore.activeWorkspace?.id,
       },
     },
   )
@@ -51,7 +53,9 @@
     await useFetch<any>(`/api/snippet/version`, {
       method: 'get',
       query: {
-        workspaceId: globalStore.activeWorkspace?.id,
+        workspaceId: globalStore.selectedJoinedWorkspace
+          ? globalStore.selectedJoinedWorkspace.id
+          : globalStore.activeWorkspace?.id,
         snippetId: snippet.value?.id,
       },
     })
@@ -88,7 +92,9 @@
       method: 'get',
       query: {
         snippetId: snippet.value?.id,
-        workspaceId: globalStore.activeWorkspace?.id,
+        workspaceId: globalStore.selectedJoinedWorkspace
+          ? globalStore.selectedJoinedWorkspace.id
+          : globalStore.activeWorkspace?.id,
       },
     })
 
@@ -144,7 +150,9 @@
         method: 'PUT' as any,
         body: {
           slug: params.snippetId,
-          workspaceId: globalStore.activeWorkspace?.id,
+          workspaceId: globalStore.selectedJoinedWorkspace
+            ? globalStore.selectedJoinedWorkspace.id
+            : globalStore.activeWorkspace?.id,
           snippetCode: snippetCode.value,
           language: snippet.value?.language,
         },

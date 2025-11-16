@@ -82,7 +82,9 @@
     {
       method: 'get',
       query: {
-        workspaceId: globalStore.activeWorkspace?.id,
+        workspaceId: globalStore.selectedJoinedWorkspace
+          ? globalStore.selectedJoinedWorkspace.id
+          : globalStore.activeWorkspace?.id,
       },
     },
   )
@@ -191,7 +193,9 @@
       method: 'get',
       query: {
         snippetId: snippet.id,
-        workspaceId: globalStore.activeWorkspace?.id,
+        workspaceId: globalStore.selectedJoinedWorkspace
+          ? globalStore.selectedJoinedWorkspace.id
+          : globalStore.activeWorkspace?.id,
         path: snippet.path,
       },
     })
@@ -245,7 +249,9 @@
         method: 'PUT' as any,
         body: {
           slug: params.collectionId,
-          workspaceId: globalStore.activeWorkspace?.id,
+          workspaceId: globalStore.selectedJoinedWorkspace
+            ? globalStore.selectedJoinedWorkspace.id
+            : globalStore.activeWorkspace?.id,
           collectionCode: collectionCode.value.map((item) => ({
             id: item.id,
             slug: item.slug,

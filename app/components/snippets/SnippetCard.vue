@@ -156,6 +156,22 @@
 
   function openSnippet(): // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
   Promise<void | NavigationFailure | false> | false | void | RouteLocationRaw {
+    globalStore.setSelectedJoinedWorkspace(undefined)
+
+    const activeWorkspace = globalStore.activeWorkspace
+    const snippetWorkspace = props.snippet.workspace_id
+
+    if (activeWorkspace?.id !== snippetWorkspace) {
+      globalStore.setSelectedJoinedWorkspace({
+        id: snippetWorkspace,
+        slug: props.snippet.workspaces.slug,
+      })
+
+      return navigateTo(
+        `/workspace/${props.snippet.workspaces.slug}/snippet/${props.snippet.slug}`,
+      )
+    }
+
     return navigateTo(
       `/workspace/${globalStore.activeWorkspace?.slug}/snippet/${props.snippet.slug}`,
     )
