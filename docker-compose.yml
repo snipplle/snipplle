@@ -1,0 +1,18 @@
+services:
+  studio:
+    image: .
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    environment:
+      - SELF_HOSTED=${SELF_HOSTED}
+
+      - DATABASE_URL=${DATABASE_URL}
+
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
+
+      - GARBAGE_CLEANER_CRON=${GARBAGE_CLEANER_CRON}
+      - GARBAGE_CLEANER_FUNCTION=${GARBAGE_CLEANER_FUNCTION}
