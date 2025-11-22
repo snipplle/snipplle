@@ -1,4 +1,5 @@
 import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
+import { UsageService } from '~~/server/services/usage.service'
 import { WorkspaceService } from '~~/server/services/workspace.service'
 
 import type { Database } from '~~/server/types/database.types'
@@ -12,11 +13,22 @@ export default defineEventHandler(async (event) => {
   const user = await serverSupabaseUser(event)
   const supabase = await serverSupabaseClient<Database>(event)
   const workspaceService = new WorkspaceService(supabase)
+  const usageService = new UsageService(supabase)
 
   if (!user) {
     throw createError({
       statusCode: 401,
       statusMessage: 'Unauthorized',
+    })
+  }
+
+  const { data: isExceeded, error: verifyError } =
+    await usageService.verifyUsage(user?.id, 'team_members')
+
+  if (verifyError || isExceeded) {
+    throw createError({
+      statusCode: 403,
+      statusMessage: verifyError?.message || 'Usage limit exceeded',
     })
   }
 
@@ -45,6 +57,8 @@ export default defineEventHandler(async (event) => {
       statusMessage: error.message,
     })
   }
+
+  await usageService.incrementUsage(user?.id, 'team_members')
 
   return data
 })

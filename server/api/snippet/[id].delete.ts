@@ -1,5 +1,6 @@
 import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
 import { SnippetService } from '~~/server/services/snippet.service'
+import { UsageService } from '~~/server/services/usage.service'
 
 import type { Database } from '~~/server/types/database.types'
 
@@ -8,6 +9,7 @@ export default defineEventHandler(async (event) => {
   const user = await serverSupabaseUser(event)
   const supabase = await serverSupabaseClient<Database>(event)
   const snippetService = new SnippetService(supabase)
+  const usageService = new UsageService(supabase)
 
   if (!user) {
     throw createError({
@@ -24,6 +26,8 @@ export default defineEventHandler(async (event) => {
       statusMessage: error.message,
     })
   }
+
+  await usageService.decrementUsage(user.id, 'snippets')
 
   return {
     success: true,

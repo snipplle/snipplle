@@ -1,4 +1,5 @@
 import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
+import { UsageService } from '~~/server/services/usage.service'
 import { WorkspaceService } from '~~/server/services/workspace.service'
 
 import type { Database } from '~~/server/types/database.types'
@@ -12,6 +13,7 @@ export default defineEventHandler(async (event) => {
   const user = await serverSupabaseUser(event)
   const supabase = await serverSupabaseClient<Database>(event)
   const workspaceService = new WorkspaceService(supabase)
+  const usageService = new UsageService(supabase)
 
   if (!user) {
     throw createError({
@@ -35,6 +37,8 @@ export default defineEventHandler(async (event) => {
       statusMessage: error.message,
     })
   }
+
+  await usageService.decrementUsage(user?.id, 'team_members')
 
   return {
     success: true,

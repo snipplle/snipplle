@@ -1,6 +1,7 @@
 import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
 import { CollectionService } from '~~/server/services/collection.service'
 import { TagService } from '~~/server/services/tag.service'
+import { UsageService } from '~~/server/services/usage.service'
 
 import type { Database } from '~~/server/types/database.types'
 import { createCollectionSchema } from '~~/server/utils/validationSchema'
@@ -12,11 +13,22 @@ export default defineEventHandler(async (event) => {
   const supabase = await serverSupabaseClient<Database>(event)
   const tagService = new TagService(supabase)
   const collectionService = new CollectionService(supabase)
+  const usageService = new UsageService(supabase)
 
   if (!user?.id) {
     throw createError({
       statusCode: 401,
       statusMessage: 'Unauthorized',
+    })
+  }
+
+  const { data: isExceeded, error: verifyError } =
+    await usageService.verifyUsage(user?.id, 'collections')
+
+  if (verifyError || isExceeded) {
+    throw createError({
+      statusCode: 403,
+      statusMessage: verifyError?.message || 'Usage limit exceeded',
     })
   }
 
@@ -64,6 +76,8 @@ export default defineEventHandler(async (event) => {
   for (const tagId of tagIds) {
     await collectionService.createCollectionTag(data.id, tagId)
   }
+
+  await usageService.incrementUsage(user?.id, 'collections')
 
   return data
 })
