@@ -30,3 +30,12 @@ export interface StorageResponse<T> {
   data: T | null
   error: StorageError | null
 }
+
+export interface UsageKeys {
+  snippets: number
+  snippet_versions: number
+  collections: number
+  team_members: number
+  ai_requests: number
+  ai_tokens: number
+}
