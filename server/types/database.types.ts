@@ -445,11 +445,12 @@ export type Database = {
         Row: {
           ai_requests: number
           ai_tokens: number
-          collections: number
           created_at: string
           id: string
-          snippet_versions: number
-          snippets: number
+          private_collections: number
+          private_snippets: number
+          public_collections: number
+          public_snippets: number
           team_members: number
           updated_at: string
           user_id: string | null
@@ -457,11 +458,12 @@ export type Database = {
         Insert: {
           ai_requests?: number
           ai_tokens?: number
-          collections?: number
           created_at?: string
           id: string
-          snippet_versions?: number
-          snippets?: number
+          private_collections?: number
+          private_snippets?: number
+          public_collections?: number
+          public_snippets?: number
           team_members?: number
           updated_at?: string
           user_id?: string | null
@@ -469,11 +471,12 @@ export type Database = {
         Update: {
           ai_requests?: number
           ai_tokens?: number
-          collections?: number
           created_at?: string
           id?: string
-          snippet_versions?: number
-          snippets?: number
+          private_collections?: number
+          private_snippets?: number
+          public_collections?: number
+          public_snippets?: number
           team_members?: number
           updated_at?: string
           user_id?: string | null
