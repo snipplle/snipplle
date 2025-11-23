@@ -6,9 +6,10 @@ import { user } from './user'
 export const usage = pgTable('usages', {
   id: text('id').primaryKey().$defaultFn(createId),
   userId: text('user_id').references(() => user.id),
-  snippets: integer('snippets').default(0).notNull(),
-  snippetVersions: integer('snippet_versions').default(0).notNull(),
-  collections: integer('collections').default(0).notNull(),
+  public_snippets: integer('public_snippets').default(0).notNull(),
+  private_snippets: integer('private_snippets').default(0).notNull(),
+  public_collections: integer('public_collections').default(0).notNull(),
+  private_collections: integer('private_collections').default(0).notNull(),
   teamMembers: integer('team_members').default(0).notNull(),
   aiRequests: integer('ai_requests').default(0).notNull(),
   aiTokens: integer('ai_tokens').default(0).notNull(),

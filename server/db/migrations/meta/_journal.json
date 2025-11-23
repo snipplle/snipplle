@@ -225,6 +225,13 @@
       "when": 1763240480282,
       "tag": "0031_UpdatedAuthFunctionParameters",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1763925930637,
+      "tag": "0032_AddedAdditionalFieldsToUsage",
+      "breakpoints": true
     }
   ]
 }
