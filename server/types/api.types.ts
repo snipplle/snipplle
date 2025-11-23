@@ -32,9 +32,10 @@ export interface StorageResponse<T> {
 }
 
 export interface UsageKeys {
-  snippets: number
-  snippet_versions: number
-  collections: number
+  public_snippets: number
+  private_snippets: number
+  public_collections: number
+  private_collections: number
   team_members: number
   ai_requests: number
   ai_tokens: number
