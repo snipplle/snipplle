@@ -8,7 +8,8 @@ export interface UseLogout {
 }
 
 export interface UsePermission {
-  hasAccess: boolean
+  hasAccess: Ref<boolean>
+  refresh: () => Promise<void>
 }
 
 export interface UseCodeFormat {

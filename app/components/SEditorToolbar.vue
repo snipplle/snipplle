@@ -52,7 +52,13 @@
     },
   )
 
-  const { call } = useToolbarEvent()
+  const { call, listen } = useToolbarEvent()
+
+  const hasAccess = ref(props.hasAccess)
+
+  listen('toolbar:has-access', (newHasAccess) => {
+    hasAccess.value = newHasAccess[0]
+  })
 
   const versions = computed(() => {
     if (!props.versions) {

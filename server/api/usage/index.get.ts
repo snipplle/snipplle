@@ -3,7 +3,7 @@ import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
 import type { Database } from '~~/server/types/database.types'
 
 export default defineEventHandler(async (event) => {
-  const { scope } = getQuery(event)
+  const { scope, slug } = getQuery(event)
   const user = await serverSupabaseUser(event)
   const supabase = await serverSupabaseClient<Database>(event)
 
@@ -18,6 +18,9 @@ export default defineEventHandler(async (event) => {
     body: {
       userId: user.id,
       usageKey: scope,
+      meta: {
+        slug,
+      },
     },
   })
 

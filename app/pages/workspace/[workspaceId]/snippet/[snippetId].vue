@@ -27,9 +27,14 @@
   const overlay = useOverlay()
   const globalStore = useGlobalStore()
   const { minifyCode } = useCodeFormat()
-  const { listen } = useToolbarEvent()
+  const { call, listen } = useToolbarEvent()
   const toast = useToast()
-  const { hasAccess } = await usePermission('snippet_versions')
+  const { hasAccess, refresh: refreshPermission } = await usePermission(
+    'snippet_versions',
+    {
+      slug: (params.snippetId as string) || '',
+    },
+  )
 
   const modal = overlay.create(LazyEditSnippet)
 
@@ -167,6 +172,9 @@
       })
 
       refreshVersions()
+      refreshPermission().then(() => {
+        call('toolbar:has-access', hasAccess.value)
+      })
     } catch (error: any) {
       toast.add({
         title: 'Oops',

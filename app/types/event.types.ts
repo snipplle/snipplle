@@ -8,3 +8,4 @@ export type ToolbarEvent =
   | 'toolbar:filter-tag'
   | 'toolbar:search'
   | 'toolbar:change-language'
+  | 'toolbar:has-access'

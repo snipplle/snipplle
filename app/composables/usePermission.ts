@@ -1,28 +1,38 @@
 import type { UsePermission } from '@/types/global.types'
 
-export async function usePermission(scope: string): Promise<UsePermission> {
+export async function usePermission(
+  scope: string,
+  meta: Record<string, string> = {},
+): Promise<UsePermission> {
   const { SELF_HOSTED } = useRuntimeConfig().public
+  const hasAccess = ref(false)
 
   if (SELF_HOSTED === 'true') {
-    return {
-      hasAccess: true,
-    }
+    hasAccess.value = true
   }
 
-  const { data } = await useFetch('/api/usage', {
+  const { data, refresh } = await useFetch('/api/usage', {
     method: 'get',
     query: {
       scope,
+      ...meta,
     },
   })
 
-  if (!data.value?.isExceeded) {
-    return {
-      hasAccess: true,
-    }
-  }
+  watch(
+    data,
+    (newValue) => {
+      if (newValue?.isExceeded) {
+        hasAccess.value = false
+      } else {
+        hasAccess.value = true
+      }
+    },
+    { immediate: true, deep: true },
+  )
 
   return {
-    hasAccess: false,
+    hasAccess,
+    refresh,
   }
 }
