@@ -23,7 +23,10 @@ export default defineEventHandler(async (event) => {
   }
 
   const { data: isExceeded, error: verifyError } =
-    await usageService.verifyUsage(user?.id, 'snippets')
+    await usageService.verifyUsage(
+      user?.id,
+      isPublic ? 'public_snippets' : 'private_snippets',
+    )
 
   if (verifyError || isExceeded) {
     throw createError({
@@ -77,7 +80,10 @@ export default defineEventHandler(async (event) => {
     await snippetService.createSnippetTag(data.id, tagId)
   }
 
-  await usageService.incrementUsage(user?.id, 'snippets')
+  await usageService.incrementUsage(
+    user?.id,
+    isPublic ? 'public_snippets' : 'private_snippets',
+  )
 
   return data
 })

@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const { error } = await collectionService.deleteCollection(id, user.id)
+  const { data, error } = await collectionService.deleteCollection(id, user.id)
 
   if (error) {
     throw createError({
@@ -27,7 +27,10 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  await usageService.decrementUsage(user?.id, 'collections')
+  await usageService.decrementUsage(
+    user?.id,
+    data?.is_public ? 'public_collections' : 'private_collections',
+  )
 
   return {
     success: true,

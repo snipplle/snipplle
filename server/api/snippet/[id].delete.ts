@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const { error } = await snippetService.deleteSnippet(id, user.id)
+  const { data, error } = await snippetService.deleteSnippet(id, user.id)
 
   if (error) {
     throw createError({
@@ -27,7 +27,10 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  await usageService.decrementUsage(user.id, 'snippets')
+  await usageService.decrementUsage(
+    user.id,
+    data?.is_public ? 'public_snippets' : 'private_snippets',
+  )
 
   return {
     success: true,

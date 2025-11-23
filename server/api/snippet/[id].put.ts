@@ -38,7 +38,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const { data: isExceeded, error: verifyError } =
-    await usageService.verifyUsage(user?.id, 'snippets')
+    await usageService.verifyUsage(user?.id, 'snippet_versions', {
+      slug,
+    })
 
   if (verifyError || isExceeded) {
     throw createError({

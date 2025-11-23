@@ -12,7 +12,11 @@ export class UsageService {
     this.isSelfHostedInstance = config.SELF_HOSTED === 'true' ? true : false
   }
 
-  async verifyUsage(userId: string, usageKey: string): Promise<any> {
+  async verifyUsage(
+    userId: string,
+    usageKey: string,
+    meta?: Record<string, string>,
+  ): Promise<any> {
     if (this.isSelfHostedInstance) {
       return {
         data: false,
@@ -26,6 +30,7 @@ export class UsageService {
         body: {
           userId,
           usageKey,
+          meta,
         },
       },
     )
@@ -58,9 +63,10 @@ export class UsageService {
       .from('usages')
       .select(
         `
-        snippets,
-        snippet_versions,
-        collections,
+        public_snippets,
+        private_snippets,
+        public_collections,
+        private_collections,
         team_members,
         ai_requests,
         ai_tokens
@@ -113,9 +119,10 @@ export class UsageService {
       .from('usages')
       .select(
         `
-        snippets,
-        snippet_versions,
-        collections,
+        public_snippets,
+        private_snippets,
+        public_collections,
+        private_collections,
         team_members,
         ai_requests,
         ai_tokens

@@ -23,7 +23,10 @@ export default defineEventHandler(async (event) => {
   }
 
   const { data: isExceeded, error: verifyError } =
-    await usageService.verifyUsage(user?.id, 'collections')
+    await usageService.verifyUsage(
+      user?.id,
+      isPublic ? 'public_collections' : 'private_collections',
+    )
 
   if (verifyError || isExceeded) {
     throw createError({
@@ -77,7 +80,10 @@ export default defineEventHandler(async (event) => {
     await collectionService.createCollectionTag(data.id, tagId)
   }
 
-  await usageService.incrementUsage(user?.id, 'collections')
+  await usageService.incrementUsage(
+    user?.id,
+    isPublic ? 'public_collections' : 'private_collections',
+  )
 
   return data
 })
