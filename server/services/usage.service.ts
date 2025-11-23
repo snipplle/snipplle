@@ -4,12 +4,12 @@ import type { Database, Tables } from '../types/database.types'
 import type { DatabaseResponse, UsageKeys } from '../types/api.types'
 
 export class UsageService {
-  isSelfHostedInstance: string = ''
+  isSelfHostedInstance: boolean
 
   constructor(private supabase: SupabaseClient<Database>) {
     const config = useRuntimeConfig()
 
-    this.isSelfHostedInstance = config.SELF_HOSTED
+    this.isSelfHostedInstance = config.SELF_HOSTED === 'true' ? true : false
   }
 
   async verifyUsage(userId: string, usageKey: string): Promise<any> {
