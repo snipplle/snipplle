@@ -13,7 +13,7 @@
               v-for="collection in collections"
               :key="collection.id"
               :collection="collection"
-              :on-delete-refresh="refresh"
+              :on-delete-refresh="refreshAll"
             />
           </div>
 
@@ -55,7 +55,8 @@
 
 <script setup lang="ts">
   const { listen } = useToolbarEvent()
-  const { hasAccess } = await usePermission('collections')
+  const { hasAccess, refresh: refreshPermission } =
+    await usePermission('collections')
 
   const queryFields = ref({
     orderBy: 'date',
@@ -89,4 +90,9 @@
   listen('toolbar:search', (search: Record<string, string>) => {
     queryFields.value.search = search[0] as string
   })
+
+  function refreshAll(): void {
+    refreshPermission()
+    refresh()
+  }
 </script>
