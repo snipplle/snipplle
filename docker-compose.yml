@@ -5,6 +5,9 @@ services:
     ports:
       - 127.0.0.1:3000:3000
     environment:
+      - HOST=${HOST}
+      - PORT=${PORT}
+    
       - SELF_HOSTED=${SELF_HOSTED}
 
       - DATABASE_URL=${DATABASE_URL}
