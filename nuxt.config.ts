@@ -123,6 +123,39 @@ export default defineNuxtConfig({
   },
 
   security: {
-    enabled: false,
+    corsHandler: {
+      origin: '*',
+    },
+    headers: {
+      contentSecurityPolicy: {
+        'img-src': [
+          "'self'",
+          'https:',
+          'data:',
+          'blob:',
+          'https://*.stripe.com',
+        ],
+        'font-src': ["'self'", 'https:', 'data:', 'https://js.stripe.com'],
+        'script-src': [
+          "'self'",
+          'https://connect-js.stripe.com',
+          'https://js.stripe.com',
+          "'unsafe-inline'",
+        ],
+        'style-src': [
+          "'self'",
+          'https:',
+          'sha256-0hAheEzaMe6uXIKV4EehS9pu1am1lj/KnnzrOYqckXk=',
+          "'unsafe-inline'",
+        ],
+      },
+      permissionsPolicy: {
+        fullscreen: ['*'],
+      },
+      crossOriginResourcePolicy: 'cross-origin',
+      crossOriginEmbedderPolicy: 'unsafe-none',
+      crossOriginOpenerPolicy: 'unsafe-none',
+    },
+    rateLimiter: false,
   },
 })
