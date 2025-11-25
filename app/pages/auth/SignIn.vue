@@ -82,6 +82,7 @@
 
   type size = 'lg' | 'xs' | 'sm' | 'md' | 'xl' | undefined
 
+  const config = useRuntimeConfig()
   const supabase = useSupabaseClient()
   const toast = useToast()
 
@@ -120,7 +121,7 @@
         await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: 'http://localhost:3000/auth/callback',
+            redirectTo: `${config.public.BASE_URL}/auth/confirm`,
           },
         })
       },
@@ -133,7 +134,7 @@
         await supabase.auth.signInWithOAuth({
           provider: 'github',
           options: {
-            redirectTo: 'http://localhost:3000/auth/callback',
+            redirectTo: `${config.public.BASE_URL}/auth/confirm`,
           },
         })
       },
