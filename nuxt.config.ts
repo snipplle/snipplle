@@ -35,6 +35,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     DATABASE_URL: process.env.DATABASE_URL || '',
+    BASE_URL: process.env.BASE_URL || '',
     SELF_HOSTED: process.env.SELF_HOSTED,
     SUPABASE_URL: process.env.SUPABASE_URL || '',
     SUPABASE_KEY: process.env.SUPABASE_KEY || '',
@@ -43,6 +44,7 @@ export default defineNuxtConfig({
     GARBAGE_CLEANER_FUNCTION: process.env.GARBAGE_CLEANER_FUNCTION || '',
 
     public: {
+      BASE_URL: process.env.BASE_URL || '',
       SELF_HOSTED: process.env.SELF_HOSTED,
     },
   },
