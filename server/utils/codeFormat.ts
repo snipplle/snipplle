@@ -27,4 +27,5 @@ export const contentTypes: Record<string, string> = {
   go: 'text/x-go',
   rs: 'text/rust',
   java: 'text/x-java-source',
+  vue: 'text/x-vue',
 }

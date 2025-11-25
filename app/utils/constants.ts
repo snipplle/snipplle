@@ -81,6 +81,10 @@ export const language: Record<string, any> = {
     label: 'Java',
     color: 'orange',
   },
+  vue: {
+    label: 'Vue',
+    color: 'green',
+  },
 }
 
 export const languageOptions = Object.entries(language).map(([key, value]) => ({

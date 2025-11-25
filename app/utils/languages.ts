@@ -11,6 +11,7 @@ import { go } from '@codemirror/lang-go'
 import { php } from '@codemirror/lang-php'
 import { html } from '@codemirror/lang-html'
 import { css } from '@codemirror/lang-css'
+import { vue } from '@codemirror/lang-vue'
 
 export const languages: Record<string, any> = {
   js: javascript(),
@@ -27,4 +28,5 @@ export const languages: Record<string, any> = {
   php: php(),
   html: html(),
   css: css(),
+  vue: vue(),
 }
