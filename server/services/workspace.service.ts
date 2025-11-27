@@ -122,6 +122,22 @@ export class WorkspaceService {
     }
   }
 
+  async getOwner(
+    workspaceId: string,
+  ): Promise<DatabaseResponse<Partial<Tables<'workspace_members'>> | null>> {
+    const { data, error } = await this.supabase
+      .from('workspace_members')
+      .select('user_id')
+      .eq('workspace_id', workspaceId)
+      .eq('role', 'owner')
+      .single()
+
+    return {
+      data,
+      error,
+    }
+  }
+
   async getMembers(workspaceId: string): Promise<
     DatabaseResponse<
       | (Tables<'workspace_members'> & {
