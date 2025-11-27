@@ -16,6 +16,10 @@ export const removeMemberSchema = z.object({
   userId: z.string('User ID is required'),
 })
 
+export const leaveWorkspaceSchema = z.object({
+  workspaceId: z.string('Workspace ID is required'),
+})
+
 export const createSnippetSchema = z.object({
   name: z
     .string('Snippet name is required')
