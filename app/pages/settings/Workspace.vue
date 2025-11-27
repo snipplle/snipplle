@@ -39,13 +39,14 @@
               :member="member"
               :workspace-id="data?.id"
               :user-id="user?.id"
+              @on-member-removed="refreshMembers"
             />
           </div>
 
           <AddMember
             v-if="hasAccess"
             :workspace-id="data?.id"
-            @on-member-added="refresh"
+            @on-member-added="refreshMembers"
           />
         </div>
       </div>
@@ -69,6 +70,7 @@
               v-for="workspace in joinedWorkspaces"
               :key="workspace.id"
               :workspace="workspace"
+              @on-workspace-left="refreshWorkspaces"
             />
           </div>
 
@@ -97,16 +99,22 @@
     method: 'GET',
   })
 
-  const { data: members, refresh } = await useFetch('/api/workspace/member', {
-    method: 'GET',
-    params: {
-      workspaceId: data.value?.id,
+  const { data: members, refresh: refreshMembers } = await useFetch(
+    '/api/workspace/member',
+    {
+      method: 'GET',
+      params: {
+        workspaceId: data.value?.id,
+      },
     },
-  })
+  )
 
-  const { data: workspaces } = await useFetch('/api/workspace/joined', {
-    method: 'GET',
-  })
+  const { data: workspaces, refresh: refreshWorkspaces } = await useFetch(
+    '/api/workspace/joined',
+    {
+      method: 'GET',
+    },
+  )
 
   const joinedWorkspaces = computed(() => {
     return (
