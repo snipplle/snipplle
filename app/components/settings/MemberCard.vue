@@ -27,6 +27,8 @@
     userId: string | undefined
   }>()
 
+  const emits = defineEmits(['onMemberRemoved'])
+
   const toast = useToast()
 
   async function removeMember(userId: string): Promise<void> {
@@ -38,6 +40,8 @@
           userId,
         },
       })
+
+      emits('onMemberRemoved')
 
       toast.add({
         title: 'Success',
