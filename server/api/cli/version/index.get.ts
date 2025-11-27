@@ -23,19 +23,21 @@ export default defineEventHandler(async (event) => {
   const snippetService = new SnippetService(supabase)
 
   if (!token) {
-    throw createError({
+    return {
+      error: true,
       statusCode: 401,
       statusMessage: 'Missing authorization token',
-    })
+    }
   }
 
   const { data: auth, error: authError } = await supabase.auth.getUser(token)
 
   if (!auth?.user || authError) {
-    throw createError({
+    return {
+      error: true,
       statusCode: 401,
       statusMessage: 'Unauthorized',
-    })
+    }
   }
 
   const [workspaceSlug, snippetSlug] = (snippet as string).split('/')
@@ -44,10 +46,11 @@ export default defineEventHandler(async (event) => {
     await workspaceService.getWorkspaceBySlug(workspaceSlug)
 
   if (!workspace || workspaceError) {
-    throw createError({
+    return {
+      error: true,
       statusCode: 400,
       statusMessage: workspaceError?.message,
-    })
+    }
   }
 
   const { data: snippetData, error: snippetError } =
@@ -57,10 +60,26 @@ export default defineEventHandler(async (event) => {
     })
 
   if (!snippetData || snippetError) {
-    throw createError({
+    return {
+      error: true,
       statusCode: 400,
       statusMessage: snippetError?.message,
-    })
+    }
+  }
+
+  if (!snippetData.is_public) {
+    const { hasAccess } = await workspaceService.checkMember(
+      workspace.id,
+      auth.user.id,
+    )
+
+    if (!hasAccess) {
+      return {
+        error: true,
+        statusCode: 400,
+        statusMessage: 'You do not have access to this snippet',
+      }
+    }
   }
 
   const { data, error } = await snippetService.getSnippetVersions(
@@ -69,10 +88,11 @@ export default defineEventHandler(async (event) => {
   )
 
   if (error) {
-    throw createError({
+    return {
+      error: true,
       statusCode: 400,
       statusMessage: error.message,
-    })
+    }
   }
 
   return data

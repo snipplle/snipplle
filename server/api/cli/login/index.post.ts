@@ -17,10 +17,11 @@ export default defineEventHandler(async (event) => {
     .single()
 
   if (error) {
-    throw createError({
+    return {
+      error: true,
       statusCode: 500,
       statusMessage: error.message,
-    })
+    }
   }
 
   const authToken = jwt.sign(

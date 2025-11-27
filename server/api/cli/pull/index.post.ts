@@ -25,19 +25,21 @@ export default defineEventHandler(async (event) => {
   const collectionService = new CollectionService(supabase)
 
   if (!token) {
-    throw createError({
+    return {
+      error: true,
       statusCode: 401,
       statusMessage: 'Missing authorization token',
-    })
+    }
   }
 
   const { data: auth, error: authError } = await supabase.auth.getUser(token)
 
   if (!auth?.user || authError) {
-    throw createError({
+    return {
+      error: true,
       statusCode: 401,
       statusMessage: 'Unauthorized',
-    })
+    }
   }
 
   if (snippetPath) {
@@ -48,23 +50,26 @@ export default defineEventHandler(async (event) => {
       await workspaceService.getWorkspaceBySlug(workspaceSlug)
 
     if (!workspace || workspaceError) {
-      throw createError({
+      return {
+        error: true,
         statusCode: 400,
         statusMessage: workspaceError?.message,
-      })
+      }
     }
 
     const { data, error } = await snippetService.pullSnippet(
       workspace.id,
       snippetSlug,
       version || 'latest',
+      auth.user.id,
     )
 
     if (error) {
-      throw createError({
+      return {
+        error: true,
         statusCode: 400,
         statusMessage: error.message,
-      })
+      }
     }
 
     return {
@@ -78,10 +83,11 @@ export default defineEventHandler(async (event) => {
     await workspaceService.getWorkspaceBySlug(workspaceSlug)
 
   if (!workspace || workspaceError) {
-    throw createError({
+    return {
+      error: true,
       statusCode: 400,
       statusMessage: workspaceError?.message,
-    })
+    }
   }
 
   const { data, error } = await collectionService.pullCollection(
@@ -90,10 +96,11 @@ export default defineEventHandler(async (event) => {
   )
 
   if (error) {
-    throw createError({
+    return {
+      error: true,
       statusCode: 400,
       statusMessage: error.message,
-    })
+    }
   }
 
   return {

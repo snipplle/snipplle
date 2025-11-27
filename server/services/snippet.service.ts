@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { createId } from '@paralleldrive/cuid2'
 import slugify from 'slugify'
 
+import { WorkspaceService } from './workspace.service'
 import { StorageService } from './storage.service'
 
 import { orderByMap } from '../utils/order'
@@ -11,9 +12,11 @@ import type { Database, Tables } from '../types/database.types'
 import type { DatabaseResponse, StorageData } from '../types/api.types'
 
 export class SnippetService {
+  private workspaceService: WorkspaceService
   private storageService: StorageService
 
   constructor(private supabase: SupabaseClient<Database>) {
+    this.workspaceService = new WorkspaceService(supabase)
     this.storageService = new StorageService(supabase)
   }
 
@@ -444,6 +447,7 @@ export class SnippetService {
     workspaceId: string,
     snippetSlug: string,
     versionTag: string,
+    userId: string,
   ): Promise<any> {
     const { data: snippet, error: snippetError } = await this.getSnippet({
       workspaceId,
@@ -451,10 +455,40 @@ export class SnippetService {
     })
 
     if (snippetError) {
-      throw createError({
-        statusCode: 400,
-        message: snippetError.message,
-      })
+      return {
+        data: null,
+        error: createError({
+          statusCode: 400,
+          message: snippetError.message,
+        }),
+      }
+    }
+
+    if (!snippet.is_public) {
+      const { hasAccess } = await this.workspaceService.checkMember(
+        workspaceId,
+        userId,
+      )
+
+      if (!hasAccess) {
+        return {
+          data: null,
+          error: createError({
+            statusCode: 400,
+            message: 'You do not have access to this snippet',
+          }),
+        }
+      }
+    }
+
+    if (!snippet.path) {
+      return {
+        data: null,
+        error: createError({
+          statusCode: 400,
+          message: 'Snippet has no content yet',
+        }),
+      }
     }
 
     const { data: metaFile, error: metaFileError } =
@@ -491,7 +525,7 @@ export class SnippetService {
     if (!data || error) {
       return {
         data,
-        error: error,
+        error,
       }
     }
 

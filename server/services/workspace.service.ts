@@ -183,4 +183,28 @@ export class WorkspaceService {
       error,
     }
   }
+
+  async checkMember(
+    workspaceId: string,
+    userId: string,
+  ): Promise<{
+    hasAccess: boolean
+  }> {
+    const { data, error } = await this.supabase
+      .from('workspace_members')
+      .select('id')
+      .eq('workspace_id', workspaceId)
+      .eq('user_id', userId)
+      .single()
+
+    if (!data || error) {
+      return {
+        hasAccess: false,
+      }
+    }
+
+    return {
+      hasAccess: true,
+    }
+  }
 }

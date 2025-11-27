@@ -10,46 +10,61 @@ export default defineEventHandler(async (event) => {
   const workspaceService = new WorkspaceService(supabase)
 
   if (!token) {
-    throw createError({
+    return {
+      error: true,
       statusCode: 401,
       statusMessage: 'Missing authorization token',
-    })
+    }
   }
 
   const { data, error } = await supabase.auth.getUser(token)
 
   if (!data?.user || error) {
-    throw createError({
+    return {
+      error: true,
       statusCode: 401,
       statusMessage: 'Unauthorized',
-    })
+    }
   }
 
   const { data: mainWorkspace, error: mainWorkspaceError } =
     await workspaceService.getWorkspaceBySlug(mainWorkspaceSlug as string)
 
   if (!mainWorkspace || mainWorkspaceError) {
-    throw createError({
+    return {
+      error: true,
       statusCode: 400,
       statusMessage: mainWorkspaceError?.message,
-    })
+    }
   }
 
-  let additionalWorkspaces
+  let additionalWorkspaces = []
 
   if (additionalWorkspaceSlugs || additionalWorkspaceSlugs.length) {
     additionalWorkspaces = await Promise.all(
       additionalWorkspaceSlugs.map(async (slug: string) => {
-        const { data, error } = await workspaceService.getWorkspaceBySlug(slug)
+        const { data: workspace, error } =
+          await workspaceService.getWorkspaceBySlug(slug)
 
-        if (!data || error) {
-          return
+        if (!workspace || error) {
+          return null
         }
 
-        return data
+        const { hasAccess } = await workspaceService.checkMember(
+          workspace.id,
+          data.user.id,
+        )
+
+        if (!hasAccess) {
+          return null
+        }
+
+        return workspace
       }),
     )
   }
+
+  additionalWorkspaces = additionalWorkspaces.filter(Boolean)
 
   return {
     mainWorkspace,
