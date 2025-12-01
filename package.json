@@ -13,6 +13,8 @@
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.940.0",
+    "@aws-sdk/s3-request-presigner": "^3.940.0",
     "@catppuccin/codemirror": "^1.0.1",
     "@codemirror/lang-css": "^6.3.1",
     "@codemirror/lang-go": "^6.0.1",
@@ -41,6 +43,7 @@
     "@types/node": "^24.5.2",
     "@vueuse/core": "^13.9.0",
     "@vueuse/nuxt": "^13.9.0",
+    "better-auth": "^1.4.3",
     "codemirror": "^6.0.2",
     "drizzle-orm": "^0.44.5",
     "eslint": "^9.36.0",
