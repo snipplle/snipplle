@@ -5,7 +5,7 @@ import { workspaceMember } from './workspaceMember'
 import { snippet } from './snippet'
 import { collection } from './collection'
 import { tag } from './tag'
-import { apiToken } from './apiToken'
+import { apikey } from './apiKey'
 
 export const workspace = pgTable('workspaces', {
   id: text('id').primaryKey().$defaultFn(createId),
@@ -20,5 +20,5 @@ export const workspaceRelations = relations(workspace, ({ many }) => ({
   snippets: many(snippet),
   collections: many(collection),
   tags: many(tag),
-  apiTokens: many(apiToken),
+  apiKeys: many(apikey),
 }))
