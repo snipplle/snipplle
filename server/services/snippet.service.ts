@@ -1,4 +1,3 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { createId } from '@paralleldrive/cuid2'
 import slugify from 'slugify'
 
@@ -8,292 +7,252 @@ import { StorageService } from './storage.service'
 import { orderByMap } from '../utils/order'
 import { contentTypes } from '../utils/codeFormat'
 
-import type { Database, Tables } from '../types/database.types'
-import type { DatabaseResponse, StorageData } from '../types/api.types'
+import type { SnippetVersion } from '../types/api.types'
+import { snippet, snippetGarbage, snippetTag } from '../db/schema'
+import type { InferSelectModel } from 'drizzle-orm'
 
 export class SnippetService {
-  private workspaceService: WorkspaceService
-  private storageService: StorageService
+  private workspaceService: WorkspaceService = new WorkspaceService()
+  private storageService: StorageService = new StorageService()
+  private db = useDrizzle()
 
-  constructor(private supabase: SupabaseClient<Database>) {
-    this.workspaceService = new WorkspaceService(supabase)
-    this.storageService = new StorageService(supabase)
-  }
-
-  async getSnippets(payload: any): Promise<DatabaseResponse<any[] | null>> {
+  async getSnippets(payload: any): Promise<{
+    data: InferSelectModel<typeof snippet>[]
+    count: number
+  }> {
     const from = (Number(payload.page) - 1) * Number(payload.itemsPerPage)
     const to = from + Number(payload.itemsPerPage) - 1
 
-    const query = this.supabase
-      .from('snippets')
-      .select(
-        `*,
-        workspaces(slug),
-      ${
-        payload.tag
-          ? `snippet_tags!inner(tags!inner(name, color))`
-          : `snippet_tags(
-        tags(name, color)
-      )`
-      }`,
-        { count: 'exact' },
-      )
-      .range(from, to)
+    const snippetsData = await this.db.query.snippet.findMany({
+      where: (snippet, { and, eq, ilike, inArray, isNotNull }) => {
+        const conditions = []
 
-    if (payload.workspaceIds) {
-      query.in(
-        'workspace_id',
-        payload.workspaceIds.map((workspace: any) => workspace.workspace_id),
-      )
-    }
+        if (payload.workspaceIds?.length) {
+          const ids = payload.workspaceIds.map(
+            (workspace: any) => workspace.workspaceId,
+          )
+          conditions.push(inArray(snippet.workspaceId, ids))
+        }
 
-    if (payload.orderBy) {
-      const order = orderByMap[payload.orderBy as string]
+        if (payload.lang) {
+          conditions.push(eq(snippet.language, payload.lang))
+        }
 
-      query.order(order.field, {
-        ascending: order.ascending,
-      })
-    }
+        if (payload.search) {
+          conditions.push(ilike(snippet.name, `%${payload.search}%`))
+        }
 
-    if (payload.lang) {
-      query.eq('language', payload.lang as string)
-    }
+        if (payload.onlyPublic) {
+          conditions.push(eq(snippet.isPublic, true), isNotNull(snippet.path))
+        }
 
-    if (payload.tag) {
-      query.eq('snippet_tags.tags.name', payload.tag as string)
-    }
+        return conditions.length ? and(...conditions) : undefined
+      },
 
-    if (payload.search) {
-      query.ilike('name', `%${payload.search}%`)
-    }
+      limit: to - from + 1,
+      offset: from,
 
-    if (payload.onlyPublic) {
-      query.eq('is_public', true)
-    }
+      orderBy: (snippet, { asc, desc }) => {
+        const order = orderByMap[payload.orderBy ?? 'name']
 
-    const { data, count, error } = await query
+        return order.ascending
+          ? asc((snippet as any)[order.field])
+          : desc((snippet as any)[order.field])
+      },
+
+      with: {
+        workspace: true,
+        snippetTags: {
+          with: {
+            tag: true,
+          },
+        },
+      },
+    })
+
+    const count = !payload.onlyPublic
+      ? await this.db.$count(
+          snippet,
+          inArray(
+            snippet.workspaceId,
+            payload.workspaceIds.map((workspace: any) => workspace.workspaceId),
+          ),
+        )
+      : await this.db.$count(
+          snippet,
+          and(eq(snippet.isPublic, true), isNotNull(snippet.path)),
+        )
 
     return {
-      data,
+      data: snippetsData,
       count,
-      error,
     }
   }
 
   async getSnippetsForCollection(
     snippets: any[],
-  ): Promise<DatabaseResponse<any[] | null>> {
-    const { data, error } = await this.supabase
-      .from('snippets')
-      .select()
-      .in(
-        'id',
-        snippets.map((snippet) => snippet.id),
-      )
+  ): Promise<InferSelectModel<typeof snippet>[]> {
+    const snippetData = await this.db.query.snippet.findMany({
+      where: (snippet, { inArray }) =>
+        inArray(
+          snippet.id,
+          snippets.map((snippet) => snippet.id),
+        ),
+    })
 
-    if (!data || error) {
-      return {
-        data,
-        error,
-      }
-    }
-
-    for (const snippet of data) {
+    for (const snippet of snippetData) {
       if (!snippet.path) {
         continue
       }
 
-      const { data: metaFile } = await this.storageService.download(
-        snippet.path,
-      )
+      const metaFile = await this.storageService.download(snippet.path)
 
       if (!metaFile) {
         continue
       }
 
-      const metaData = JSON.parse(await metaFile.text())
+      const metaData = JSON.parse(metaFile)
 
       snippet.path = metaData?.versions.find(
         (version: any) => version.v === metaData.latest,
       )?.path
     }
 
-    return {
-      data,
-      error,
-    }
+    return snippetData
   }
 
-  async getSnippet(payload: any): Promise<DatabaseResponse<any | null>> {
-    const query = this.supabase
-      .from('snippets')
-      .select()
-      .eq('workspace_id', payload.workspaceId as string)
+  async getSnippet(payload: any): Promise<
+    | (InferSelectModel<typeof snippet> & {
+        snippet_file?: string | null
+      })
+    | undefined
+  > {
+    const snippetData = await this.db.query.snippet.findFirst({
+      where: (snippet, { and, eq }) => {
+        const conditions = []
 
-    if (payload.slug) {
-      query.eq('slug', payload.slug)
+        if (payload.workspaceId) {
+          conditions.push(eq(snippet.workspaceId, payload.workspaceId))
+        }
+
+        if (payload.slug) {
+          conditions.push(eq(snippet.slug, payload.slug))
+        }
+
+        if (payload.id) {
+          conditions.push(eq(snippet.id, payload.id))
+        }
+
+        return conditions.length ? and(...conditions) : undefined
+      },
+    })
+
+    if (!payload.withUrl || !snippetData?.path) {
+      return snippetData
     }
 
-    if (payload.id) {
-      query.eq('id', payload.id)
-    }
-
-    const { data, error } = await query.single()
-
-    if (error) {
-      return {
-        data,
-        error,
-      }
-    }
-
-    if (!payload.withUrl || !data.path) {
-      return {
-        data,
-        error,
-      }
-    }
-
-    const { data: metaFile } = await this.storageService.download(data.path)
+    const metaFile = await this.storageService.download(snippetData.path)
 
     if (!metaFile) {
-      return {
-        data,
-        error,
-      }
+      return snippetData
     }
 
-    const metaData = JSON.parse(await metaFile.text())
+    const metaData = JSON.parse(metaFile)
     let snippetFile
 
     if (metaData) {
-      const { data: file } = await this.storageService.getSignedUrl(
+      const file = await this.storageService.getSignedUrl(
         metaData.versions.find((version: any) => version.v === metaData.latest)
           ?.path,
       )
 
-      snippetFile = (file as StorageData)?.signedUrl
+      snippetFile = file
     }
 
     return {
-      data: {
-        ...data,
-        snippet_file: snippetFile,
-      },
-      error,
+      ...snippetData,
+      snippet_file: snippetFile,
     }
   }
 
   async createSnippet(
-    snippet: any,
+    payload: any,
     userId: string,
     workspaceId: string,
-  ): Promise<DatabaseResponse<Tables<'snippets'> | null>> {
-    const { data, error } = await this.supabase
-      .from('snippets')
-      .insert({
-        id: createId(),
-        name: snippet.name,
-        slug: slugify(snippet.name, {
+  ): Promise<InferSelectModel<typeof snippet>> {
+    const snippetData = await this.db
+      .insert(snippet)
+      .values({
+        name: payload.name,
+        slug: slugify(payload.name, {
           lower: true,
           remove: /[*+~.()'"!:@]/g,
         }),
-        language: snippet.language,
-        description: snippet.description,
-        is_public: snippet.isPublic,
-        created_by: userId,
-        workspace_id: workspaceId,
+        language: payload.language,
+        description: payload.description,
+        isPublic: payload.isPublic,
+        createdBy: userId,
+        workspaceId: workspaceId,
       })
-      .select()
-      .single()
+      .returning()
 
-    return {
-      data,
-      error,
-    }
+    return snippetData[0]
   }
 
   async updateSnippet(
     id: string,
     payload: any,
-  ): Promise<DatabaseResponse<Tables<'snippets'> | null>> {
-    const { data, error } = await this.supabase
-      .from('snippets')
-      .update(payload)
-      .eq('id', id)
-      .select()
-      .single()
+  ): Promise<InferSelectModel<typeof snippet>> {
+    const snippetData = await this.db
+      .update(snippet)
+      .set(payload)
+      .where(eq(snippet.id, id))
+      .returning()
 
-    return {
-      data,
-      error,
-    }
+    return snippetData[0]
   }
 
   async createSnippetTag(
     snippetId: string,
     tagId: string,
-  ): Promise<DatabaseResponse<Tables<'snippet_tags'> | null>> {
-    const { data, error } = await this.supabase
-      .from('snippet_tags')
-      .insert({
-        snippet_id: snippetId,
-        tag_id: tagId,
+  ): Promise<InferSelectModel<typeof snippetTag>> {
+    const snippetTagData = await this.db
+      .insert(snippetTag)
+      .values({
+        snippetId,
+        tagId,
       })
-      .select()
-      .single()
+      .returning()
 
-    return {
-      data,
-      error,
-    }
+    return snippetTagData[0]
   }
 
   async getSnippetVersions(
     workspaceId: string,
     snippetId: string,
-  ): Promise<any> {
-    const { data: snippet, error: snippetError } = await this.getSnippet({
+  ): Promise<SnippetVersion[] | null> {
+    const snippetData = await this.getSnippet({
       workspaceId,
       id: snippetId,
     })
 
-    if (snippetError) {
-      return {
-        data: snippet,
-        error: snippetError,
-      }
+    if (!snippetData?.path) {
+      return []
     }
 
-    if (!snippet.path) {
-      return {
-        data: [],
-        error: null,
-      }
+    const metaFile = await this.storageService.download(snippetData.path)
+
+    if (!metaFile) {
+      return null
     }
 
-    const { data: metaFile, error: metaFileError } =
-      await this.storageService.download(snippet.path)
+    const metaData = JSON.parse(metaFile)
 
-    if (!metaFile || metaFileError) {
-      return {
-        data: metaFile,
-        error: metaFileError,
-      }
-    }
-
-    const metaData = JSON.parse(await metaFile.text())
-
-    const versions = metaData.versions.map((version: any) => ({
+    return metaData.versions.map((version: any) => ({
       id: version.id,
       version: version.v,
       is_latest: version.v === metaData.latest,
     }))
-
-    return {
-      data: versions,
-      error: null,
-    }
   }
 
   async getSnippetVersion(
@@ -301,34 +260,27 @@ export class SnippetService {
     snippetId: string,
     versionId: string,
     path?: string,
-  ): Promise<any> {
-    const { data: snippet } = await this.getSnippet({
+  ): Promise<string | null> {
+    const snippetData = await this.getSnippet({
       workspaceId,
       id: snippetId,
     })
 
-    if (!snippet && path) {
-      const { data: file } = await this.storageService.getSignedUrl(path)
-
-      return {
-        data: {
-          snippet_file: (file as StorageData)?.signedUrl,
-        },
-        error: null,
-      }
+    if (!snippetData && path) {
+      return await this.storageService.getSignedUrl(path)
     }
 
-    const { data: metaFile, error: metaFileError } =
-      await this.storageService.download(snippet.path)
-
-    if (!metaFile || metaFileError) {
-      return {
-        data: metaFile,
-        error: metaFileError,
-      }
+    if (!snippetData?.path) {
+      return null
     }
 
-    const metaData = JSON.parse(await metaFile.text())
+    const metaFile = await this.storageService.download(snippetData.path)
+
+    if (!metaFile) {
+      return null
+    }
+
+    const metaData = JSON.parse(metaFile)
     const version = metaData.versions.find((version: any) =>
       versionId === 'latest'
         ? version.v === metaData.latest
@@ -336,111 +288,71 @@ export class SnippetService {
     )
 
     if (!version) {
-      return {
-        data: null,
-        error: createError({
-          statusCode: 400,
-          statusMessage: 'Version not found',
-        }),
-      }
+      return null
     }
 
-    const { data: file } = await this.storageService.getSignedUrl(version.path)
-
-    return {
-      data: {
-        snippet_file: (file as StorageData)?.signedUrl,
-      },
-      error: null,
-    }
+    return await this.storageService.getSignedUrl(version.path)
   }
 
-  async uploadSnippet(payload: any): Promise<DatabaseResponse<any | null>> {
-    const { data: snippet, error: snippetError } = await this.getSnippet({
+  async uploadSnippet(
+    payload: any,
+  ): Promise<InferSelectModel<typeof snippet> | Error | null> {
+    const snippetData = await this.getSnippet({
       workspaceId: payload.workspaceId,
       id: payload.id,
     })
 
-    if (snippetError) {
-      return {
-        data: snippet,
-        error: snippetError,
-      }
+    if (!snippetData) {
+      return null
     }
 
-    if (!snippet.path) {
-      const { data, error } = await this.uploadFirstVersion(payload, snippet)
-
-      return {
-        data,
-        error,
-      }
+    if (!snippetData.path) {
+      return await this.uploadFirstVersion(payload, snippetData)
     }
 
-    const { data, error } = await this.uploadNewVersion(payload, snippet)
-
-    return {
-      data,
-      error,
-    }
+    return await this.uploadNewVersion(payload, snippetData)
   }
 
-  async deleteSnippet(id: string, userId: string): Promise<any> {
-    const { data, error } = await this.supabase
-      .from('snippets')
-      .delete()
-      .eq('id', id)
-      .eq('created_by', userId)
-      .select()
-      .single()
+  async deleteSnippet(
+    id: string,
+    userId: string,
+  ): Promise<InferSelectModel<typeof snippet> | null> {
+    const snippetData = await this.db
+      .delete(snippet)
+      .where(and(eq(snippet.id, id), eq(snippet.createdBy, userId)))
+      .returning()
 
-    if (!data || !data.path || error) {
-      return {
-        data,
-        error,
-      }
+    if (!snippetData[0] || !snippetData[0].path) {
+      return null
     }
 
-    const { data: collectionSnippets } = await this.supabase
-      .from('collection_snippets')
-      .select()
-      .eq('snippet_id', id)
-      .single()
-
-    if (!collectionSnippets) {
-      const { data: metaFile, error: metaFileError } =
-        await this.storageService.download(data.path)
-
-      if (!metaFile || metaFileError) {
-        return {
-          data: metaFile,
-          error: metaFileError,
-        }
-      }
-
-      const metaData = JSON.parse(await metaFile.text())
-
-      const versionPaths = metaData.versions.map((version: any) => version.path)
-
-      await this.storageService.remove([...versionPaths, data.path])
-
-      return {
-        data,
-        error: null,
-      }
-    }
-
-    await this.supabase.from('snippet_garbage').insert({
-      id: createId(),
-      snippet_id: id,
-      workspace_id: data.workspace_id,
-      path: data.path,
+    const collectionSnippets = await this.db.query.collectionSnippet.findFirst({
+      where: (collectionSnippet, { and, eq }) =>
+        and(eq(collectionSnippet.snippetId, id)),
     })
 
-    return {
-      data,
-      error,
+    if (!collectionSnippets) {
+      const metaFile = await this.storageService.download(snippetData[0].path)
+
+      if (!metaFile) {
+        return null
+      }
+
+      const metaData = JSON.parse(metaFile)
+      const versionPaths = metaData.versions.map((version: any) => version.path)
+
+      await this.storageService.remove([...versionPaths, snippetData[0].path])
+
+      return snippetData[0]
     }
+
+    await this.db.insert(snippetGarbage).values({
+      snippetId: id,
+      workspaceId: snippetData[0].workspaceId,
+      path: snippetData[0].path,
+    })
+
+    return snippetData[0]
   }
 
   async pullSnippet(
@@ -448,60 +360,47 @@ export class SnippetService {
     snippetSlug: string,
     versionTag: string,
     userId: string,
-  ): Promise<any> {
-    const { data: snippet, error: snippetError } = await this.getSnippet({
+  ): Promise<string | Error | null> {
+    const snippetData = await this.getSnippet({
       workspaceId,
       slug: snippetSlug,
     })
 
-    if (snippetError) {
-      return {
-        data: null,
-        error: createError({
-          statusCode: 400,
-          message: snippetError.message,
-        }),
-      }
+    if (!snippetData) {
+      return null
     }
 
-    if (!snippet.is_public) {
+    if (!snippetData.isPublic) {
       const { hasAccess } = await this.workspaceService.checkMember(
         workspaceId,
         userId,
       )
 
       if (!hasAccess) {
-        return {
-          data: null,
-          error: createError({
-            statusCode: 400,
-            message: 'You do not have access to this snippet',
-          }),
-        }
-      }
-    }
-
-    if (!snippet.path) {
-      return {
-        data: null,
-        error: createError({
+        return createError({
           statusCode: 400,
-          message: 'Snippet has no content yet',
-        }),
+          message: 'You do not have access to this snippet',
+        })
       }
     }
 
-    const { data: metaFile, error: metaFileError } =
-      await this.storageService.download(snippet.path)
-
-    if (!metaFile || metaFileError) {
-      return {
-        data: metaFile,
-        error: metaFileError,
-      }
+    if (!snippetData.path) {
+      return createError({
+        statusCode: 400,
+        message: 'Snippet has no content yet',
+      })
     }
 
-    const metaData = JSON.parse(await metaFile.text())
+    const metaFile = await this.storageService.download(snippetData.path)
+
+    if (!metaFile) {
+      return createError({
+        statusCode: 400,
+        message: 'Snippet has no content yet',
+      })
+    }
+
+    const metaData = JSON.parse(metaFile)
     const versionData = metaData.versions.find((version: any) =>
       versionTag === 'latest'
         ? version.v === metaData.latest
@@ -509,159 +408,159 @@ export class SnippetService {
     )
 
     if (!versionData) {
-      return {
-        data: null,
-        error: createError({
-          statusCode: 400,
-          message: 'Version not found',
-        }),
-      }
-    }
-
-    const { data, error } = await this.storageService.getSignedUrl(
-      versionData.path,
-    )
-
-    if (!data || error) {
-      return {
-        data,
-        error,
-      }
-    }
-
-    await this.supabase
-      .from('snippets')
-      .update({
-        downloads: snippet.downloads + 1,
+      return createError({
+        statusCode: 400,
+        message: 'Version not found',
       })
-      .eq('id', snippet.id)
-
-    return {
-      data: data.signedUrl,
-      error: null,
     }
+
+    const file = await this.storageService.getSignedUrl(versionData.path)
+
+    if (!file) {
+      return createError({
+        statusCode: 400,
+        message: 'Version not found',
+      })
+    }
+
+    await this.db
+      .update(snippet)
+      .set({
+        downloads: snippetData.downloads + 1,
+      })
+      .where(eq(snippet.id, snippetData.id))
+
+    return file
   }
 
   private async uploadFirstVersion(
     payload: any,
-    snippet: Tables<'snippets'>,
-  ): Promise<any> {
+    snippetData: InferSelectModel<typeof snippet>,
+  ): Promise<InferSelectModel<typeof snippet> | Error> {
     const latestVersion = 1
     const codeFile = this.prepareCodeFile(
       payload.snippetCode,
-      contentTypes[snippet.language!],
+      contentTypes[snippetData.language!],
     )
 
-    const { data: file, error: uploadError } = await this.uploadFile(
-      `${payload.workspaceId}/snippets/${snippet.slug}/${latestVersion}/index.${snippet.language}`,
+    const file = await this.uploadFile(
+      `${payload.workspaceId}/snippets/${snippetData.slug}/${latestVersion}/index.${snippetData.language}`,
       codeFile,
       {
-        contentType: contentTypes[snippet.language!],
+        contentType: contentTypes[snippetData.language!],
       },
     )
 
-    if (!file || uploadError) {
-      return {
-        data: file,
-        error: uploadError,
-      }
+    if (!file) {
+      return createError({
+        statusCode: 400,
+        message: 'Failed to upload snippet',
+      })
     }
 
-    const metaData = this.prepareMetaData(latestVersion, file.path)
+    const metaData = this.prepareMetaData(latestVersion, file)
 
-    const { data: metaFile, error: metaUploadError } = await this.uploadFile(
-      `${payload.workspaceId}/snippets/${snippet.slug}/meta.json`,
+    const metaFile = await this.uploadFile(
+      `${payload.workspaceId}/snippets/${snippetData.slug}/meta.json`,
       metaData,
       {
         contentType: contentTypes.json,
       },
     )
 
-    if (!metaFile || metaUploadError) {
-      await this.removeSnippetFiles(payload.workspaceId, snippet, latestVersion)
+    if (!metaFile) {
+      await this.removeSnippetFiles(
+        payload.workspaceId,
+        snippetData,
+        latestVersion,
+      )
 
-      return {
-        data: metaFile,
-        error: metaUploadError,
-      }
+      return createError({
+        statusCode: 400,
+        message: 'Failed to upload snippet',
+      })
     }
 
-    const { data, error } = await this.updateSnippet(payload.id, {
-      preview: payload.snippetCode,
-      path: metaFile.path,
-    })
+    const updatedSnippet = await this.db
+      .update(snippet)
+      .set({
+        preview: payload.snippetCode,
+        path: metaFile,
+      })
+      .where(eq(snippet.id, payload.id))
+      .returning()
 
-    return {
-      data,
-      error,
-    }
+    return updatedSnippet[0]
   }
 
   private async uploadNewVersion(
     payload: any,
-    snippet: Tables<'snippets'>,
-  ): Promise<any> {
-    const { data: metaFile, error: metaFileError } =
-      await this.storageService.download(snippet.path!)
+    snippetData: InferSelectModel<typeof snippet>,
+  ): Promise<InferSelectModel<typeof snippet> | Error> {
+    const metaFile = await this.storageService.download(snippetData.path!)
 
-    if (!metaFile || metaFileError) {
-      return {
-        data: metaFile,
-        error: metaFileError,
-      }
+    if (!metaFile) {
+      return createError({
+        statusCode: 400,
+        message: 'Failed to upload snippet',
+      })
     }
 
-    const metaData = JSON.parse(await metaFile.text())
+    const metaData = JSON.parse(metaFile)
     const newVersion = metaData.latest + 1
 
     const codeFile = this.prepareCodeFile(
       payload.snippetCode,
-      contentTypes[snippet.language!],
+      contentTypes[snippetData.language!],
     )
 
-    const { data: file, error: uploadError } = await this.uploadFile(
-      `${payload.workspaceId}/snippets/${snippet.slug}/${newVersion}/index.${snippet.language}`,
+    const file = await this.uploadFile(
+      `${payload.workspaceId}/snippets/${snippetData.slug}/${newVersion}/index.${snippetData.language}`,
       codeFile,
       {
-        contentType: contentTypes[snippet.language!],
+        contentType: contentTypes[snippetData.language!],
       },
     )
 
-    if (!file || uploadError) {
-      return {
-        data: file,
-        error: uploadError,
-      }
+    if (!file) {
+      return createError({
+        statusCode: 400,
+        message: 'Failed to upload snippet',
+      })
     }
 
-    const newMetaData = this.prepareMetaData(newVersion, file.path, metaData)
+    const newMetaData = this.prepareMetaData(newVersion, file)
 
-    const { data: newMetaFile, error: metaUploadError } = await this.uploadFile(
-      snippet.path!,
+    const newMetaFile = await this.uploadFile(
+      `${payload.workspaceId}/snippets/${snippetData.slug}/meta.json`,
       newMetaData,
       {
-        upsert: true,
         contentType: contentTypes.json,
       },
     )
 
-    if (!newMetaFile || metaUploadError) {
-      await this.removeSnippetFiles(payload.workspaceId, snippet, newVersion)
+    if (!newMetaFile) {
+      await this.removeSnippetFiles(
+        payload.workspaceId,
+        snippetData,
+        newVersion,
+      )
 
-      return {
-        data: newMetaFile,
-        error: metaUploadError,
-      }
+      return createError({
+        statusCode: 400,
+        message: 'Failed to upload snippet',
+      })
     }
 
-    const { data, error } = await this.updateSnippet(payload.id, {
-      preview: payload.snippetCode,
-    })
+    const updatedSnippet = await this.db
+      .update(snippet)
+      .set({
+        preview: payload.snippetCode,
+      })
+      .where(eq(snippet.id, payload.id))
+      .returning()
 
-    return {
-      data,
-      error,
-    }
+    return updatedSnippet[0]
   }
 
   private prepareCodeFile(code: string, contentType: string): Blob {
@@ -712,26 +611,17 @@ export class SnippetService {
     path: string,
     file: Blob,
     options?: any,
-  ): Promise<any> {
-    const { data, error } = await this.storageService.upload(
-      path,
-      file,
-      options,
-    )
-
-    return {
-      data,
-      error,
-    }
+  ): Promise<string | null> {
+    return await this.storageService.upload(path, file, options)
   }
 
   private async removeSnippetFiles(
     workspaceId: string,
-    snippet: Tables<'snippets'>,
+    snippetData: InferSelectModel<typeof snippet>,
     version: number,
   ): Promise<void> {
     await this.storageService.remove([
-      `${workspaceId}/snippets/${snippet.slug}/${version}/index.${snippet.language}`,
+      `${workspaceId}/snippets/${snippetData.slug}/${version}/index.${snippetData.language}`,
     ])
   }
 }

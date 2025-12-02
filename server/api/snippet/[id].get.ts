@@ -1,34 +1,32 @@
-import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
 import { SnippetService } from '~~/server/services/snippet.service'
-
-import type { Database } from '~~/server/types/database.types'
 
 export default defineEventHandler(async (event) => {
   const { id: slug } = await getRouterParams(event)
   const { workspaceId } = getQuery(event)
-  const user = await serverSupabaseUser(event)
-  const supabase = await serverSupabaseClient<Database>(event)
-  const snippetService = new SnippetService(supabase)
+  const session = await auth.api.getSession({
+    headers: event.headers,
+  })
+  const snippetService = new SnippetService()
 
-  if (!user) {
+  if (!session?.user?.id) {
     throw createError({
       statusCode: 401,
       statusMessage: 'Unauthorized',
     })
   }
 
-  const { data, error } = await snippetService.getSnippet({
+  const snippet = await snippetService.getSnippet({
     slug,
     workspaceId,
     withUrl: true,
   })
 
-  if (error) {
+  if (!snippet) {
     throw createError({
       statusCode: 400,
-      statusMessage: error.message,
+      statusMessage: 'Failed to get snippet',
     })
   }
 
-  return data
+  return snippet
 })

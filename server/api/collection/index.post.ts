@@ -1,21 +1,21 @@
-import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
 import { CollectionService } from '~~/server/services/collection.service'
 import { TagService } from '~~/server/services/tag.service'
 import { UsageService } from '~~/server/services/usage.service'
+import { UsageKeys } from '~~/server/types/api.types'
 
-import type { Database } from '~~/server/types/database.types'
 import { createCollectionSchema } from '~~/server/utils/validationSchema'
 
 export default defineEventHandler(async (event) => {
   const { name, language, description, tags, isPublic, workspaceId } =
     await readValidatedBody(event, createCollectionSchema.parse)
-  const user = await serverSupabaseUser(event)
-  const supabase = await serverSupabaseClient<Database>(event)
-  const tagService = new TagService(supabase)
-  const collectionService = new CollectionService(supabase)
-  const usageService = new UsageService(supabase)
+  const session = await auth.api.getSession({
+    headers: event.headers,
+  })
+  const tagService = new TagService()
+  const collectionService = new CollectionService()
+  const usageService = new UsageService()
 
-  if (!user?.id) {
+  if (!session?.user?.id) {
     throw createError({
       statusCode: 401,
       statusMessage: 'Unauthorized',
@@ -24,8 +24,8 @@ export default defineEventHandler(async (event) => {
 
   const { data: isExceeded, error: verifyError } =
     await usageService.verifyUsage(
-      user?.id,
-      isPublic ? 'public_collections' : 'private_collections',
+      session?.user?.id,
+      isPublic ? UsageKeys.publicCollections : UsageKeys.privateCollections,
     )
 
   if (verifyError || isExceeded) {
@@ -38,7 +38,7 @@ export default defineEventHandler(async (event) => {
   const tagIds: string[] = []
 
   for (const tag of tags || []) {
-    const { data: existTag } = await tagService.getTag(tag.name, 'id')
+    const existTag = await tagService.getTag(tag.name, 'id')
 
     if (existTag) {
       tagIds.push(existTag.id as string)
@@ -46,44 +46,44 @@ export default defineEventHandler(async (event) => {
       continue
     }
 
-    const { data, error } = await tagService.createTag(tag)
+    const tagData = await tagService.createTag(tag)
 
-    if (!data || error) {
+    if (!tagData) {
       throw createError({
         statusCode: 500,
-        statusMessage: error?.message,
+        statusMessage: 'Failed to create tag',
       })
     }
 
-    tagIds.push(data.id)
+    tagIds.push(tagData.id)
   }
 
-  const { data, error } = await collectionService.createCollection(
+  const collectionData = await collectionService.createCollection(
     {
       name,
       language,
       description,
       isPublic,
     },
-    user.id,
+    session?.user?.id,
     workspaceId,
   )
 
-  if (!data || error) {
+  if (!collectionData) {
     throw createError({
       statusCode: 500,
-      statusMessage: error?.message,
+      statusMessage: 'Failed to create collection',
     })
   }
 
   for (const tagId of tagIds) {
-    await collectionService.createCollectionTag(data.id, tagId)
+    await collectionService.createCollectionTag(collectionData.id, tagId)
   }
 
   await usageService.incrementUsage(
-    user?.id,
-    isPublic ? 'public_collections' : 'private_collections',
+    session?.user?.id,
+    isPublic ? UsageKeys.publicCollections : UsageKeys.privateCollections,
   )
 
-  return data
+  return collectionData
 })

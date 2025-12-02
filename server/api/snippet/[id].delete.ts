@@ -1,35 +1,36 @@
-import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
 import { SnippetService } from '~~/server/services/snippet.service'
 import { UsageService } from '~~/server/services/usage.service'
-
-import type { Database } from '~~/server/types/database.types'
+import { UsageKeys } from '~~/server/types/api.types'
 
 export default defineEventHandler(async (event) => {
   const { id } = await getRouterParams(event)
-  const user = await serverSupabaseUser(event)
-  const supabase = await serverSupabaseClient<Database>(event)
-  const snippetService = new SnippetService(supabase)
-  const usageService = new UsageService(supabase)
+  const session = await auth.api.getSession({
+    headers: event.headers,
+  })
+  const snippetService = new SnippetService()
+  const usageService = new UsageService()
 
-  if (!user) {
+  if (!session?.user?.id) {
     throw createError({
       statusCode: 401,
       statusMessage: 'Unauthorized',
     })
   }
 
-  const { data, error } = await snippetService.deleteSnippet(id, user.id)
+  const deletedSnippet = await snippetService.deleteSnippet(id, session.user.id)
 
-  if (error) {
+  if (!deletedSnippet) {
     throw createError({
       statusCode: 400,
-      statusMessage: error.message,
+      statusMessage: 'Snippet not found',
     })
   }
 
   await usageService.decrementUsage(
-    user.id,
-    data?.is_public ? 'public_snippets' : 'private_snippets',
+    session.user.id,
+    deletedSnippet.isPublic
+      ? UsageKeys.publicSnippets
+      : UsageKeys.privateSnippets,
   )
 
   return {

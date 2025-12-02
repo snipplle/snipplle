@@ -1,25 +1,25 @@
-import { serverSupabaseClient } from '#supabase/server'
 import { WorkspaceService } from '~~/server/services/workspace.service'
-
-import type { Database } from '~~/server/types/database.types'
 
 export default defineEventHandler(async (event) => {
   const token = event.node.req.headers['authorization']?.replace('Bearer ', '')
   const { mainWorkspaceSlug, additionalWorkspaceSlugs } = await readBody(event)
-  const supabase = await serverSupabaseClient<Database>(event)
-  const workspaceService = new WorkspaceService(supabase)
+  const workspaceService = new WorkspaceService()
 
   if (!token) {
     return {
       error: true,
-      statusCode: 401,
-      statusMessage: 'Missing authorization token',
+      statusCode: 400,
+      statusMessage: 'Missing token',
     }
   }
 
-  const { data, error } = await supabase.auth.getUser(token)
+  const data = await auth.api.verifyApiKey({
+    body: {
+      key: token,
+    },
+  })
 
-  if (!data?.user || error) {
+  if (!data.valid || data.error) {
     return {
       error: true,
       statusCode: 401,
@@ -27,14 +27,15 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const { data: mainWorkspace, error: mainWorkspaceError } =
-    await workspaceService.getWorkspaceBySlug(mainWorkspaceSlug as string)
+  const mainWorkspace = await workspaceService.getWorkspaceBySlug(
+    mainWorkspaceSlug as string,
+  )
 
-  if (!mainWorkspace || mainWorkspaceError) {
+  if (!mainWorkspace) {
     return {
       error: true,
       statusCode: 400,
-      statusMessage: mainWorkspaceError?.message,
+      statusMessage: 'Main workspace not found',
     }
   }
 
@@ -43,16 +44,15 @@ export default defineEventHandler(async (event) => {
   if (additionalWorkspaceSlugs || additionalWorkspaceSlugs.length) {
     additionalWorkspaces = await Promise.all(
       additionalWorkspaceSlugs.map(async (slug: string) => {
-        const { data: workspace, error } =
-          await workspaceService.getWorkspaceBySlug(slug)
+        const workspace = await workspaceService.getWorkspaceBySlug(slug)
 
-        if (!workspace || error) {
+        if (!workspace) {
           return null
         }
 
         const { hasAccess } = await workspaceService.checkMember(
           workspace.id,
-          data.user.id,
+          data.key?.userId as string,
         )
 
         if (!hasAccess) {

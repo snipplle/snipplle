@@ -1,165 +1,130 @@
-import { PostgrestError, type SupabaseClient } from '@supabase/supabase-js'
-
-import type { Database, Tables } from '../types/database.types'
-import type { DatabaseResponse, UsageKeys } from '../types/api.types'
+import type { UsageKeys } from '../types/api.types'
+import { usage } from '../db/schema'
+import type { InferSelectModel } from 'drizzle-orm'
 
 export class UsageService {
-  isSelfHostedInstance: boolean
+  private config = useRuntimeConfig()
+  private isSelfHostedInstance: boolean
+  private db = useDrizzle()
 
-  constructor(private supabase: SupabaseClient<Database>) {
-    const config = useRuntimeConfig()
-
-    this.isSelfHostedInstance = config.SELF_HOSTED === 'true' ? true : false
+  constructor() {
+    this.isSelfHostedInstance =
+      this.config.SELF_HOSTED === 'true' ? true : false
   }
 
   async verifyUsage(
     userId: string,
-    usageKey: string,
+    usageKey: UsageKeys,
     meta?: Record<string, string>,
-  ): Promise<any> {
+  ): Promise<{ data: { isExceeded: boolean }; error: Error | null }> {
     if (this.isSelfHostedInstance) {
       return {
-        data: false,
+        data: { isExceeded: false },
         error: null,
       }
     }
 
-    const { data, error } = await this.supabase.functions.invoke(
-      'verify-usage',
+    const response = await fetch(
+      `${this.config.EXTERNAL_FUNCTIONS_URL}/usage`,
       {
-        body: {
+        method: 'POST',
+        body: JSON.stringify({
           userId,
           usageKey,
           meta,
-        },
+        }),
       },
     )
 
-    if (error) {
-      return {
-        data: null,
-        error,
-      }
-    }
+    const data = await response.json()
 
     return {
-      data: JSON.parse(data).isExceeded,
-      error,
+      data: data as { isExceeded: boolean },
+      error: null,
     }
   }
 
   async incrementUsage(
     userId: string,
-    usageKey: string,
-  ): Promise<DatabaseResponse<Tables<'usages'> | null>> {
+    usageKey: Exclude<UsageKeys, UsageKeys.snippetVersions>,
+  ): Promise<InferSelectModel<typeof usage> | null> {
     if (this.isSelfHostedInstance) {
-      return {
-        data: null,
-        error: null,
-      }
+      return null
     }
 
-    const { data: usage } = await this.supabase
-      .from('usages')
-      .select(
-        `
-        public_snippets,
-        private_snippets,
-        public_collections,
-        private_collections,
-        team_members,
-        ai_requests,
-        ai_tokens
-        `,
-      )
-      .eq('user_id', userId)
-      .single()
+    const usageData = await this.db.query.usage.findFirst({
+      where: (usages, { eq }) => eq(usages.userId, userId),
+      columns: {
+        id: true,
+        publicSnippets: true,
+        privateSnippets: true,
+        publicCollections: true,
+        privateCollections: true,
+        teamMembers: true,
+        aiRequests: true,
+        aiTokens: true,
+      },
+    })
 
-    if (!usage) {
-      return {
-        data: null,
-        error: new PostgrestError({
-          message: 'Usage not found',
-          details: 'No usage record found for the given user ID',
-          hint: 'Check if the user ID is correct',
-          code: 'PGRST123',
-        }),
-      }
+    if (!usageData) {
+      return null
     }
 
     const payload = {
-      [usageKey]: Number(usage[usageKey as keyof UsageKeys]) + 1,
+      [usageKey]: Number(usageData[usageKey]) + 1,
     }
 
-    const { data, error } = await this.supabase
-      .from('usages')
-      .update({
-        user_id: userId,
+    const updatedUsage = await this.db
+      .update(usage)
+      .set({
         ...payload,
+        userId,
       })
-      .eq('user_id', userId)
-      .select()
-      .single()
+      .where(eq(usage.id, usageData.id))
+      .returning()
 
-    return {
-      data,
-      error,
-    }
+    return updatedUsage[0]
   }
 
-  async decrementUsage(userId: string, usageKey: string): Promise<any> {
+  async decrementUsage(
+    userId: string,
+    usageKey: Exclude<UsageKeys, UsageKeys.snippetVersions>,
+  ): Promise<InferSelectModel<typeof usage> | null> {
     if (this.isSelfHostedInstance) {
-      return {
-        data: null,
-        error: null,
-      }
+      return null
     }
 
-    const { data: usage } = await this.supabase
-      .from('usages')
-      .select(
-        `
-        public_snippets,
-        private_snippets,
-        public_collections,
-        private_collections,
-        team_members,
-        ai_requests,
-        ai_tokens
-        `,
-      )
-      .eq('user_id', userId)
-      .single()
+    const usageData = await this.db.query.usage.findFirst({
+      where: (usages, { eq }) => eq(usages.userId, userId),
+      columns: {
+        id: true,
+        publicSnippets: true,
+        privateSnippets: true,
+        publicCollections: true,
+        privateCollections: true,
+        teamMembers: true,
+        aiRequests: true,
+        aiTokens: true,
+      },
+    })
 
-    if (!usage) {
-      return {
-        data: null,
-        error: new PostgrestError({
-          message: 'Usage not found',
-          details: 'No usage record found for the given user ID',
-          hint: 'Check if the user ID is correct',
-          code: 'PGRST123',
-        }),
-      }
+    if (!usageData) {
+      return null
     }
 
     const payload = {
-      [usageKey]: Number(usage[usageKey as keyof UsageKeys]) - 1,
+      [usageKey]: Number(usageData[usageKey]) - 1,
     }
 
-    const { data, error } = await this.supabase
-      .from('usages')
-      .update({
-        user_id: userId,
+    const updatedUsage = await this.db
+      .update(usage)
+      .set({
         ...payload,
+        userId,
       })
-      .eq('user_id', userId)
-      .select()
-      .single()
+      .where(eq(usage.id, usageData.id))
+      .returning()
 
-    return {
-      data,
-      error,
-    }
+    return updatedUsage[0]
   }
 }

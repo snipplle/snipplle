@@ -1,22 +1,20 @@
-import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
 import { SnippetService } from '~~/server/services/snippet.service'
-
-import type { Database } from '~~/server/types/database.types'
 
 export default defineEventHandler(async (event) => {
   const { orderBy, lang, tag, search, page, itemsPerPage } = getQuery(event)
-  const user = await serverSupabaseUser(event)
-  const supabase = await serverSupabaseClient<Database>(event)
-  const snippetService = new SnippetService(supabase)
+  const session = await auth.api.getSession({
+    headers: event.headers,
+  })
+  const snippetService = new SnippetService()
 
-  if (!user) {
+  if (!session?.user?.id) {
     throw createError({
       statusCode: 401,
       statusMessage: 'Unauthorized',
     })
   }
 
-  const { data, count, error } = await snippetService.getSnippets({
+  const { data, count } = await snippetService.getSnippets({
     orderBy,
     lang,
     tag,
@@ -26,10 +24,10 @@ export default defineEventHandler(async (event) => {
     onlyPublic: true,
   })
 
-  if (error) {
+  if (!data) {
     throw createError({
       statusCode: 500,
-      statusMessage: error.message,
+      statusMessage: 'Failed to get snippets',
     })
   }
 

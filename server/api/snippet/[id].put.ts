@@ -1,8 +1,7 @@
-import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
 import { SnippetService } from '~~/server/services/snippet.service'
 import { UsageService } from '~~/server/services/usage.service'
+import { UsageKeys } from '~~/server/types/api.types'
 
-import type { Database } from '~~/server/types/database.types'
 import { uploadSnippetSchema } from '~~/server/utils/validationSchema'
 
 export default defineEventHandler(async (event) => {
@@ -11,12 +10,13 @@ export default defineEventHandler(async (event) => {
     event,
     uploadSnippetSchema.parse,
   )
-  const user = await serverSupabaseUser(event)
-  const supabase = await serverSupabaseClient<Database>(event)
-  const snippetService = new SnippetService(supabase)
-  const usageService = new UsageService(supabase)
+  const session = await auth.api.getSession({
+    headers: event.headers,
+  })
+  const snippetService = new SnippetService()
+  const usageService = new UsageService()
 
-  if (!user) {
+  if (!session?.user?.id) {
     throw createError({
       statusCode: 401,
       statusMessage: 'Unauthorized',
@@ -38,7 +38,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const { data: isExceeded, error: verifyError } =
-    await usageService.verifyUsage(user?.id, 'snippet_versions', {
+    await usageService.verifyUsage(session.user.id, UsageKeys.snippetVersions, {
       slug,
     })
 
@@ -49,7 +49,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const { data, error } = await snippetService.uploadSnippet({
+  const updatedSnippet = await snippetService.uploadSnippet({
     workspaceId,
     id,
     slug,
@@ -57,12 +57,12 @@ export default defineEventHandler(async (event) => {
     language,
   })
 
-  if (error) {
+  if (!updatedSnippet || updatedSnippet instanceof Error) {
     throw createError({
       statusCode: 400,
-      statusMessage: error.message,
+      statusMessage: updatedSnippet?.message || 'Failed to upload snippet',
     })
   }
 
-  return data
+  return updatedSnippet
 })

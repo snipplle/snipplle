@@ -1,8 +1,7 @@
-import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
 import { UsageService } from '~~/server/services/usage.service'
 import { WorkspaceService } from '~~/server/services/workspace.service'
+import { UsageKeys } from '~~/server/types/api.types'
 
-import type { Database } from '~~/server/types/database.types'
 import { leaveWorkspaceSchema } from '~~/server/utils/validationSchema'
 
 export default defineEventHandler(async (event) => {
@@ -10,44 +9,48 @@ export default defineEventHandler(async (event) => {
     event,
     leaveWorkspaceSchema.parse,
   )
-  const user = await serverSupabaseUser(event)
-  const supabase = await serverSupabaseClient<Database>(event)
-  const workspaceService = new WorkspaceService(supabase)
-  const usageService = new UsageService(supabase)
+  const session = await auth.api.getSession({
+    headers: event.headers,
+  })
+  const workspaceService = new WorkspaceService()
+  const usageService = new UsageService()
 
-  if (!user) {
+  if (!session?.user) {
     throw createError({
       statusCode: 401,
       statusMessage: 'Unauthorized',
     })
   }
 
-  const { data: owner } = await workspaceService.getOwner(workspaceId)
+  const owner = await workspaceService.getOwner(workspaceId)
 
-  if (!owner || !owner.user_id) {
+  if (!owner || !owner.userId) {
     throw createError({
       statusCode: 400,
       statusMessage: 'Workspace not found',
     })
   }
 
-  if (owner.user_id === user?.id) {
+  if (owner.userId === session.user.id) {
     throw createError({
       statusCode: 400,
       statusMessage: 'You cannot leave the workspace if you are the owner',
     })
   }
 
-  const { error } = await workspaceService.removeMember(workspaceId, user?.id)
+  const member = await workspaceService.removeMember(
+    workspaceId,
+    session.user.id,
+  )
 
-  if (error) {
+  if (!member) {
     throw createError({
       statusCode: 400,
-      statusMessage: error.message,
+      statusMessage: 'Member not found',
     })
   }
 
-  await usageService.decrementUsage(owner.user_id, 'team_members')
+  await usageService.decrementUsage(owner.userId, UsageKeys.teamMembers)
 
   return {
     success: true,

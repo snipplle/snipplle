@@ -1,38 +1,38 @@
-import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server'
 import { WorkspaceService } from '~~/server/services/workspace.service'
 
-import type { Database } from '~~/server/types/database.types'
 import { createWorkspaceSchema } from '~~/server/utils/validationSchema'
 
 export default defineEventHandler(async (event) => {
   const { name } = await readValidatedBody(event, createWorkspaceSchema.parse)
-  const supabase = await serverSupabaseClient<Database>(event)
-  const user = await serverSupabaseUser(event)
-  const workspaceService = new WorkspaceService(supabase)
+  const session = await auth.api.getSession({
+    headers: event.headers,
+  })
+  const workspaceService = new WorkspaceService()
 
-  if (!user) {
+  if (!session?.user) {
     throw createError({
       statusCode: 401,
       statusMessage: 'Unauthorized',
     })
   }
 
-  const { data, error } = await workspaceService.createWorkspace(name)
+  const workspace = await workspaceService.createWorkspace(name)
 
-  if (!data || error) {
+  if (!workspace) {
     throw createError({
       statusCode: 400,
-      statusMessage: error?.message,
+      statusMessage: 'Failed to create workspace',
     })
   }
 
-  await workspaceService.addMember(data.id, user.id, 'owner')
+  await workspaceService.addMember(workspace.id, session.user.id, 'owner')
 
-  await supabase.auth.updateUser({
-    data: {
-      onboarding_completed: true,
+  await auth.api.updateUser({
+    body: {
+      onboardingCompleted: true,
     },
+    headers: event.headers,
   })
 
-  return data
+  return workspace
 })

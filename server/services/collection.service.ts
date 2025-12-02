@@ -1,5 +1,3 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
-import { createId } from '@paralleldrive/cuid2'
 import slugify from 'slugify'
 
 import { StorageService } from './storage.service'
@@ -7,117 +5,129 @@ import { SnippetService } from './snippet.service'
 
 import { contentTypes } from '../utils/codeFormat'
 
-import type { Database, Tables } from '../types/database.types'
-import type { DatabaseResponse } from '../types/api.types'
+import { collection, collectionSnippet, collectionTag } from '../db/schema'
+import type { InferSelectModel } from 'drizzle-orm'
 
 export class CollectionService {
+  private db = useDrizzle()
   private storageService: StorageService
   private snippetService: SnippetService
 
-  constructor(private supabase: SupabaseClient<Database>) {
-    this.storageService = new StorageService(supabase)
-    this.snippetService = new SnippetService(supabase)
+  constructor() {
+    this.storageService = new StorageService()
+    this.snippetService = new SnippetService()
   }
 
-  async getCollections(
-    payload: any,
-  ): Promise<DatabaseResponse<Tables<'collections'>[] | null>> {
+  async getCollections(payload: any): Promise<{
+    data: InferSelectModel<typeof collection>[]
+    count: number
+  }> {
     const from = (Number(payload.page) - 1) * Number(payload.itemsPerPage)
     const to = from + Number(payload.itemsPerPage) - 1
 
-    const query = this.supabase
-      .from('collections')
-      .select(
-        `
-      *,
-      workspaces(slug),
-      ${
-        payload.tag
-          ? `collection_tags!inner(tags!inner(name, color))`
-          : `collection_tags(
-        tags(name, color)
-      )`
-      }
-    `,
-        { count: 'exact' },
-      )
-      .range(from, to)
+    const collectionsData = await this.db.query.collection.findMany({
+      where: (collection, { and, eq, ilike, inArray, isNotNull }) => {
+        const conditions = []
 
-    if (payload.workspaceIds) {
-      query.in(
-        'workspace_id',
-        payload.workspaceIds.map((workspace: any) => workspace.workspace_id),
-      )
-    }
+        if (payload.workspaceIds?.length) {
+          const ids = payload.workspaceIds.map(
+            (workspace: any) => workspace.workspaceId,
+          )
+          conditions.push(inArray(collection.workspaceId, ids))
+        }
 
-    if (payload.orderBy) {
-      const order = orderByMap[payload.orderBy as string]
+        if (payload.lang) {
+          conditions.push(eq(collection.language, payload.lang))
+        }
 
-      query.order(order.field, {
-        ascending: order.ascending,
-      })
-    }
+        if (payload.search) {
+          conditions.push(ilike(collection.name, `%${payload.search}%`))
+        }
 
-    if (payload.lang) {
-      query.eq('language', payload.lang as string)
-    }
+        if (payload.onlyPublic) {
+          conditions.push(
+            eq(collection.isPublic, true),
+            isNotNull(collection.path),
+          )
+        }
 
-    if (payload.tag) {
-      query.eq('collection_tags.tags.name', payload.tag as string)
-    }
+        return conditions.length ? and(...conditions) : undefined
+      },
 
-    if (payload.search) {
-      query.ilike('name', `%${payload.search}%`)
-    }
+      limit: to - from + 1,
+      offset: from,
 
-    if (payload.onlyPublic) {
-      query.eq('is_public', true)
-    }
+      orderBy: (collection, { asc, desc }) => {
+        const order = orderByMap[payload.orderBy ?? 'name']
 
-    const { data, count, error } = await query
+        return order.ascending
+          ? asc((collection as any)[order.field])
+          : desc((collection as any)[order.field])
+      },
+
+      with: {
+        workspace: true,
+        collectionTags: {
+          with: {
+            tag: true,
+          },
+        },
+      },
+    })
+
+    const count = !payload.onlyPublic
+      ? await this.db.$count(
+          collection,
+          inArray(
+            collection.workspaceId,
+            payload.workspaceIds.map((workspace: any) => workspace.workspaceId),
+          ),
+        )
+      : await this.db.$count(
+          collection,
+          and(eq(collection.isPublic, true), isNotNull(collection.path)),
+        )
 
     return {
-      data,
+      data: collectionsData,
       count,
-      error,
     }
   }
 
   async getCollection(
     payload: any,
-  ): Promise<DatabaseResponse<Tables<'collections'> | null>> {
-    const query = this.supabase
-      .from('collections')
-      .select()
-      .eq('workspace_id', payload.workspaceId as string)
+  ): Promise<InferSelectModel<typeof collection> | undefined> {
+    return await this.db.query.collection.findFirst({
+      where: (collection, { and, eq }) => {
+        const conditions = []
 
-    if (payload.slug) {
-      query.eq('slug', payload.slug)
-    }
+        if (payload.workspaceId) {
+          conditions.push(eq(collection.workspaceId, payload.workspaceId))
+        }
 
-    if (payload.id) {
-      query.eq('id', payload.id)
-    }
+        if (payload.slug) {
+          conditions.push(eq(collection.slug, payload.slug))
+        }
 
-    const { data, error } = await query.single()
+        if (payload.id) {
+          conditions.push(eq(collection.id, payload.id))
+        }
 
-    return {
-      data,
-      error,
-    }
+        return conditions.length ? and(...conditions) : undefined
+      },
+    })
   }
 
   async getCollectionSnippets(id: string, workspaceId: string): Promise<any> {
-    const { data: collection, error: collectionError } =
-      await this.getCollection({
-        id,
-        workspaceId,
-      })
+    const collection = await this.getCollection({
+      id,
+      workspaceId,
+    })
 
-    if (!collection || collectionError) {
+    if (!collection) {
       return {
         data: collection,
-        error: collectionError,
+        error: 'Collection not found',
       }
     }
 
@@ -128,52 +138,51 @@ export class CollectionService {
       }
     }
 
-    const { data: metaFile, error: metaError } =
-      await this.storageService.download(collection.path as string)
+    const metaFile = await this.storageService.download(
+      collection.path as string,
+    )
 
-    if (!metaFile || metaError) {
+    if (!metaFile) {
       return {
         data: metaFile,
-        error: metaError,
+        error: 'Failed to download collection meta file',
       }
     }
 
-    const metaData = JSON.parse(await metaFile.text())
+    const metaData = JSON.parse(metaFile)
 
-    const { data, error } = await this.snippetService.getSnippetsForCollection(
+    const snippetsData = await this.snippetService.getSnippetsForCollection(
       metaData.snippets,
     )
 
-    if (!data || error) {
+    if (!snippetsData.length) {
       return {
-        data,
-        error,
+        data: snippetsData,
+        error: 'Failed to get collection snippets',
       }
     }
 
     const snippets = [
-      ...data,
+      ...snippetsData,
       ...metaData.snippets.filter(
         (metaSnippet: any) =>
-          !data.some((dbSnippet: any) => dbSnippet.id === metaSnippet.id),
+          !snippetsData.some(
+            (dbSnippet: any) => dbSnippet.id === metaSnippet.id,
+          ),
       ),
     ]
 
-    return {
-      data: snippets,
-      error,
-    }
+    return snippets
   }
 
   async createCollection(
     payload: any,
     userId: string,
     workspaceId: string,
-  ): Promise<DatabaseResponse<Tables<'collections'> | null>> {
-    const { data, error } = await this.supabase
-      .from('collections')
-      .insert({
-        id: createId(),
+  ): Promise<InferSelectModel<typeof collection>> {
+    const snippetData = await this.db
+      .insert(collection)
+      .values({
         name: payload.name,
         slug: slugify(payload.name, {
           lower: true,
@@ -181,84 +190,66 @@ export class CollectionService {
         }),
         language: payload.language,
         description: payload.description,
-        is_public: payload.isPublic,
-        created_by: userId,
-        workspace_id: workspaceId,
+        isPublic: payload.isPublic,
+        createdBy: userId,
+        workspaceId: workspaceId,
       })
-      .select()
-      .single()
+      .returning()
 
-    return {
-      data,
-      error,
-    }
+    return snippetData[0]
   }
 
   async updateCollection(
     id: string,
     payload: any,
-  ): Promise<DatabaseResponse<Tables<'collections'> | null>> {
-    const { data, error } = await this.supabase
-      .from('collections')
-      .update(payload)
-      .eq('id', id)
-      .select()
-      .single()
+  ): Promise<InferSelectModel<typeof collection>> {
+    const collectionData = await this.db
+      .update(collection)
+      .set(payload)
+      .where(eq(collection.id, id))
+      .returning()
 
-    return {
-      data,
-      error,
-    }
+    return collectionData[0]
   }
 
   async createCollectionTag(
     collectionId: string,
     tagId: string,
-  ): Promise<DatabaseResponse<Tables<'collection_tags'> | null>> {
-    const { data, error } = await this.supabase
-      .from('collection_tags')
-      .insert({
-        collection_id: collectionId,
-        tag_id: tagId,
+  ): Promise<InferSelectModel<typeof collectionTag>> {
+    const collectionTagData = await this.db
+      .insert(collectionTag)
+      .values({
+        collectionId: collectionId,
+        tagId: tagId,
       })
-      .select()
-      .single()
+      .returning()
 
-    return {
-      data,
-      error,
-    }
+    return collectionTagData[0]
   }
 
-  async uploadCollection(payload: any): Promise<any> {
-    const { data: collection, error: collectionError } =
-      await this.getCollection({
-        workspaceId: payload.workspaceId,
-        id: payload.id,
-      })
+  async uploadCollection(
+    payload: any,
+  ): Promise<InferSelectModel<typeof collection> | null> {
+    const collectionData = await this.getCollection({
+      workspaceId: payload.workspaceId,
+      id: payload.id,
+    })
 
-    if (!collection || collectionError) {
-      return {
-        data: collection,
-        error: collectionError,
-      }
+    if (!collectionData) {
+      return null
     }
 
     let metaData = null
     const paths = []
 
-    if (collection.path) {
-      const { data: metaFile, error: metaFileError } =
-        await this.storageService.download(collection.path)
+    if (collectionData.path) {
+      const metaFile = await this.storageService.download(collectionData.path)
 
-      if (!metaFile || metaFileError) {
-        return {
-          data: metaFile,
-          error: metaFileError,
-        }
+      if (!metaFile) {
+        return null
       }
 
-      metaData = JSON.parse(await metaFile.text())
+      metaData = JSON.parse(metaFile)
     }
 
     for (const added of payload.snippets.add) {
@@ -272,12 +263,12 @@ export class CollectionService {
 
       const codeFile = this.prepareCodeFile(
         code.content,
-        contentTypes[collection.language],
+        contentTypes[collectionData.language],
       )
 
       paths.push({
         action: 'add',
-        path: `${payload.workspaceId}/collections/${collection.slug}/${code.slug}.${collection.language}`,
+        path: `${payload.workspaceId}/collections/${collectionData.slug}/${code.slug}.${collectionData.language}`,
         file: codeFile,
       })
     }
@@ -293,19 +284,17 @@ export class CollectionService {
 
       paths.push({
         action: 'remove',
-        path: `${payload.workspaceId}/collections/${collection.slug}/${code.slug}.${collection.language}`,
+        path: `${payload.workspaceId}/collections/${collectionData.slug}/${code.slug}.${collectionData.language}`,
       })
     }
 
-    const { data: snippets, error: snippetError } =
-      await this.snippetService.getSnippetsForCollection(payload.snippets.add)
+    const snippets = await this.snippetService.getSnippetsForCollection(
+      payload.snippets.add,
+    )
     const addedExist = paths.filter((item) => item.action === 'add').length
 
     if (addedExist && !snippets?.length) {
-      return {
-        data: snippets,
-        error: snippetError || { message: 'No snippets found' },
-      }
+      return null
     }
 
     metaData = this.prepareMetaData(
@@ -320,174 +309,133 @@ export class CollectionService {
     paths.push({
       action: 'add',
       type: 'meta',
-      path: `${payload.workspaceId}/collections/${collection.slug}/meta.json`,
+      path: `${payload.workspaceId}/collections/${collectionData.slug}/meta.json`,
       file: metaData,
     })
 
     if (addedExist && snippets?.length) {
-      const { data: collectionSnippets, error: collectionSnippetError } =
-        await this.supabase
-          .from('collection_snippets')
-          .insert(
-            snippets.map((item: Tables<'snippets'>) => ({
-              collection_id: collection.id,
-              snippet_id: item.id,
-            })),
-          )
-          .select()
+      const collectionSnippets = await this.db
+        .insert(collectionSnippet)
+        .values(
+          snippets.map((item) => ({
+            collectionId: collectionData.id,
+            snippetId: item.id,
+          })),
+        )
+        .returning()
 
-      if (!collectionSnippets?.length || collectionSnippetError) {
-        return {
-          data: collectionSnippets,
-          error: collectionSnippetError || { message: 'No snippets found' },
-        }
+      if (!collectionSnippets?.length) {
+        return null
       }
     }
 
     if (payload.snippets.remove.length) {
-      await this.supabase
-        .from('collection_snippets')
-        .delete()
-        .eq('collection_id', collection.id)
-        .in(
-          'snippet_id',
-          payload.snippets.remove.map((item: any) => item.id),
-        )
+      await this.db.delete(collectionSnippet).where(
+        and(
+          eq(collectionSnippet.collectionId, collectionData.id),
+          inArray(
+            collectionSnippet.snippetId,
+            payload.snippets.remove.map((item: any) => item.id),
+          ),
+        ),
+      )
     }
 
-    const { data, error } = await this.updateCollection(collection.id, {
-      path: `${payload.workspaceId}/collections/${collection.slug}/meta.json`,
+    const updatedCollection = await this.updateCollection(collectionData.id, {
+      path: `${payload.workspaceId}/collections/${collectionData.slug}/meta.json`,
     })
 
     for (const path of paths.filter((item) => item.action === 'add')) {
-      const { data: file, error: uploadError } = await this.uploadFile(
-        path.path,
-        path.file as Blob,
-        {
-          contentType: contentTypes[collection.language],
-          upsert: path.type === 'meta' ? true : false,
-        },
-      )
+      const file = await this.uploadFile(path.path, path.file as Blob, {
+        contentType: contentTypes[collectionData.language],
+      })
 
-      if (!file || uploadError) {
-        return {
-          data: file,
-          error: uploadError,
-        }
+      if (!file) {
+        return null
       }
     }
 
     if (paths.filter((item) => item.action === 'remove').length) {
-      const { data: file, error: uploadError } =
-        await this.storageService.remove(
-          paths
-            .filter((item) => item.action === 'remove')
-            .map((item) => item.path),
-        )
-
-      if (!file || uploadError) {
-        return {
-          data: file,
-          error: uploadError,
-        }
-      }
+      await this.storageService.remove(
+        paths
+          .filter((item) => item.action === 'remove')
+          .map((item) => item.path),
+      )
     }
 
-    return {
-      data,
-      error,
-    }
+    return updatedCollection
   }
 
-  async deleteCollection(id: string, userId: string): Promise<any> {
-    const { data, error } = await this.supabase
-      .from('collections')
-      .delete()
-      .eq('id', id)
-      .eq('created_by', userId)
-      .select()
-      .single()
+  async deleteCollection(
+    id: string,
+    userId: string,
+  ): Promise<InferSelectModel<typeof collection> | null> {
+    const collectionData = await this.db
+      .delete(collection)
+      .where(and(eq(collection.id, id), eq(collection.createdBy, userId)))
+      .returning()
 
-    if (!data || error) {
-      return {
-        data,
-        error,
-      }
+    if (!collectionData?.length) {
+      return null
     }
 
-    if (data.path) {
-      const { data: metaFile, error: metaFileError } =
-        await this.storageService.download(data.path)
+    if (collectionData[0].path) {
+      const metaFile = await this.storageService.download(
+        collectionData[0].path,
+      )
 
-      if (!metaFile || metaFileError) {
-        return {
-          data: metaFile,
-          error: metaFileError,
-        }
+      if (!metaFile) {
+        return null
       }
 
-      const metaData = JSON.parse(await metaFile.text())
+      const metaData = JSON.parse(metaFile)
 
-      await this.removeCollectionFiles([data.path, ...metaData.paths])
+      await this.removeCollectionFiles([
+        collectionData[0].path,
+        ...metaData.paths,
+      ])
     }
 
-    return {
-      data,
-      error,
-    }
+    return collectionData[0]
   }
 
   async pullCollection(
     workspaceId: string,
     collectionSlug: string,
-  ): Promise<any> {
-    const { data: collection, error: collectionError } =
-      await this.getCollection({
-        workspaceId,
-        slug: collectionSlug,
-      })
+  ): Promise<string | null> {
+    const collectionData = await this.getCollection({
+      workspaceId,
+      slug: collectionSlug,
+    })
 
-    if (!collection || collectionError) {
-      return {
-        data: collection,
-        error: collectionError,
-      }
+    if (!collectionData) {
+      return null
     }
 
-    const { data: metaFile, error: metaFileError } =
-      await this.storageService.download(collection.path as string)
-
-    if (!metaFile || metaFileError) {
-      return {
-        data: metaFile,
-        error: metaFileError,
-      }
-    }
-
-    const metaData = JSON.parse(await metaFile.text())
-
-    const { data, error } = await this.storageService.getSignedUrl(
-      metaData.path,
+    const metaFile = await this.storageService.download(
+      collectionData.path as string,
     )
 
-    if (!data || error) {
-      return {
-        data,
-        error,
-      }
+    if (!metaFile) {
+      return null
     }
 
-    await this.supabase
-      .from('collections')
-      .update({
-        downloads: collection.downloads + 1,
+    const metaData = JSON.parse(metaFile)
+
+    const file = await this.storageService.getSignedUrl(metaData.path)
+
+    if (!file) {
+      return null
+    }
+
+    await this.db
+      .update(collection)
+      .set({
+        downloads: collectionData.downloads + 1,
       })
-      .eq('id', collection.id)
+      .where(eq(collection.id, collectionData.id))
 
-    return {
-      data: data.signedUrl,
-      error,
-    }
+    return file
   }
 
   private prepareCodeFile(code: string, contentType: string): Blob {
@@ -540,17 +488,8 @@ export class CollectionService {
     path: string,
     file: Blob,
     options?: any,
-  ): Promise<any> {
-    const { data, error } = await this.storageService.upload(
-      path,
-      file,
-      options,
-    )
-
-    return {
-      data,
-      error,
-    }
+  ): Promise<string | null> {
+    return await this.storageService.upload(path, file, options)
   }
 
   private async removeCollectionFiles(paths: string[]): Promise<void> {

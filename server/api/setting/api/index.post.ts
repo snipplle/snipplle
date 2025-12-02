@@ -1,8 +1,5 @@
-import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
-import { createId } from '@paralleldrive/cuid2'
-import { randomBytes } from 'crypto'
+import { apikey } from '~~/server/db/schema'
 
-import type { Database } from '~~/server/types/database.types'
 import { createApiKeySchema } from '~~/server/utils/validationSchema'
 
 export default defineEventHandler(async (event) => {
@@ -10,36 +7,40 @@ export default defineEventHandler(async (event) => {
     event,
     createApiKeySchema.parse,
   )
-  const user = await serverSupabaseUser(event)
-  const supabase = await serverSupabaseClient<Database>(event)
+  const session = await auth.api.getSession({
+    headers: event.headers,
+  })
+  const db = useDrizzle()
 
-  if (!user) {
+  if (!session?.user) {
     throw createError({
       statusCode: 401,
       statusMessage: 'Unauthorized',
     })
   }
 
-  const rawKey = `sk-${randomBytes(16).toString('hex')}`
-
-  const { error } = await supabase
-    .from('api_tokens')
-    .insert({
-      id: createId(),
-      user_id: user.id,
-      workspace_id: workspaceId,
+  const apiKey = await auth.api.createApiKey({
+    body: {
       name,
-      token: rawKey,
-    })
-    .select()
-    .single()
+      expiresIn: 60 * 60 * 24 * 30,
+      userId: session.user.id,
+      prefix: 'sk-',
+    },
+  })
 
-  if (error) {
+  if (!apiKey) {
     throw createError({
       statusCode: 500,
-      statusMessage: error.message,
+      statusMessage: 'Failed to create API key',
     })
   }
 
-  return rawKey
+  await db
+    .update(apikey)
+    .set({
+      workspaceId,
+    })
+    .where(eq(apikey.id, apiKey.id))
+
+  return apiKey.key
 })

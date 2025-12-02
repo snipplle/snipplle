@@ -1,31 +1,29 @@
-import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
 import { WorkspaceService } from '~~/server/services/workspace.service'
 
-import type { Database } from '~~/server/types/database.types'
-
 export default defineEventHandler(async (event) => {
-  const user = await serverSupabaseUser(event)
-  const supabase = await serverSupabaseClient<Database>(event)
-  const workspaceService = new WorkspaceService(supabase)
+  const session = await auth.api.getSession({
+    headers: event.headers,
+  })
+  const workspaceService = new WorkspaceService()
 
-  if (!user) {
+  if (!session?.user) {
     throw createError({
       statusCode: 401,
       statusMessage: 'Unauthorized',
     })
   }
 
-  const { data, error } = await workspaceService.getUserWorkspaces(
-    user.id,
-    '*, workspaces(*)',
+  const workspaces = await workspaceService.getUserWorkspaces(
+    session.user.id,
+    {},
   )
 
-  if (!data || error) {
+  if (!workspaces) {
     throw createError({
       statusCode: 400,
-      statusMessage: error?.message,
+      statusMessage: 'Failed to get workspaces',
     })
   }
 
-  return data
+  return workspaces
 })

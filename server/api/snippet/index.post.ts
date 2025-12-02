@@ -1,21 +1,21 @@
-import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
 import { SnippetService } from '~~/server/services/snippet.service'
 import { TagService } from '~~/server/services/tag.service'
 import { UsageService } from '~~/server/services/usage.service'
+import { UsageKeys } from '~~/server/types/api.types'
 
-import type { Database } from '~~/server/types/database.types'
 import { createSnippetSchema } from '~~/server/utils/validationSchema'
 
 export default defineEventHandler(async (event) => {
   const { name, language, description, tags, isPublic, workspaceId } =
     await readValidatedBody(event, createSnippetSchema.parse)
-  const user = await serverSupabaseUser(event)
-  const supabase = await serverSupabaseClient<Database>(event)
-  const tagService = new TagService(supabase)
-  const snippetService = new SnippetService(supabase)
-  const usageService = new UsageService(supabase)
+  const session = await auth.api.getSession({
+    headers: event.headers,
+  })
+  const tagService = new TagService()
+  const snippetService = new SnippetService()
+  const usageService = new UsageService()
 
-  if (!user?.id) {
+  if (!session?.user?.id) {
     throw createError({
       statusCode: 401,
       statusMessage: 'Unauthorized',
@@ -24,8 +24,8 @@ export default defineEventHandler(async (event) => {
 
   const { data: isExceeded, error: verifyError } =
     await usageService.verifyUsage(
-      user?.id,
-      isPublic ? 'public_snippets' : 'private_snippets',
+      session.user.id,
+      isPublic ? UsageKeys.publicSnippets : UsageKeys.privateSnippets,
     )
 
   if (verifyError || isExceeded) {
@@ -38,7 +38,9 @@ export default defineEventHandler(async (event) => {
   const tagIds: string[] = []
 
   for (const tag of tags || []) {
-    const { data: existTag } = await tagService.getTag(tag.name, 'id')
+    const existTag = await tagService.getTag(tag.name, {
+      id: true,
+    })
 
     if (existTag) {
       tagIds.push(existTag.id as string)
@@ -46,33 +48,33 @@ export default defineEventHandler(async (event) => {
       continue
     }
 
-    const { data, error } = await tagService.createTag(tag)
+    const createdTag = await tagService.createTag(tag)
 
-    if (!data || error) {
+    if (!createdTag) {
       throw createError({
         statusCode: 500,
-        statusMessage: error?.message,
+        statusMessage: 'Failed to create tag',
       })
     }
 
-    tagIds.push(data.id)
+    tagIds.push(createdTag.id)
   }
 
-  const { data, error } = await snippetService.createSnippet(
+  const data = await snippetService.createSnippet(
     {
       name,
       language,
       description,
       isPublic,
     },
-    user.id,
+    session.user.id,
     workspaceId,
   )
 
-  if (!data || error) {
+  if (!data) {
     throw createError({
       statusCode: 500,
-      statusMessage: error?.message,
+      statusMessage: 'Failed to create snippet',
     })
   }
 
@@ -81,8 +83,8 @@ export default defineEventHandler(async (event) => {
   }
 
   await usageService.incrementUsage(
-    user?.id,
-    isPublic ? 'public_snippets' : 'private_snippets',
+    session.user.id,
+    isPublic ? UsageKeys.publicSnippets : UsageKeys.privateSnippets,
   )
 
   return data

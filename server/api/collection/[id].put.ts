@@ -1,18 +1,17 @@
-import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
 import { CollectionService } from '~~/server/services/collection.service'
 
-import type { Database } from '~~/server/types/database.types'
 import { uploadCollectionSchema } from '~~/server/utils/validationSchema'
 
 export default defineEventHandler(async (event) => {
   const { id } = await getRouterParams(event)
   const { slug, workspaceId, snippets, collectionCode, removedCode } =
     await readValidatedBody(event, uploadCollectionSchema.parse)
-  const user = await serverSupabaseUser(event)
-  const supabase = await serverSupabaseClient<Database>(event)
-  const collectionService = new CollectionService(supabase)
+  const session = await auth.api.getSession({
+    headers: event.headers,
+  })
+  const collectionService = new CollectionService()
 
-  if (!user?.id) {
+  if (!session?.user?.id) {
     throw createError({
       statusCode: 401,
       statusMessage: 'Unauthorized',
@@ -33,7 +32,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const { data, error } = await collectionService.uploadCollection({
+  const collection = await collectionService.uploadCollection({
     workspaceId,
     id,
     slug,
@@ -42,12 +41,12 @@ export default defineEventHandler(async (event) => {
     snippets,
   })
 
-  if (error) {
+  if (!collection) {
     throw createError({
       statusCode: 400,
-      statusMessage: error.message,
+      statusMessage: 'Failed to upload collection',
     })
   }
 
-  return data
+  return collection
 })

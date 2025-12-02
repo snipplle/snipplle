@@ -1,35 +1,39 @@
-import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
 import { CollectionService } from '~~/server/services/collection.service'
 import { UsageService } from '~~/server/services/usage.service'
-
-import type { Database } from '~~/server/types/database.types'
+import { UsageKeys } from '~~/server/types/api.types'
 
 export default defineEventHandler(async (event) => {
   const { id } = await getRouterParams(event)
-  const user = await serverSupabaseUser(event)
-  const supabase = await serverSupabaseClient<Database>(event)
-  const collectionService = new CollectionService(supabase)
-  const usageService = new UsageService(supabase)
+  const session = await auth.api.getSession({
+    headers: event.headers,
+  })
+  const collectionService = new CollectionService()
+  const usageService = new UsageService()
 
-  if (!user?.id) {
+  if (!session?.user?.id) {
     throw createError({
       statusCode: 401,
       statusMessage: 'Unauthorized',
     })
   }
 
-  const { data, error } = await collectionService.deleteCollection(id, user.id)
+  const collection = await collectionService.deleteCollection(
+    id,
+    session.user.id,
+  )
 
-  if (error) {
+  if (!collection) {
     throw createError({
       statusCode: 500,
-      statusMessage: error.message,
+      statusMessage: 'Failed to delete collection',
     })
   }
 
   await usageService.decrementUsage(
-    user?.id,
-    data?.is_public ? 'public_collections' : 'private_collections',
+    session.user.id,
+    collection.isPublic
+      ? UsageKeys.publicCollections
+      : UsageKeys.privateCollections,
   )
 
   return {

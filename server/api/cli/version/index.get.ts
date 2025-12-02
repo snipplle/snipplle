@@ -1,26 +1,11 @@
-import { createClient } from '@supabase/supabase-js'
 import { SnippetService } from '~~/server/services/snippet.service'
 import { WorkspaceService } from '~~/server/services/workspace.service'
 
-import type { Database } from '~~/server/types/database.types'
-
 export default defineEventHandler(async (event) => {
-  const runtimeConfig = useRuntimeConfig()
   const token = event.node.req.headers['authorization']?.replace('Bearer ', '')
   const { snippet } = getQuery(event)
-  const supabase = await createClient<Database>(
-    runtimeConfig.SUPABASE_URL,
-    runtimeConfig.SUPABASE_KEY,
-    {
-      global: {
-        headers: {
-          Authorization: event.node.req.headers['authorization'] || '',
-        },
-      },
-    },
-  )
-  const workspaceService = new WorkspaceService(supabase)
-  const snippetService = new SnippetService(supabase)
+  const workspaceService = new WorkspaceService()
+  const snippetService = new SnippetService()
 
   if (!token) {
     return {
@@ -30,9 +15,13 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const { data: auth, error: authError } = await supabase.auth.getUser(token)
+  const data = await auth.api.verifyApiKey({
+    body: {
+      key: token,
+    },
+  })
 
-  if (!auth?.user || authError) {
+  if (!data.valid || data.error) {
     return {
       error: true,
       statusCode: 401,
@@ -42,35 +31,33 @@ export default defineEventHandler(async (event) => {
 
   const [workspaceSlug, snippetSlug] = (snippet as string).split('/')
 
-  const { data: workspace, error: workspaceError } =
-    await workspaceService.getWorkspaceBySlug(workspaceSlug)
+  const workspace = await workspaceService.getWorkspaceBySlug(workspaceSlug)
 
-  if (!workspace || workspaceError) {
+  if (!workspace) {
     return {
       error: true,
       statusCode: 400,
-      statusMessage: workspaceError?.message,
+      statusMessage: 'Workspace not found',
     }
   }
 
-  const { data: snippetData, error: snippetError } =
-    await snippetService.getSnippet({
-      workspaceId: workspace.id,
-      slug: snippetSlug,
-    })
+  const snippetData = await snippetService.getSnippet({
+    workspaceId: workspace.id,
+    slug: snippetSlug,
+  })
 
-  if (!snippetData || snippetError) {
+  if (!snippetData) {
     return {
       error: true,
       statusCode: 400,
-      statusMessage: snippetError?.message,
+      statusMessage: 'Snippet not found',
     }
   }
 
-  if (!snippetData.is_public) {
+  if (!snippetData.isPublic) {
     const { hasAccess } = await workspaceService.checkMember(
       workspace.id,
-      auth.user.id,
+      data.key?.userId as string,
     )
 
     if (!hasAccess) {
@@ -82,18 +69,18 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const { data, error } = await snippetService.getSnippetVersions(
+  const versions = await snippetService.getSnippetVersions(
     workspace.id,
     snippetData.id,
   )
 
-  if (error) {
+  if (!versions) {
     return {
       error: true,
       statusCode: 400,
-      statusMessage: error.message,
+      statusMessage: 'Failed to get snippet versions',
     }
   }
 
-  return data
+  return versions
 })

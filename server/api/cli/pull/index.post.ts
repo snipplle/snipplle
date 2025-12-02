@@ -1,28 +1,13 @@
-import { createClient } from '@supabase/supabase-js'
 import { CollectionService } from '~~/server/services/collection.service'
 import { SnippetService } from '~~/server/services/snippet.service'
 import { WorkspaceService } from '~~/server/services/workspace.service'
 
-import type { Database } from '~~/server/types/database.types'
-
 export default defineEventHandler(async (event) => {
-  const runtimeConfig = useRuntimeConfig()
   const token = event.node.req.headers['authorization']?.replace('Bearer ', '')
   const { snippetPath, collectionPath } = await readBody(event)
-  const supabase = await createClient<Database>(
-    runtimeConfig.SUPABASE_URL,
-    runtimeConfig.SUPABASE_KEY,
-    {
-      global: {
-        headers: {
-          Authorization: event.node.req.headers['authorization'] || '',
-        },
-      },
-    },
-  )
-  const workspaceService = new WorkspaceService(supabase)
-  const snippetService = new SnippetService(supabase)
-  const collectionService = new CollectionService(supabase)
+  const workspaceService = new WorkspaceService()
+  const snippetService = new SnippetService()
+  const collectionService = new CollectionService()
 
   if (!token) {
     return {
@@ -32,9 +17,13 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const { data: auth, error: authError } = await supabase.auth.getUser(token)
+  const data = await auth.api.verifyApiKey({
+    body: {
+      key: token,
+    },
+  })
 
-  if (!auth?.user || authError) {
+  if (!data.valid || data.error) {
     return {
       error: true,
       statusCode: 401,
@@ -46,64 +35,62 @@ export default defineEventHandler(async (event) => {
     const [workspaceSlug, snippetPart] = snippetPath.split('/')
     const [snippetSlug, version] = snippetPart.split('@')
 
-    const { data: workspace, error: workspaceError } =
-      await workspaceService.getWorkspaceBySlug(workspaceSlug)
+    const workspace = await workspaceService.getWorkspaceBySlug(workspaceSlug)
 
-    if (!workspace || workspaceError) {
+    if (!workspace) {
       return {
         error: true,
         statusCode: 400,
-        statusMessage: workspaceError?.message,
+        statusMessage: 'Workspace not found',
       }
     }
 
-    const { data, error } = await snippetService.pullSnippet(
+    const result = await snippetService.pullSnippet(
       workspace.id,
       snippetSlug,
       version || 'latest',
-      auth.user.id,
+      data.key?.userId as string,
     )
 
-    if (error) {
+    if (!result || result instanceof Error) {
       return {
         error: true,
         statusCode: 400,
-        statusMessage: error.message,
+        statusMessage: (result as Error)?.message || 'Failed to pull snippet',
       }
     }
 
     return {
-      path: data,
+      path: result,
     }
   }
 
   const [workspaceSlug, collectionSlug] = collectionPath.split('/')
 
-  const { data: workspace, error: workspaceError } =
-    await workspaceService.getWorkspaceBySlug(workspaceSlug)
+  const workspace = await workspaceService.getWorkspaceBySlug(workspaceSlug)
 
-  if (!workspace || workspaceError) {
+  if (!workspace) {
     return {
       error: true,
       statusCode: 400,
-      statusMessage: workspaceError?.message,
+      statusMessage: 'Workspace not found',
     }
   }
 
-  const { data, error } = await collectionService.pullCollection(
+  const collection = await collectionService.pullCollection(
     workspace.id,
     collectionSlug,
   )
 
-  if (error) {
+  if (!collection) {
     return {
       error: true,
       statusCode: 400,
-      statusMessage: error.message,
+      statusMessage: 'Failed to pull collection',
     }
   }
 
   return {
-    path: data,
+    path: collection,
   }
 })

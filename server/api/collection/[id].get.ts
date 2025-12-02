@@ -1,42 +1,39 @@
-import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
 import { CollectionService } from '~~/server/services/collection.service'
-
-import type { Database } from '~~/server/types/database.types'
 
 export default defineEventHandler(async (event) => {
   const { id: slug } = await getRouterParams(event)
   const { workspaceId } = getQuery(event)
-  const user = await serverSupabaseUser(event)
-  const supabase = await serverSupabaseClient<Database>(event)
-  const collectionService = new CollectionService(supabase)
+  const session = await auth.api.getSession({
+    headers: event.headers,
+  })
+  const collectionService = new CollectionService()
 
-  if (!user) {
+  if (!session?.user?.id) {
     throw createError({
       statusCode: 401,
       statusMessage: 'Unauthorized',
     })
   }
 
-  const { data, error } = await collectionService.getCollection({
+  const collection = await collectionService.getCollection({
     workspaceId,
     slug,
   })
 
-  if (!data || error) {
+  if (!collection) {
     throw createError({
       statusCode: 400,
-      statusMessage: error?.message,
+      statusMessage: 'Collection not found',
     })
   }
 
-  const { data: collectionSnippets } =
-    await collectionService.getCollectionSnippets(
-      data.id,
-      workspaceId as string,
-    )
+  const collectionSnippets = await collectionService.getCollectionSnippets(
+    collection.id,
+    workspaceId as string,
+  )
 
   return {
-    ...data,
+    ...collection,
     snippets: collectionSnippets,
   }
 })

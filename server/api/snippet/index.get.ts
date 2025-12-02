@@ -1,52 +1,44 @@
-import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
+import type { InferSelectModel } from 'drizzle-orm'
+import type { snippet } from '~~/server/db/schema'
 import { SnippetService } from '~~/server/services/snippet.service'
 import { WorkspaceService } from '~~/server/services/workspace.service'
 
-import type { Database } from '~~/server/types/database.types'
-
 export default defineEventHandler(async (event) => {
   const { orderBy, lang, tag, search, page, itemsPerPage } = getQuery(event)
-  const user = await serverSupabaseUser(event)
-  const supabase = await serverSupabaseClient<Database>(event)
-  const workspaceService = new WorkspaceService(supabase)
-  const snippetService = new SnippetService(supabase)
+  const session = await auth.api.getSession({
+    headers: event.headers,
+  })
+  const workspaceService = new WorkspaceService()
+  const snippetService = new SnippetService()
 
-  if (!user?.id) {
+  if (!session?.user?.id) {
     throw createError({
       statusCode: 401,
       statusMessage: 'Unauthorized',
     })
   }
 
-  const { data: workspaceIds, error: workspaceError } =
-    await workspaceService.getUserWorkspaces(user?.id)
+  const workspaces = await workspaceService.getUserWorkspaces(session.user.id)
 
-  if (workspaceError) {
+  if (!workspaces) {
     throw createError({
       statusCode: 500,
-      statusMessage: workspaceError.message,
+      statusMessage: 'Failed to get user workspaces',
     })
   }
 
-  const { data, count, error } = await snippetService.getSnippets({
+  const { data, count } = await snippetService.getSnippets({
     orderBy,
     lang,
     tag,
     search,
     page,
     itemsPerPage,
-    workspaceIds,
+    workspaceIds: workspaces,
   })
 
-  if (error) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: error.message,
-    })
-  }
-
   return {
-    snippets: data,
-    count,
+    snippets: data as InferSelectModel<typeof snippet>[],
+    count: count as number,
   }
 })

@@ -1,11 +1,11 @@
 export const orderByMap: Record<string, { field: string; ascending: boolean }> =
   {
     date: {
-      field: 'created_at',
+      field: 'createdAt',
       ascending: false,
     },
     'date-reverse': {
-      field: 'created_at',
+      field: 'createdAt',
       ascending: true,
     },
     name: {

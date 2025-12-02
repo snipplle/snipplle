@@ -1,51 +1,28 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
-import { createId } from '@paralleldrive/cuid2'
-
-import type { Database, Tables } from '../types/database.types'
-import type { DatabaseResponse } from '../types/api.types'
+import type { InferSelectModel } from 'drizzle-orm'
+import { tag } from '../db/schema'
 
 export class TagService {
-  constructor(private supabase: SupabaseClient<Database>) {}
+  private db = useDrizzle()
 
-  async getTags(): Promise<DatabaseResponse<Tables<'tags'>[] | null>> {
-    const { data, error } = await this.supabase.from('tags').select()
-
-    return {
-      data,
-      error,
-    }
+  async getTags(): Promise<InferSelectModel<typeof tag>[]> {
+    return await this.db.query.tag.findMany()
   }
 
   async getTag(
     name: string,
-    select = '*',
-  ): Promise<DatabaseResponse<Partial<Tables<'tags'>> | null>> {
-    const { data, error } = await this.supabase
-      .from('tags')
-      .select(select)
-      .eq('name', name)
-      .single()
-
-    return {
-      data: data as Partial<Tables<'tags'>>,
-      error,
-    }
+    select = {},
+  ): Promise<InferSelectModel<typeof tag> | undefined> {
+    return await this.db.query.tag.findFirst({
+      where: (tag, { eq }) => eq(tag.name, name),
+      columns: Object.keys(select).length ? select : undefined,
+    })
   }
 
-  async createTag(tag: any): Promise<DatabaseResponse<Tables<'tags'> | null>> {
-    const { data, error } = await this.supabase
-      .from('tags')
-      .insert({
-        id: createId(),
-        name: tag.name,
-        color: tag.color,
-      })
-      .select()
-      .single()
+  async createTag(
+    payload: Pick<InferSelectModel<typeof tag>, 'name' | 'color'>,
+  ): Promise<InferSelectModel<typeof tag>> {
+    const tagData = await this.db.insert(tag).values(payload).returning()
 
-    return {
-      data,
-      error,
-    }
+    return tagData[0]
   }
 }

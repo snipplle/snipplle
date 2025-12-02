@@ -1,35 +1,32 @@
-import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
 import { CollectionService } from '~~/server/services/collection.service'
 import { WorkspaceService } from '~~/server/services/workspace.service'
 
-import type { Database } from '~~/server/types/database.types'
-
 export default defineEventHandler(async (event) => {
   const { orderBy, lang, tag, search, page, itemsPerPage } = getQuery(event)
-  const user = await serverSupabaseUser(event)
-  const supabase = await serverSupabaseClient<Database>(event)
-  const workspaceService = new WorkspaceService(supabase)
-  const collectionService = new CollectionService(supabase)
+  const session = await auth.api.getSession({
+    headers: event.headers,
+  })
+  const workspaceService = new WorkspaceService()
+  const collectionService = new CollectionService()
 
-  if (!user) {
+  if (!session?.user?.id) {
     throw createError({
       statusCode: 401,
       statusMessage: 'Unauthorized',
     })
   }
 
-  const { data: workspaceIds, error: workspaceError } =
-    await workspaceService.getUserWorkspaces(user?.id)
+  const workspaces = await workspaceService.getUserWorkspaces(session?.user?.id)
 
-  if (workspaceError) {
+  if (!workspaces) {
     throw createError({
       statusCode: 500,
-      statusMessage: workspaceError.message,
+      statusMessage: 'Failed to get user workspaces',
     })
   }
 
-  const { data, count, error } = await collectionService.getCollections({
-    workspaceIds,
+  const { data, count } = await collectionService.getCollections({
+    workspaceIds: workspaces,
     orderBy,
     lang,
     tag,
@@ -37,13 +34,6 @@ export default defineEventHandler(async (event) => {
     page,
     itemsPerPage,
   })
-
-  if (error) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: error.message,
-    })
-  }
 
   return {
     collections: data,

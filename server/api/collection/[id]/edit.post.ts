@@ -1,7 +1,5 @@
-import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
 import { CollectionService } from '~~/server/services/collection.service'
 
-import type { Database } from '~~/server/types/database.types'
 import { updateCollectionSchema } from '~~/server/utils/validationSchema'
 
 export default defineEventHandler(async (event) => {
@@ -10,29 +8,30 @@ export default defineEventHandler(async (event) => {
     event,
     updateCollectionSchema.parse,
   )
-  const user = await serverSupabaseUser(event)
-  const supabase = await serverSupabaseClient<Database>(event)
-  const collectionService = new CollectionService(supabase)
+  const session = await auth.api.getSession({
+    headers: event.headers,
+  })
+  const collectionService = new CollectionService()
 
-  if (!user) {
+  if (!session?.user?.id) {
     throw createError({
       statusCode: 401,
       statusMessage: 'Unauthorized',
     })
   }
 
-  const { data, error } = await collectionService.updateCollection(id, {
+  const collection = await collectionService.updateCollection(id, {
     name,
     description,
     is_public: isPublic,
   })
 
-  if (error) {
+  if (!collection) {
     throw createError({
       statusCode: 400,
-      statusMessage: error.message,
+      statusMessage: 'Failed to update collection',
     })
   }
 
-  return data
+  return collection
 })

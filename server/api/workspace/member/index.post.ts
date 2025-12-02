@@ -1,8 +1,7 @@
-import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
 import { UsageService } from '~~/server/services/usage.service'
 import { WorkspaceService } from '~~/server/services/workspace.service'
+import { UsageKeys } from '~~/server/types/api.types'
 
-import type { Database } from '~~/server/types/database.types'
 import { addMemberSchema } from '~~/server/utils/validationSchema'
 
 export default defineEventHandler(async (event) => {
@@ -10,12 +9,14 @@ export default defineEventHandler(async (event) => {
     event,
     addMemberSchema.parse,
   )
-  const user = await serverSupabaseUser(event)
-  const supabase = await serverSupabaseClient<Database>(event)
-  const workspaceService = new WorkspaceService(supabase)
-  const usageService = new UsageService(supabase)
+  const session = await auth.api.getSession({
+    headers: event.headers,
+  })
+  const db = useDrizzle()
+  const workspaceService = new WorkspaceService()
+  const usageService = new UsageService()
 
-  if (!user) {
+  if (!session?.user) {
     throw createError({
       statusCode: 401,
       statusMessage: 'Unauthorized',
@@ -23,7 +24,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const { data: isExceeded, error: verifyError } =
-    await usageService.verifyUsage(user?.id, 'team_members')
+    await usageService.verifyUsage(session.user.id, UsageKeys.teamMembers)
 
   if (verifyError || isExceeded) {
     throw createError({
@@ -32,33 +33,31 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const { data: userData, error: userError } = await supabase
-    .from('users')
-    .select()
-    .eq('email', email)
-    .single()
+  const existUser = await db.query.user.findFirst({
+    where: (users, { eq }) => eq(users.email, email),
+  })
 
-  if (!userData || userError) {
+  if (!existUser) {
     throw createError({
       statusCode: 400,
-      statusMessage: userError?.message || 'User not found',
+      statusMessage: 'User not found',
     })
   }
 
-  const { data, error } = await workspaceService.addMember(
+  const member = await workspaceService.addMember(
     workspaceId,
-    userData.id,
+    existUser.id,
     'member',
   )
 
-  if (error) {
+  if (!member) {
     throw createError({
       statusCode: 400,
-      statusMessage: error.message,
+      statusMessage: 'Failed to add member',
     })
   }
 
-  await usageService.incrementUsage(user?.id, 'team_members')
+  await usageService.incrementUsage(session.user.id, UsageKeys.teamMembers)
 
-  return data
+  return member
 })

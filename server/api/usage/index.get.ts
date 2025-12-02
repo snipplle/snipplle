@@ -1,35 +1,27 @@
-import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
-
-import type { Database } from '~~/server/types/database.types'
+import { UsageService } from '~~/server/services/usage.service'
+import type { UsageKeys } from '~~/server/types/api.types'
 
 export default defineEventHandler(async (event) => {
   const { scope, slug } = getQuery(event)
-  const user = await serverSupabaseUser(event)
-  const supabase = await serverSupabaseClient<Database>(event)
+  const session = await auth.api.getSession({
+    headers: event.headers,
+  })
+  const usageService = new UsageService()
 
-  if (!user?.id) {
+  if (!session?.user?.id) {
     throw createError({
       statusCode: 401,
       statusMessage: 'Unauthorized',
     })
   }
 
-  const { data, error } = await supabase.functions.invoke('verify-usage', {
-    body: {
-      userId: user.id,
-      usageKey: scope,
-      meta: {
-        slug,
-      },
+  const { data } = await usageService.verifyUsage(
+    session.user.id,
+    scope as UsageKeys,
+    {
+      slug: slug as string,
     },
-  })
+  )
 
-  if (error) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: error.message,
-    })
-  }
-
-  return JSON.parse(data)
+  return data
 })
