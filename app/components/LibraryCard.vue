@@ -144,8 +144,8 @@
   const tags = computed(() => {
     const tagList = []
 
-    for (const tag of props.data.collection_tags || props.data.snippet_tags) {
-      tagList.push(tag.tags)
+    for (const tag of props.data.collectionTags || props.data.snippetTags) {
+      tagList.push(tag.tag)
     }
 
     return tagList
@@ -155,7 +155,7 @@
   Promise<void | NavigationFailure | false> | false | void | RouteLocationRaw {
     const route = `/preview/${props.data.workspaces.slug}/${props.is}/${props.data.slug}`
 
-    globalStore.setPreviewWorkspaceId(props.data.workspace_id || '')
+    globalStore.setPreviewWorkspaceId(props.data.workspaceId || '')
 
     return navigateTo(route)
   }

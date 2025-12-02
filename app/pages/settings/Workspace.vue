@@ -35,10 +35,10 @@
           <div class="flex flex-col max-h-40 overflow-auto space-y-2">
             <MemberCard
               v-for="member in members"
-              :key="member.user_id"
+              :key="member.userId"
               :member="member"
               :workspace-id="data?.id"
-              :user-id="user?.id"
+              :user-id="session?.user?.id"
               @on-member-removed="refreshMembers"
             />
           </div>
@@ -92,8 +92,10 @@
     layout: 'setting',
   })
 
-  const user = useSupabaseUser()
+  const { authClient } = useAuthClient()
   const { hasAccess } = await usePermission('team_members')
+
+  const { data: session } = await authClient.getSession()
 
   const { data } = await useFetch('/api/workspace/default', {
     method: 'GET',
@@ -119,7 +121,7 @@
   const joinedWorkspaces = computed(() => {
     return (
       workspaces.value?.filter(
-        (workspace) => workspace.workspace_id !== data.value?.id,
+        (workspace) => workspace.workspaceId !== data.value?.id,
       ) || []
     )
   })

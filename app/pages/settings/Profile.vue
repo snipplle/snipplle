@@ -14,7 +14,7 @@
             <UInput
               variant="subtle"
               class="w-full"
-              :default-value="user?.user_metadata?.display_name"
+              :default-value="session?.user?.name"
               disabled
             />
           </UFormField>
@@ -23,7 +23,7 @@
             <UInput
               variant="subtle"
               class="w-full"
-              :default-value="user?.email"
+              :default-value="session?.user?.email"
               disabled
             />
           </UFormField>
@@ -46,6 +46,15 @@
           class="space-y-4"
           @submit="changePassword"
         >
+          <UFormField label=" Current Password" name="currentPassword" required>
+            <UInput
+              v-model="state.currentPassword"
+              variant="subtle"
+              class="w-full"
+              type="password"
+            />
+          </UFormField>
+
           <UFormField label="Password" name="password" required>
             <UInput
               v-model="state.password"
@@ -81,17 +90,22 @@
     layout: 'setting',
   })
 
-  const user = useSupabaseUser()
-  const supabase = useSupabaseClient()
+  const { authClient } = useAuthClient()
   const toast = useToast()
 
+  const { data: session } = await authClient.getSession()
+
   const state = ref({
+    currentPassword: '',
     password: '',
     confirmPassword: '',
   })
 
   const schema = z
     .object({
+      currentPassword: z
+        .string('Current Password is required')
+        .min(8, 'Must be at least 8 characters'),
       password: z
         .string('Password is required')
         .min(8, 'Must be at least 8 characters'),
@@ -107,8 +121,9 @@
   type Schema = z.output<typeof schema>
 
   async function changePassword(event: FormSubmitEvent<Schema>): Promise<void> {
-    const { error } = await supabase.auth.updateUser({
-      password: event.data.confirmPassword,
+    const { error } = await authClient.changePassword({
+      currentPassword: event.data.currentPassword,
+      newPassword: event.data.password,
     })
 
     if (error) {

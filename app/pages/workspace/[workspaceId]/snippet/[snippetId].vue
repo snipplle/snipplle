@@ -103,13 +103,13 @@
       },
     })
 
-    if (!version?.snippet_file) {
+    if (!version) {
       snippetCode.value = ''
 
       return
     }
 
-    const response = await fetch(version?.snippet_file)
+    const response = await fetch(version)
     const code = await response.text()
 
     snippetCode.value = code

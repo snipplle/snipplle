@@ -9,12 +9,12 @@
       </div>
 
       <UButton
-        v-if="member.user_id !== userId"
+        v-if="member.userId !== userId"
         variant="link"
         type="button"
         size="sm"
         icon="i-hugeicons-cancel-01"
-        @click="removeMember(member.user_id)"
+        @click="removeMember(member.userId)"
       />
     </div>
   </ClientOnly>

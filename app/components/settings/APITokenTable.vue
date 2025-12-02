@@ -33,8 +33,28 @@
 
 <script setup lang="ts">
   defineProps<{
-    data: any[] | undefined
+    data: any[]
   }>()
+
+  interface ApiKey {
+    id: string
+    name: string | null
+    createdAt: Date
+    lastRequest?: Date | null
+    permissions: { [key: string]: string[] } | null
+    start: string | null
+    prefix: string | null
+    userId: string
+    refillInterval: number | null
+    refillAmount: number | null
+    metadata: Record<string, unknown> | null
+  }
+
+  interface TableCellProps {
+    row: {
+      original: ApiKey
+    }
+  }
 
   const columns = [
     {
@@ -42,12 +62,20 @@
       header: 'Name',
     },
     {
-      accessorKey: 'token',
-      header: 'Token',
+      accessorKey: 'createdAt',
+      header: 'Created',
+      cell: ({ row }: TableCellProps): string => {
+        return new Date(row.original.createdAt).toLocaleString()
+      },
     },
     {
-      accessorKey: 'created_at',
-      header: 'Created At',
+      accessorKey: 'lastRequest',
+      header: 'Last Used',
+      cell: ({ row }: TableCellProps): string => {
+        return row.original.lastRequest
+          ? new Date(row.original.lastRequest).toLocaleString()
+          : 'Never'
+      },
     },
   ]
 </script>

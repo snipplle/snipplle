@@ -104,8 +104,8 @@
   const tags = computed(() => {
     const tagList = []
 
-    for (const tag of props.collection.collection_tags) {
-      tagList.push(tag.tags)
+    for (const tag of props.collection.collectionTags) {
+      tagList.push(tag.tag)
     }
 
     return tagList

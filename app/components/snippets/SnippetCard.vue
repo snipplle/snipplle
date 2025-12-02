@@ -147,8 +147,8 @@
   const tags = computed(() => {
     const tagList = []
 
-    for (const tag of props.snippet.snippet_tags) {
-      tagList.push(tag.tags)
+    for (const tag of props.snippet.snippetTags) {
+      tagList.push(tag.tag)
     }
 
     return tagList
@@ -159,7 +159,7 @@
     globalStore.setSelectedJoinedWorkspace(undefined)
 
     const activeWorkspace = globalStore.activeWorkspace
-    const snippetWorkspace = props.snippet.workspace_id
+    const snippetWorkspace = props.snippet.workspaceId
 
     if (activeWorkspace?.id !== snippetWorkspace) {
       globalStore.setSelectedJoinedWorkspace({

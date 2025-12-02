@@ -3,7 +3,7 @@
     <div
       class="bg-neutral-800 border border-neutral-700 p-2 rounded-md flex items-center justify-between"
     >
-      <h1 class="ml-2 font-medium">{{ workspace.workspaces.name }}</h1>
+      <h1 class="ml-2 font-medium">{{ workspace.workspace.name }}</h1>
 
       <UButton variant="link" type="button" size="sm" @click="leaveWorkspace">
         Leave
@@ -26,7 +26,7 @@
       await $fetch('/api/workspace/member/leave', {
         method: 'POST',
         body: {
-          workspaceId: props.workspace.workspace_id,
+          workspaceId: props.workspace.workspaceId,
         },
       })
 

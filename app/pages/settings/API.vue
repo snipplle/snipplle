@@ -15,7 +15,7 @@
             <CreateAPIToken @on-token-created="refresh" />
           </div>
 
-          <APITokenTable :data="data" />
+          <APITokenTable :data="data || []" />
         </div>
 
         <USeparator />

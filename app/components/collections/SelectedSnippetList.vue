@@ -53,11 +53,11 @@
             <UBadge
               v-for="tag in snippet.snippet_tags"
               :key="tag"
-              :color="tag.tags.color"
+              :color="tag.tag.color"
               variant="subtle"
               size="sm"
             >
-              {{ tag.tags.name }}
+              {{ tag.tag.name }}
             </UBadge>
           </div>
         </div>
@@ -108,7 +108,7 @@
       },
     })
 
-    const response = await fetch(snippetData.snippet_file)
+    const response = await fetch(snippetData)
 
     const code = await response.text()
 

@@ -39,7 +39,7 @@
       state.value = {
         name: snippet.name,
         description: snippet.description,
-        isPublic: snippet.is_public,
+        isPublic: snippet.isPublic,
       }
     },
     {

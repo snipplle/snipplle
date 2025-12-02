@@ -39,7 +39,7 @@
       state.value = {
         name: collection.name,
         description: collection.description,
-        isPublic: collection.is_public,
+        isPublic: collection.isPublic,
       }
     },
     {

@@ -200,7 +200,7 @@
       },
     })
 
-    const response = await fetch(snippetData.snippet_file)
+    const response = await fetch(snippetData)
 
     const snippetCode = await response.text()
 

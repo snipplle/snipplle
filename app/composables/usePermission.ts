@@ -9,6 +9,11 @@ export async function usePermission(
 
   if (SELF_HOSTED === 'true') {
     hasAccess.value = true
+
+    return {
+      hasAccess,
+      refresh: async (): Promise<void> => {},
+    }
   }
 
   const { data, refresh } = await useFetch('/api/usage', {
