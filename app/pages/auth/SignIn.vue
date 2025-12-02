@@ -82,8 +82,7 @@
 
   type size = 'lg' | 'xs' | 'sm' | 'md' | 'xl' | undefined
 
-  const config = useRuntimeConfig()
-  const supabase = useSupabaseClient()
+  const { authClient } = useAuthClient()
   const toast = useToast()
 
   const fields = [
@@ -118,11 +117,9 @@
       icon: 'i-simple-icons-google',
       size: 'lg' as size,
       onClick: async (): Promise<void> => {
-        await supabase.auth.signInWithOAuth({
+        await authClient.signIn.social({
           provider: 'google',
-          options: {
-            redirectTo: `${config.public.BASE_URL}/auth/confirm`,
-          },
+          callbackURL: '/auth/confirm',
         })
       },
     },
@@ -131,11 +128,9 @@
       icon: 'i-simple-icons-github',
       size: 'lg' as size,
       onClick: async (): Promise<void> => {
-        await supabase.auth.signInWithOAuth({
+        await authClient.signIn.social({
           provider: 'github',
-          options: {
-            redirectTo: `${config.public.BASE_URL}/auth/confirm`,
-          },
+          callbackURL: '/auth/confirm',
         })
       },
     },
@@ -149,9 +144,10 @@
   type Schema = z.output<typeof schema>
 
   async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error } = await authClient.signIn.email({
       email: payload.data.email,
       password: payload.data.password,
+      callbackURL: '/auth/confirm',
     })
 
     if (error) {
@@ -166,6 +162,6 @@
       return
     }
 
-    await navigateTo('/auth/confirm')
+    // await navigateTo('/auth/confirm')
   }
 </script>

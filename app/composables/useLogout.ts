@@ -1,15 +1,15 @@
 import type { UseLogout } from '@/types/global.types'
 
 export function useLogout(): UseLogout {
-  const supabase = useSupabaseClient()
+  const { authClient } = useAuthClient()
   const globalStore = useGlobalStore()
 
   const logout = async (): Promise<void> => {
     globalStore.resetStore()
 
-    await supabase.auth.signOut()
+    await authClient.signOut()
 
-    await navigateTo('/auth/signin')
+    await navigateTo('/auth/sign-in')
   }
 
   return {

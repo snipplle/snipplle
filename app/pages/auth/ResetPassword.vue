@@ -63,7 +63,8 @@
 
   type size = 'lg' | 'xs' | 'sm' | 'md' | 'xl' | undefined
 
-  const supabase = useSupabaseClient()
+  const { query } = useRoute()
+  const { authClient } = useAuthClient()
   const toast = useToast()
 
   const fields = [
@@ -104,8 +105,9 @@
   type Schema = z.output<typeof schema>
 
   async function onSubmit(event: FormSubmitEvent<Schema>): Promise<void> {
-    const { error } = await supabase.auth.updateUser({
-      password: event.data.confirmPassword,
+    const { error } = await authClient.resetPassword({
+      newPassword: event.data.newPassword,
+      token: query.token as string,
     })
 
     if (error) {
@@ -119,5 +121,7 @@
 
       return
     }
+
+    await navigateTo('/auth/sign-in')
   }
 </script>

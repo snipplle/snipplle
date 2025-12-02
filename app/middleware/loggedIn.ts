@@ -3,9 +3,11 @@ export default defineNuxtRouteMiddleware(async (_, __) => {
     return
   }
 
-  const session = await useSupabaseSession()
+  const { authClient } = useAuthClient()
 
-  if (session.value) {
+  const { data } = await authClient.getSession()
+
+  if (data?.session) {
     return navigateTo('/auth/confirm')
   }
 })

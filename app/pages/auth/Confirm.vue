@@ -1,16 +1,20 @@
 <template>
-  <div></div>
+  <ClientOnly>
+    <div></div>
+  </ClientOnly>
 </template>
 
 <script setup lang="ts">
-  const user = useSupabaseUser()
+  const { authClient } = useAuthClient()
   const globalStore = useGlobalStore()
 
+  const { data } = await authClient.getSession()
+
   watch(
-    user,
+    () => data?.user,
     async () => {
-      if (user.value) {
-        if (!user.value.user_metadata?.onboarding_completed) {
+      if (data) {
+        if (!data.user.onboardingCompleted) {
           return navigateTo('/welcome')
         }
 
@@ -30,7 +34,7 @@
         return navigateTo(`/workspace/${response.slug}/snippets`)
       }
 
-      return navigateTo('/auth/signin')
+      return navigateTo('/auth/sign-in')
     },
     { immediate: true },
   )

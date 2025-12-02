@@ -70,7 +70,8 @@
 
   type size = 'lg' | 'xs' | 'sm' | 'md' | 'xl' | undefined
 
-  const supabase = useSupabaseClient()
+  const runtimeConfig = useRuntimeConfig()
+  const { authClient } = useAuthClient()
   const toast = useToast()
 
   const fields = [
@@ -92,12 +93,12 @@
   type Schema = z.output<typeof schema>
 
   async function onSubmit(event: FormSubmitEvent<Schema>): Promise<void> {
-    const { error } = await supabase.auth.resetPasswordForEmail(
-      event.data.email,
-      {
-        redirectTo: 'http://localhost:3000/auth/reset-password',
-      },
-    )
+    const { SSL_PREFIX, BASE_URL } = runtimeConfig.public
+
+    const { error } = await authClient.requestPasswordReset({
+      email: event.data.email,
+      redirectTo: `${SSL_PREFIX}://${BASE_URL}/auth/reset-password`,
+    })
 
     if (error) {
       toast.add({
@@ -110,5 +111,7 @@
 
       return
     }
+
+    await navigateTo('/auth/sign-in')
   }
 </script>
