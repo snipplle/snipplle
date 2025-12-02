@@ -36,9 +36,9 @@ export const apikey = pgTable(
     updatedAt: timestamp('updated_at').notNull(),
     permissions: text('permissions'),
     metadata: text('metadata'),
-    workspaceId: text('workspace_id')
-      .notNull()
-      .references(() => workspace.id, { onDelete: 'cascade' }),
+    workspaceId: text('workspace_id').references(() => workspace.id, {
+      onDelete: 'cascade',
+    }),
   },
   (table) => [
     index('apikey_key_idx').on(table.key),

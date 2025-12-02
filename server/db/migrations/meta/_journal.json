@@ -225,6 +225,13 @@
       "when": 1764619344853,
       "tag": "0034_AddedOnboardingCompletedField",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1764710513772,
+      "tag": "0035_RemovedNotNullForField",
+      "breakpoints": true
     }
   ]
 }
