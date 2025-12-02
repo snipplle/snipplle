@@ -36,16 +36,27 @@ export default defineNuxtConfig({
   runtimeConfig: {
     DATABASE_URL: process.env.DATABASE_URL || '',
     BASE_URL: process.env.BASE_URL || '',
+    SSL_PREFIX: process.env.SSL_PREFIX || '',
     SELF_HOSTED: process.env.SELF_HOSTED,
-    SUPABASE_URL: process.env.SUPABASE_URL || '',
-    SUPABASE_KEY: process.env.SUPABASE_KEY || '',
-    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
-    SUPABASE_JWT_SECRET: process.env.SUPABASE_JWT_SECRET || '',
+    BETTER_AUTH_URL: process.env.BETTER_AUTH_URL || '',
+    BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET || '',
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || '',
+    GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID || '',
+    GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET || '',
+    EXTERNAL_FUNCTIONS_URL: process.env.EXTERNAL_FUNCTIONS_URL || '',
+    AWS_REGION: process.env.AWS_REGION || '',
+    AWS_ENDPOINT: process.env.AWS_ENDPOINT || '',
+    AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID || '',
+    AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY || '',
+    BUCKET_NAME: process.env.BUCKET_NAME || '',
     GARBAGE_CLEANER_FUNCTION: process.env.GARBAGE_CLEANER_FUNCTION || '',
 
     public: {
       BASE_URL: process.env.BASE_URL || '',
+      SSL_PREFIX: process.env.SSL_PREFIX || '',
       SELF_HOSTED: process.env.SELF_HOSTED,
+      BETTER_AUTH_URL: process.env.BETTER_AUTH_URL || '',
     },
   },
 
@@ -57,7 +68,6 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
     'nuxt-security',
     '@nuxtjs/seo',
-    '@nuxtjs/supabase',
     'nuxt-codemirror',
   ],
 
@@ -110,18 +120,6 @@ export default defineNuxtConfig({
 
   imports: {
     dirs: ['composables', 'composables/*/*.ts', 'types/**/*.ts'],
-  },
-
-  supabase: {
-    redirectOptions: {
-      login: '/auth/sign-in',
-      exclude: [
-        '/auth/sign-up',
-        '/auth/forgot-password',
-        '/auth/reset-password',
-      ],
-      callback: '/auth/confirm',
-    },
   },
 
   security: {
