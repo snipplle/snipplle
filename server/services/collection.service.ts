@@ -132,10 +132,7 @@ export class CollectionService {
     }
 
     if (!collection.path) {
-      return {
-        data: [],
-        error: null,
-      }
+      return []
     }
 
     const metaFile = await this.storageService.download(
