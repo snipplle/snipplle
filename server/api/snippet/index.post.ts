@@ -22,16 +22,15 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const { data: isExceeded, error: verifyError } =
-    await usageService.verifyUsage(
-      session.user.id,
-      isPublic ? UsageKeys.publicSnippets : UsageKeys.privateSnippets,
-    )
+  const { data: usageData, error: usageError } = await usageService.verifyUsage(
+    session.user.id,
+    isPublic ? UsageKeys.publicSnippets : UsageKeys.privateSnippets,
+  )
 
-  if (verifyError || isExceeded) {
+  if (usageError || usageData.isExceeded) {
     throw createError({
       statusCode: 403,
-      statusMessage: verifyError?.message || 'Usage limit exceeded',
+      statusMessage: usageError?.message || 'Usage limit exceeded',
     })
   }
 
