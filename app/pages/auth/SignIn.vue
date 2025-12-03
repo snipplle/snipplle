@@ -161,7 +161,5 @@
 
       return
     }
-
-    // await navigateTo('/auth/confirm')
   }
 </script>

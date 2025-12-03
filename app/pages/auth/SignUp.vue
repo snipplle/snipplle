@@ -170,6 +170,6 @@
       return
     }
 
-    // await navigateTo('/auth/confirm')
+    await navigateTo('/auth/confirm')
   }
 </script>
