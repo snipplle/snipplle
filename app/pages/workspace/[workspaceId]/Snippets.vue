@@ -56,7 +56,7 @@
 <script setup lang="ts">
   const { listen } = useToolbarEvent()
   const { hasAccess, refresh: refreshPermission } =
-    await usePermission('snippets')
+    await usePermission('public_snippets')
 
   const queryFields = ref({
     orderBy: 'date',

@@ -89,6 +89,7 @@
               root: 'justify-between items-center flex-row-reverse',
               wrapper: 'ms-0',
             }"
+            :disabled="!hasAccess"
           />
 
           <div class="flex justify-between">
@@ -120,6 +121,7 @@
   const route = useRoute()
   const globalStore = useGlobalStore()
   const toast = useToast()
+  const { hasAccess } = await usePermission('private_snippets')
 
   const isOpen = ref(false)
   const tagsFocused = ref(false)
