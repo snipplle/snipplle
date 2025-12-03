@@ -116,16 +116,16 @@
     globalStore.setSelectedJoinedWorkspace(undefined)
 
     const activeWorkspace = globalStore.activeWorkspace
-    const collectionWorkspace = props.collection.workspace_id
+    const collectionWorkspace = props.collection.workspaceId
 
     if (activeWorkspace?.id !== collectionWorkspace) {
       globalStore.setSelectedJoinedWorkspace({
         id: collectionWorkspace,
-        slug: props.collection.workspaces.slug,
+        slug: props.collection.workspace.slug,
       })
 
       return navigateTo(
-        `/workspace/${props.collection.workspaces.slug}/collection/${props.collection.slug}`,
+        `/workspace/${props.collection.workspace.slug}/collection/${props.collection.slug}`,
       )
     }
 

@@ -63,6 +63,10 @@
 
         <div class="flex justify-center">
           <UPagination
+            v-if="
+              (selectedCategory === 'snippets' && snippets?.length) ||
+              (selectedCategory === 'collections' && collections?.length)
+            "
             v-model:page="queryFields.page"
             :items-per-page="queryFields.itemsPerPage"
             :total="

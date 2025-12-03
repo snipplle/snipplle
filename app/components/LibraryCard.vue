@@ -153,7 +153,7 @@
 
   function openPreview(): // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
   Promise<void | NavigationFailure | false> | false | void | RouteLocationRaw {
-    const route = `/preview/${props.data.workspaces.slug}/${props.is}/${props.data.slug}`
+    const route = `/preview/${props.data.workspace.slug}/${props.is}/${props.data.slug}`
 
     globalStore.setPreviewWorkspaceId(props.data.workspaceId || '')
 

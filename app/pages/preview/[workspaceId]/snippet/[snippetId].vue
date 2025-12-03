@@ -1,6 +1,6 @@
 <template>
   <ClientOnly>
-    <NuxtLayout name="preview" :title="data.name">
+    <NuxtLayout name="preview" :title="data?.name">
       <div class="h-full">
         <CodeViewer
           :content="snippetCode"
@@ -19,14 +19,14 @@
   const { params } = useRoute()
   const globalStore = useGlobalStore()
 
-  const { data } = await useFetch(`/api/snippet/${params.snippetId}`, {
+  const { data } = await useFetch<any>(`/api/snippet/${params.snippetId}`, {
     method: 'GET',
     query: {
       workspaceId: globalStore.previewWorkspaceId,
     },
   })
 
-  let extensions = [catppuccinMocha, languages[data.value.language || 'js']]
+  let extensions = [catppuccinMocha, languages[data.value?.language || 'js']]
   const snippetCode = ref('')
 
   watch(
@@ -34,7 +34,7 @@
     async (fileUrl) => {
       if (!fileUrl) {
         snippetCode.value = ''
-        extensions = [...extensions, languages[data.value.language || 'js']]
+        extensions = [...extensions, languages[data.value?.language || 'js']]
 
         return
       }
@@ -43,7 +43,7 @@
       const code = await response.text()
 
       snippetCode.value = code
-      extensions = [...extensions, languages[data.value.language || 'js']]
+      extensions = [...extensions, languages[data.value?.language || 'js']]
     },
     {
       deep: true,

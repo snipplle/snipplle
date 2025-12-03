@@ -114,7 +114,7 @@
         JSON.stringify(newData.snippets || []),
       )
 
-      collectionCode.value = newData.snippets
+      collectionCode.value = newData.snippets.length
         ? await Promise.all(
             newData.snippets.map(async (item: any) => ({
               id: item.id,
