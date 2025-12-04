@@ -2,6 +2,9 @@ services:
   studio:
     build: .
     restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
     ports:
       - 127.0.0.1:3000:3000
     environment:
@@ -33,3 +36,20 @@ services:
 
       - GARBAGE_CLEANER_CRON=${GARBAGE_CLEANER_CRON}
       - GARBAGE_CLEANER_FUNCTION=${GARBAGE_CLEANER_FUNCTION}
+
+  database:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    ports:
+      - 127.0.0.1:5432:5432
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - ./.snipplle/database:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
