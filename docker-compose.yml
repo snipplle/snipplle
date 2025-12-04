@@ -35,7 +35,6 @@ services:
       - BUCKET_NAME=${BUCKET_NAME}
 
       - GARBAGE_CLEANER_CRON=${GARBAGE_CLEANER_CRON}
-      - GARBAGE_CLEANER_FUNCTION=${GARBAGE_CLEANER_FUNCTION}
 
   database:
     image: postgres:17-alpine
