@@ -1,15 +1,13 @@
+import { SnippetService } from '../services/snippet.service'
+
 export default defineTask({
   meta: {
     name: 'garbage-cleaner',
   },
   async run() {
-    const config = useRuntimeConfig()
+    const snippetService = new SnippetService()
 
-    const response = await fetch(config.GARBAGE_CLEANER_FUNCTION, {
-      method: 'POST',
-    })
-
-    const { success } = await response.json()
+    const { success } = await snippetService.cleanGarbage()
 
     if (!success) {
       console.error('Garbage cleaner failed')

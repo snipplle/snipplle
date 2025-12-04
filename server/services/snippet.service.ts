@@ -433,6 +433,33 @@ export class SnippetService {
     return file
   }
 
+  async cleanGarbage(): Promise<{ success: boolean }> {
+    const garbage = await this.db.query.snippetGarbage.findMany()
+
+    for (const item of garbage) {
+      const isUsed = await this.db.query.collectionSnippet.findFirst({
+        where: (collectionSnippet, { eq }) =>
+          eq(collectionSnippet.snippetId, item.snippetId),
+      })
+
+      if (isUsed) {
+        continue
+      }
+
+      const { success } = await this.removeAllFiles(item.path)
+
+      if (!success) {
+        continue
+      }
+
+      await this.db.delete(snippetGarbage).where(eq(snippetGarbage.id, item.id))
+    }
+
+    return {
+      success: true,
+    }
+  }
+
   private async uploadFirstVersion(
     payload: any,
     snippetData: InferSelectModel<typeof snippet>,
@@ -623,5 +650,23 @@ export class SnippetService {
     await this.storageService.remove([
       `${workspaceId}/snippets/${snippetData.slug}/${version}/index.${snippetData.language}`,
     ])
+  }
+
+  private async removeAllFiles(
+    metaPath: string,
+  ): Promise<{ success: boolean }> {
+    const metaFile = await this.storageService.download(metaPath)
+
+    if (!metaFile) {
+      return { success: false }
+    }
+
+    const metaData = JSON.parse(metaFile)
+
+    const versionPaths = metaData.versions.map((version: any) => version.path)
+
+    await this.storageService.remove([...versionPaths, metaPath])
+
+    return { success: true }
   }
 }
