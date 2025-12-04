@@ -7,10 +7,7 @@ export default defineNuxtConfig({
 
   nitro: {
     experimental: {
-      tasks:
-        process.env.GARBAGE_CLEANER_CRON && process.env.GARBAGE_CLEANER_FUNCTION
-          ? true
-          : false,
+      tasks: process.env.GARBAGE_CLEANER_CRON ? true : false,
     },
     scheduledTasks: {
       [process.env.GARBAGE_CLEANER_CRON!]: ['garbage-cleaner'],
