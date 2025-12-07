@@ -1,11 +1,12 @@
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { apiKey } from 'better-auth/plugins'
-// import { render } from '@vue-email/render'
+import { render } from '@vue-email/render'
+import { transporter } from './mail'
 
-// import EmailVerification from '~/components/EmailTemplates/EmailVerification.vue'
-// import ResetPassword from '~/components/EmailTemplates/ResetPassword.vue'
-// import PasswordChanged from '~/components/EmailTemplates/PasswordChanged.vue'
+import EmailVerification from '~/components/mail/EmailVerification.vue'
+import ResetPassword from '~/components/mail/ResetPassword.vue'
+import PasswordChanged from '~/components/mail/PasswordChanged.vue'
 
 const runtimeConfig = useRuntimeConfig()
 
@@ -29,60 +30,63 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     sendResetPassword: async ({ user, url }, _) => {
-      // const html = await render(
-      //   ResetPassword,
-      //   {
-      //     name: user.name,
-      //     url,
-      //   },
-      //   {
-      //     pretty: true,
-      //   },
-      // )
-      // await resend.emails.send({
-      //   from: 'Loglybase <welcome@loglybase.com>',
-      //   to: user.email,
-      //   subject: 'Reset Password',
-      //   html,
-      // })
+      const html = await render(
+        ResetPassword,
+        {
+          name: user.name,
+          url,
+        },
+        {
+          pretty: true,
+        },
+      )
+
+      await transporter.sendMail({
+        from: 'Snipplle <no-reply@snipplle.com>',
+        to: user.email,
+        subject: 'Reset Password',
+        html,
+      })
     },
     onPasswordReset: async ({ user }, _) => {
-      // const html = await render(
-      //   PasswordChanged,
-      //   {
-      //     name: user.name,
-      //   },
-      //   {
-      //     pretty: true,
-      //   },
-      // )
-      // await resend.emails.send({
-      //   from: 'Loglybase <welcome@loglybase.com>',
-      //   to: user.email,
-      //   subject: 'Password Changed',
-      //   html,
-      // })
+      const html = await render(
+        PasswordChanged,
+        {
+          name: user.name,
+        },
+        {
+          pretty: true,
+        },
+      )
+
+      await transporter.sendMail({
+        from: 'Snipplle <no-reply@snipplle.com>',
+        to: user.email,
+        subject: 'Password Changed',
+        html,
+      })
     },
   },
   emailVerification: {
     sendOnSignUp: true,
     sendVerificationEmail: async ({ user, url }, _) => {
-      // const html = await render(
-      //   EmailVerification,
-      //   {
-      //     name: user.name,
-      //     url,
-      //   },
-      //   {
-      //     pretty: true,
-      //   },
-      // )
-      // await resend.emails.send({
-      //   from: 'Loglybase <welcome@loglybase.com>',
-      //   to: user.email,
-      //   subject: 'Email Verification',
-      //   html,
-      // })
+      const html = await render(
+        EmailVerification,
+        {
+          name: user.name,
+          url,
+        },
+        {
+          pretty: true,
+        },
+      )
+
+      await transporter.sendMail({
+        from: 'Snipplle <no-reply@snipplle.com>',
+        to: user.email,
+        subject: 'Email Verification',
+        html,
+      })
     },
   },
   socialProviders: {
