@@ -156,7 +156,6 @@
       password: payload.data.password,
       name: payload.data.name,
       onboardingCompleted: false,
-      callbackURL: '/auth/confirm',
     })
 
     if (error) {
@@ -170,5 +169,7 @@
 
       return
     }
+
+    await navigateTo('/auth/confirm')
   }
 </script>
