@@ -6,7 +6,7 @@ const runtimeConfig = useRuntimeConfig()
 export const transporter = nodemailer.createTransport({
   host: runtimeConfig.MAIL_HOST,
   port: Number(runtimeConfig.MAIL_PORT),
-  secure: true,
+  secure: false,
   auth: {
     user: runtimeConfig.MAIL_USER,
     pass: runtimeConfig.MAIL_PASSWORD,
