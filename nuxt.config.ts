@@ -1,4 +1,5 @@
 import tailwindcss from '@tailwindcss/vite'
+import vue from '@vitejs/plugin-vue'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -11,6 +12,9 @@ export default defineNuxtConfig({
     },
     scheduledTasks: {
       [process.env.GARBAGE_CLEANER_CRON!]: ['garbage-cleaner'],
+    },
+    rollupConfig: {
+      plugins: [vue()],
     },
   },
 
@@ -41,6 +45,10 @@ export default defineNuxtConfig({
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || '',
     GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID || '',
     GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET || '',
+    MAIL_HOST: process.env.MAIL_HOST || '',
+    MAIL_PORT: process.env.MAIL_PORT || '',
+    MAIL_USER: process.env.MAIL_USER || '',
+    MAIL_PASSWORD: process.env.MAIL_PASSWORD || '',
     EXTERNAL_FUNCTIONS_URL: process.env.EXTERNAL_FUNCTIONS_URL || '',
     AWS_REGION: process.env.AWS_REGION || '',
     AWS_ENDPOINT: process.env.AWS_ENDPOINT || '',
