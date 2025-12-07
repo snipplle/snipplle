@@ -35,6 +35,8 @@ services:
       - BUCKET_NAME=${BUCKET_NAME}
 
       - GARBAGE_CLEANER_CRON=${GARBAGE_CLEANER_CRON}
+    networks:
+      - snipplle-shared
 
   database:
     image: postgres:17-alpine
@@ -52,3 +54,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - snipplle-shared
+
+networks:
+  snipplle-shared:
+    external: true
