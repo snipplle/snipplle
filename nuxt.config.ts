@@ -31,6 +31,17 @@ export default defineNuxtConfig({
       templateParams: {
         siteName: 'Snipplle',
       },
+      script: [
+        process.env.ANALYTICS_URL && process.env.ANALYTICS_SITE_ID
+          ? {
+              src: process.env.ANALYTICS_URL || '',
+              defer: true,
+              'data-site-id': process.env.ANALYTICS_SITE_ID || '',
+              'data-track-errors': 'true',
+              'data-session-replay': 'true',
+            }
+          : {},
+      ],
     },
   },
 
