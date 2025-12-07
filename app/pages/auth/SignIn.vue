@@ -50,10 +50,10 @@
                 <div class="flex flex-col items-center text-xs space-y-4">
                   <div class="flex space-x-6">
                     <p>© {{ new Date().getFullYear() }} Snipplle</p>
-                    <ULink to="https://snipplle.com/privacy" external>
+                    <ULink to="https://snipplle.com/privacy-policy" external>
                       Privacy Policy
                     </ULink>
-                    <ULink to="https://snipplle.com/terms" external>
+                    <ULink to="https://snipplle.com/terms-of-use" external>
                       Terms of Use
                     </ULink>
                   </div>
