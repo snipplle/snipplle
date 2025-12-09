@@ -115,17 +115,14 @@ export const auth = betterAuth({
             return
           }
 
-          await fetch(
-            `${runtimeConfig.EXTERNAL_FUNCTIONS_URL}/create/customer`,
-            {
-              method: 'POST',
-              body: JSON.stringify({
-                userId: user.id,
-                name: user.name,
-                email: user.email,
-              }),
-            },
-          )
+          fetch(`${runtimeConfig.EXTERNAL_FUNCTIONS_URL}/create/customer`, {
+            method: 'POST',
+            body: JSON.stringify({
+              userId: user.id,
+              name: user.name,
+              email: user.email,
+            }),
+          })
         },
       },
     },
