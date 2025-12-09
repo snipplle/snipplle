@@ -54,8 +54,6 @@
 </template>
 
 <script setup lang="ts">
-  import { catppuccinMocha } from '@catppuccin/codemirror'
-
   import { LazyEditCollection } from '#components'
 
   const { params } = useRoute()
@@ -98,7 +96,7 @@
     },
   })
 
-  const extensions = [catppuccinMocha, languages[data?.value?.language || 'js']]
+  const extensions = [languages[data?.value?.language || 'js']]
 
   watch(
     () => data.value,

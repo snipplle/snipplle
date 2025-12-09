@@ -93,7 +93,6 @@
 
 <script setup lang="ts">
   import type { NavigationFailure, RouteLocationRaw } from 'vue-router'
-  import { catppuccinMocha } from '@catppuccin/codemirror'
 
   import { LazySnippetPreview } from '#components'
 
@@ -107,7 +106,7 @@
 
   const modal = overlay.create(LazySnippetPreview)
 
-  const extensions = [catppuccinMocha, languages[props.data.language || 'js']]
+  const extensions = [languages[props.data.language || 'js']]
   const code = ref()
 
   const options = computed(() => {

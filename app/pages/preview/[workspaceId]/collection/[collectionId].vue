@@ -44,8 +44,6 @@
 </template>
 
 <script setup lang="ts">
-  import { catppuccinMocha } from '@catppuccin/codemirror'
-
   const { params } = useRoute()
   const globalStore = useGlobalStore()
   const isMobile = useMediaQuery('(max-width: 640px)')
@@ -63,7 +61,7 @@
     },
   )
 
-  const extensions = [catppuccinMocha, languages[data?.value?.language || 'js']]
+  const extensions = [languages[data?.value?.language || 'js']]
 
   watch(
     () => data.value,

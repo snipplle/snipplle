@@ -14,8 +14,6 @@
 </template>
 
 <script setup lang="ts">
-  import { catppuccinMocha } from '@catppuccin/codemirror'
-
   const { params } = useRoute()
   const globalStore = useGlobalStore()
 
@@ -26,7 +24,7 @@
     },
   })
 
-  let extensions = [catppuccinMocha, languages[data.value?.language || 'js']]
+  let extensions = [languages[data.value?.language || 'js']]
   const snippetCode = ref('')
 
   watch(
