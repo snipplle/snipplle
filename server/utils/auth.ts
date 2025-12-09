@@ -41,7 +41,7 @@ export const auth = betterAuth({
         },
       )
 
-      await transporter.sendMail({
+      transporter.sendMail({
         from: 'Snipplle <no-reply@snipplle.com>',
         to: user.email,
         subject: 'Reset Password',
@@ -59,7 +59,7 @@ export const auth = betterAuth({
         },
       )
 
-      await transporter.sendMail({
+      transporter.sendMail({
         from: 'Snipplle <no-reply@snipplle.com>',
         to: user.email,
         subject: 'Password Changed',
@@ -81,7 +81,7 @@ export const auth = betterAuth({
         },
       )
 
-      await transporter.sendMail({
+      transporter.sendMail({
         from: 'Snipplle <no-reply@snipplle.com>',
         to: user.email,
         subject: 'Email Verification',
