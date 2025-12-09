@@ -29,6 +29,7 @@ export const auth = betterAuth({
   },
   emailAndPassword: {
     enabled: true,
+    requireEmailVerification: true,
     sendResetPassword: async ({ user, url }, _) => {
       const html = await render(
         ResetPassword,
