@@ -20,6 +20,9 @@ export default defineNuxtConfig({
 
   vite: {
     plugins: [tailwindcss()],
+    optimizeDeps: {
+      include: ['@catppuccin/codemirror'],
+    },
   },
 
   app: {
