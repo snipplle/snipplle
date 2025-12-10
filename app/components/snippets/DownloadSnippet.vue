@@ -1,6 +1,6 @@
 <template>
   <ClientOnly>
-    <div class="p-2 space-y-6">
+    <div v-if="versions?.length" class="p-2 space-y-6">
       <div class="flex flex-col space-y-2">
         <p class="text-xs font-semibold">Snippet URL (CLI)</p>
 
@@ -40,6 +40,13 @@
           />
         </div>
       </div>
+    </div>
+
+    <div v-else class="p-2 flex justify-center">
+      <p class="text-sm font-semibold">
+        No versions available. Please add a code to this snippet for first
+        version.
+      </p>
     </div>
   </ClientOnly>
 </template>
