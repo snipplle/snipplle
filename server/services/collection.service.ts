@@ -399,7 +399,7 @@ export class CollectionService {
   async pullCollection(
     workspaceId: string,
     collectionSlug: string,
-  ): Promise<string | null> {
+  ): Promise<string[] | null> {
     const collectionData = await this.getCollection({
       workspaceId,
       slug: collectionSlug,
@@ -419,9 +419,13 @@ export class CollectionService {
 
     const metaData = JSON.parse(metaFile)
 
-    const file = await this.storageService.getSignedUrl(metaData.path)
+    const files = await Promise.all(
+      metaData.paths.map(
+        async (path: string) => await this.storageService.getSignedUrl(path),
+      ),
+    )
 
-    if (!file) {
+    if (!files.length) {
       return null
     }
 
@@ -432,7 +436,7 @@ export class CollectionService {
       })
       .where(eq(collection.id, collectionData.id))
 
-    return file
+    return files
   }
 
   private prepareCodeFile(code: string, contentType: string): Blob {
