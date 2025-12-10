@@ -81,11 +81,13 @@
           label: 'Docs',
           icon: 'i-hugeicons-book-02',
           target: '_blank',
+          to: 'https://docs.snipplle.com',
         },
         {
           label: 'Github',
           icon: 'i-hugeicons-github',
           target: '_blank',
+          to: 'https://github.com/snipplle/snipplle',
         },
       ],
     ]
