@@ -1,15 +1,13 @@
 <template>
   <ClientOnly>
     <div class="h-full relative">
-      <NuxtCodeMirror
+      <Codemirror
         v-model="code"
         :class="[type]"
         :style="style"
-        :auto-focus="false"
-        :editable="false"
-        :read-only="true"
+        :autofocus="false"
+        :disabled="true"
         :extensions="extensionList"
-        :basic-setup="true"
         :indent-with-tab="true"
       />
 
@@ -27,6 +25,7 @@
 </template>
 
 <script setup lang="ts">
+  import { Codemirror } from 'vue-codemirror'
   import { catppuccinMocha } from '@catppuccin/codemirror'
 
   const props = withDefaults(
