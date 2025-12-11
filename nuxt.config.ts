@@ -159,6 +159,7 @@ export default defineNuxtConfig({
           "'self'",
           'https://connect-js.stripe.com',
           'https://js.stripe.com',
+          process.env.ANALYTICS_URL || '',
           "'unsafe-inline'",
         ],
         'style-src': [
