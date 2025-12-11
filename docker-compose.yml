@@ -35,6 +35,9 @@ services:
       - BUCKET_NAME=${BUCKET_NAME}
 
       - GARBAGE_CLEANER_CRON=${GARBAGE_CLEANER_CRON}
+
+      - ANALYTICS_URL=${ANALYTICS_URL}
+      - ANALYTICS_SITE_ID=${ANALYTICS_SITE_ID}
     networks:
       - snipplle-shared
 
