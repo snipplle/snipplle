@@ -145,4 +145,8 @@
   .public-view.cm-lineNumbers {
     font-size: 12px !important;
   }
+
+  .card-preview .cm-scroller {
+    overflow: hidden;
+  }
 </style>
