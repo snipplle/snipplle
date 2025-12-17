@@ -31,7 +31,7 @@
           <CLICommands />
 
           <UButton
-            href="https://docs.snipplle.com/cli"
+            href="https://docs.snipplle.com/cli/installation"
             target="_blank"
             color="neutral"
             variant="subtle"
