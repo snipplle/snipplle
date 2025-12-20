@@ -47,7 +47,7 @@
           </div>
         </div>
 
-        <div v-else class="w-full bg-default"></div>
+        <div v-else class="w-full h-full bg-default"></div>
       </div>
     </NuxtLayout>
   </ClientOnly>
