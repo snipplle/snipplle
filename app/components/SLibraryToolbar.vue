@@ -86,7 +86,6 @@
         </UInput>
 
         <UModal
-          title="Search"
           :ui="{
             content: 'divide-y-0',
             body: 'sm:pt-0 pb-6',
@@ -102,12 +101,12 @@
             Search
           </UButton>
 
-          <template #body>
+          <template #content>
             <UInput
               v-model="searchQuery"
               icon="i-hugeicons-search-01"
-              variant="subtle"
-              size="lg"
+              variant="none"
+              size="xl"
               placeholder="Search..."
               :ui="{
                 trailing: 'pe-1',
